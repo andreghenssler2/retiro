@@ -1,0 +1,1 @@
+Acesso proibido, verifique sua permissão <br><!--#echo var="REQUEST_URI" --> <br><!--#echo var="REMOTE_ADDR" -->

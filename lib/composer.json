@@ -1,0 +1,19 @@
+{
+    "name": "andre/retiro",
+    "description": "Programa de Retiros",
+    "require": {
+        "dompdf/dompdf": "^3.1",
+        "phpmailer/phpmailer": "^7.0",
+        "guzzlehttp/guzzle": "^7.10"
+    },
+    "autoload": {
+        "psr-4": {
+            "Andre\\Retiro\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Andre G Henssler"
+        }
+    ]
+}
