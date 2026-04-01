@@ -1,6 +1,6 @@
-$(document).ready(function() {
+$(document).ready(function () {
     var url_atual = window.location.href;
-	url_caminho = url_atual.length;
+    url_caminho = url_atual.length;
     const baseUrl = window.location.href.split("/install/")[0] + "/install/";
 
 
@@ -24,10 +24,10 @@ $(document).ready(function() {
         e.preventDefault();
 
         $.ajax({
-            url: baseUrl+"idioma/padrao_install.php",
+            url: baseUrl + "idioma/padrao_install.php",
             type: "POST",
             data: $("#form_idioma").serialize(),
-            
+
             success: function (resposta) {
                 window.location.href = "admin.php?id=2&lang=" + $("#idioma_install").val();
                 // console.log(resposta);
@@ -38,14 +38,14 @@ $(document).ready(function() {
         });
     });
 
-    $("#formbtnnext").on('submit', function(e){
+    $("#formbtnnext").on('submit', function (e) {
         e.preventDefault();
         $.ajax({
             url: "#",
             type: "POST",
             data: $("#formbtnnext").serialize(),
             success: function (resposta) {
-                window.location.href = "admin.php?id="+$("#id_form").val()+"&lang=" + $("#idioma").val();
+                window.location.href = "admin.php?id=" + $("#id_form").val() + "&lang=" + $("#idioma").val();
             },
             error: function () {
                 alert("Erro ao salvar os dados");
@@ -54,7 +54,7 @@ $(document).ready(function() {
         })
     });
 
-    $("#configura_banco").on('submit', function(e){
+    $("#configura_banco").on('submit', function (e) {
         e.preventDefault();
 
         let vazio = false;
@@ -149,5 +149,15 @@ $(document).ready(function() {
             }
         });
     });
+    function resetarBanco() {
 
+        fetch(baseUrl + "/install/teste/reset_db.php")
+            .then(res => res.text())
+            .then(res => {
+
+                location.reload()
+
+            })
+
+    }
 });

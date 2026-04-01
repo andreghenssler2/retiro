@@ -1,11 +1,12 @@
 <?php
 $pdo = $db;
-
 $lang = $_GET['lang'] ?? 'pt_br';
 ?>
+
 <div class="card-body">
     <div class='m-2'>
         <div class="row col-md-12">
+
             <?php
 
             $sqlFile = __DIR__ . '/../../mod/db/me.sql';
@@ -16,6 +17,7 @@ $lang = $_GET['lang'] ?? 'pt_br';
                 echo "Arquivo SQL não encontrado: $sqlFile";
                 echo '</div>';
                 exit;
+
             }
 
             echo '<div class="alert alert-success">';
@@ -29,11 +31,11 @@ $lang = $_GET['lang'] ?? 'pt_br';
             $total = count($queries);
             $executadas = 0;
             $erros = 0;
+            $tabelasExistentes = 0;
+            $tabelasCriadas = [];
 
             ?>
-            <div class="row">
 
-            </div>
             <div class="progress mb-4">
                 <div id="barra" class="progress-bar progress-bar-striped progress-bar-animated" style="width:0%">0%
                 </div>
@@ -71,6 +73,9 @@ $lang = $_GET['lang'] ?? 'pt_br';
                         $pdo->exec($query);
 
                         if ($tipo == 'create') {
+
+                            $tabelasCriadas[] = $nomeTabela;
+
                             echo "<div class='alert alert-success'>📦 Tabela <b>$nomeTabela</b> criada</div>";
                         }
 
@@ -83,6 +88,9 @@ $lang = $_GET['lang'] ?? 'pt_br';
                         $erro = $e->getMessage();
 
                         if (strpos($erro, 'already exists') !== false) {
+
+                            $tabelasExistentes++;
+                            $tabelasCriadas[] = $nomeTabela;
 
                             echo "<div class='alert alert-warning'>⚠️ Tabela <b>$nomeTabela</b> já criada</div>";
                             continue;
@@ -119,31 +127,91 @@ document.getElementById('barra').innerHTML='{$progress}%';
 
                 echo "</div>";
 
-                if ($erros == 0) {
+                ?>
 
-                    echo '<div class="alert alert-success mt-3">';
-                    echo "<b>Instalação concluída!</b><br>";
-                    echo "Banco configurado automaticamente pelo instalador PHP.";
-                    echo "</div>";
+            </div>
 
+            <?php
 
-                } else {
+            if ($erros == 0) {
 
-                    echo '<div class="alert alert-warning mt-3">';
-                    echo "<b>Instalação finalizada com $erros erro(s).</b>";
-                    echo "</div>";
+                echo '<div class="alert alert-success mt-3">';
+                echo "<b>Instalação concluída!</b><br>";
+                echo "Banco configurado automaticamente pelo instalador PHP.";
+                echo "</div>";
 
-                }
+                echo '<div class="mt-4 text-center">';
+                echo '<a href="admin.php?id=5&lang=' . $lang . '" class="btn btn-success">';
+                echo 'Continuar instalação';
+                echo '</a>';
+                echo '</div>';
+
+            } else {
+
+                echo '<div class="alert alert-warning mt-3">';
+                echo "<b>Instalação finalizada com $erros erro(s).</b>";
+                echo "</div>";
 
                 ?>
+
+                <div class="text-center mt-4">
+                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalReset">
+                        Resetar banco e tentar novamente
+                    </button>
+                </div>
+
+            <?php } ?>
+
         </div>
+
         <div class="col-md-12">
-            
+
             <div class="col-md-5">
                 <?php
-                    echo progress_install($_GET['id']);
+                echo progress_install($_GET['id']);
                 ?>
             </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+<!-- Modal Bootstrap -->
+
+<div class="modal fade" id="modalReset" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Resetar banco</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                Deseja realmente excluir todas as tabelas criadas e tentar novamente?
+            </div>
+
+            <div class="modal-footer">
+
+                <button class="btn btn-secondary" data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
+                <button class="btn btn-danger" onclick="resetarBanco()">
+                    Sim, resetar banco
+                </button>
+
+            </div>
+
         </div>
     </div>
 </div>
+
+
+<script>
+
+    
+
+</script>
