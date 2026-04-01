@@ -10,6 +10,7 @@ $nomebanco= 'ieclbp28_teste';
 $user= 'ieclbp28_teste';
 $senha= 'Mdp@2024!';
 $porta= '3306';
+$conectarBanco = 'producao';
 ?><?php
 $caminho_sistema = 'C:/xampp/htdocs';
 $caminho_pastas = 'asd';

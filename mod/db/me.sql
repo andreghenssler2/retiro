@@ -66,7 +66,7 @@ CREATE TABLE acesso(
     tipo_acess char(20)
 );
 
-INSERT INTO acesso (idAcess, tipo_acess) VALUES ('1', 'Administrador'),('2', 'Coloborador'),('3', 'Participante');
+INSERT INTO acesso (idAcess, tipo_acess) VALUES ('1', 'Administrador'),('2', 'Coloborador'),('3', 'Secretário (a)'),('4', 'Participante'),('5', 'Palestrante'),('6', 'Visitante'),('7','Tesoureiro'),('8', 'Presidente'),('9', 'Vice-Presidente'),('10', 'Membro');
 
 
 CREATE TABLE users(

@@ -1,7 +1,6 @@
 <?php
 // Arquivo deve enviar ZERO saída antes das configs
 ob_start();
-
 include 'padroes.php';
 ?>
 <!DOCTYPE html>

@@ -20,6 +20,7 @@ $user = $_POST['user'];
 $pass = $_POST['senha'] ?? '';
 $port = $_POST['porta'] ?? '';
 $charset = 'utf8mb4';
+$conectarBanco = 'producao' ?? 'desenvolvimento';
 
 if (!$db || !$user) {
     $response['message'] = 'Dados do banco incompletos';
