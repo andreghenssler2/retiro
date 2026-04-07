@@ -13,7 +13,4 @@ $conectarBanco = 'producao';
 
 $caminho_sistema = 'C:/xampp/htdocs';
 $caminho_pastas = 'arquivos';
-?><?php
-$caminho_sistema = 'C:/xampp/htdocs';
-$caminho_pastas = 'arquivos';
 ?>
