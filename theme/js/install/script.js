@@ -137,12 +137,44 @@ $(document).ready(function () {
     $("#configura_caminho").on("submit", function (e) {
         e.preventDefault();
 
+        let caminho = $("#caminho").val().trim();
+        let pasta = $("#caminho_pasta").val().trim();
+        let erro = false;
+
+        // limpar erros
+        $("#id_error_caminho").text("").hide();
+        $("#id_error_caminho_pasta").text("").hide();
+
+        if (caminho === "") {
+            $("#caminho").addClass("is-invalid");
+            $("#id_error_caminho").text("Campo obrigatório").show();
+            erro = true;
+        } else {
+            $("#caminho").removeClass("is-invalid");
+        }
+
+        if (pasta === "") {
+            $("#caminho_pasta").addClass("is-invalid");
+            $("#id_error_caminho_pasta").text("Campo obrigatório").show();
+            erro = true;
+        } else {
+            $("#caminho_pasta").removeClass("is-invalid");
+        }
+
+        if (erro) {
+            return;
+        }
+
         $.ajax({
-            url: baseUrl + "configuraction/config_caminho.php",
+            url: baseUrl + "/teste/caminho.php",
             type: "POST",
             data: $("#configura_caminho").serialize(),
             success: function (resposta) {
-                window.location.href = "admin.php?id=5&lang=" + $("#idioma").val();
+
+                // habilita botão próximo
+                $("#btn_next").prop("disabled", false);
+
+                alert("Caminho criado com sucesso!");
             },
             error: function () {
                 alert("Erro ao salvar os dados");

@@ -43,7 +43,7 @@ class Config
         $_SESSION['host'] = $host;
 
         if (strpos($host, 'localhost') !== false || strpos($host, '127.0.0.1') !== false) {
-            $base = "http://localhost/"; // altere para seu caminho local
+            $base = "http://localhost/retiro/"; // altere para seu caminho local
             define('conectar',  'desenvolvimento');
 
         } else {
