@@ -1,7 +1,8 @@
 <?php
 // Arquivo deve enviar ZERO saída antes das configs
 ob_start();
-include 'padroes.php';
+include '../padroes.php';
+include '../configuraction/modo_config.php';
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -10,7 +11,7 @@ include 'padroes.php';
         
             
             if($host == ''){
-                require 'configuraction/configuracao.php';
+                require __DIR__.'/../../configuraction/configuracao.php';
                 $titulo = Title_install::getAtual();
             
                 if ($titulo) {
@@ -24,8 +25,8 @@ include 'padroes.php';
                     );
                 }
             }else{
-                require "../config/settings.php";
-                require 'configuraction/modo_config.php';
+                require  __DIR__.'/../../config/settings.php';
+                // require 'configuraction/modo_config.php';
                 $titulo = Title::getAtual();
                 HeaderHTML::metaTags(
                     "Instalação do Sistema de Eventos",                // title
@@ -94,23 +95,14 @@ include 'padroes.php';
                                     
                                         if(isset($_GET['id'])){
                                             $id = $_GET['id'];
-                                            
-                                            if($id == 2){
-                                                primeira_configuracao($lang);
-                                            }elseif($id == 3){
-                                                config_banco_install($lang);
-                                            }elseif($id == 4){
-                                                caminho_sistema($lang);
-                                            }elseif($id == '4a'){
-                                                include 'configuraction/install_banco.php';
-                                            }elseif($id == 5){
-                                                header("Location: admin/index.php?id=5&lang={$lang}");
+                                            if($id == 5){
+                                                include 'novos/usuario.php';
                                             }elseif($id == 6){
-                                                header("Location: admin/index.php?id=6&lang={$lang}");
+                                                
                                             }elseif($id == 7){
-                                                header("Location: admin/index.php?id=7&lang={$lang}");
+                                                
                                             } else {
-                                                header("Location: index.php?id=1&lang={$lang}");
+                                                header("Location: ../index.php?id=1&lang={$lang}");
                                             }
                                         }
                                     ?>

@@ -115,10 +115,7 @@ $lang = $_GET['lang'] ?? 'pt_br';
 
                     $progress = intval(($executadas / $total) * 100);
 
-                    echo "<script>
-document.getElementById('barra').style.width='{$progress}%';
-document.getElementById('barra').innerHTML='{$progress}%';
-</script>";
+                    echo "<script> document.getElementById('barra').style.width='{$progress}%';document.getElementById('barra').innerHTML='{$progress}%';</script>";
 
                     ob_flush();
                     flush();
