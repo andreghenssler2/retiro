@@ -3,6 +3,7 @@
 ob_start();
 include '../padroes.php';
 include '../configuraction/modo_config.php';
+// include '../configuraction/modo_config.php';
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">

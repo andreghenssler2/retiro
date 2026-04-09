@@ -208,7 +208,13 @@ $lang = $_GET['lang'] ?? 'pt_br';
 
 
 <script>
+    function resetarBanco() {
 
-    
-
+        fetch("teste/reset_db.php")
+            .then(res => res.text())
+            .then(res => {
+                location.reload()
+            })
+    }
+    \
 </script>
