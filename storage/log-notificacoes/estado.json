@@ -1,0 +1,46 @@
+{
+    "arquivos": {
+        "C:/xampp/htdocs/mod/logs/2026-08-04.log": {
+            "offset": 2539,
+            "tamanho": 2539,
+            "modificado_em": "2026-08-04 20:57:52"
+        },
+        "C:/xampp/htdocs/mod/logs/2026-08-03 08 39 26.log": {
+            "offset": 467,
+            "tamanho": 467,
+            "modificado_em": "2026-08-03 20:39:26"
+        },
+        "C:/xampp/htdocs/mod/logs/2026-08-03.log": {
+            "offset": 3798,
+            "tamanho": 3798,
+            "modificado_em": "2026-08-03 21:18:16"
+        },
+        "C:/xampp/htdocs/mod/logs/2026-08-08.log": {
+            "offset": 258,
+            "tamanho": 258,
+            "modificado_em": "2026-08-08 10:18:50"
+        },
+        "/home1/ieclbp28/retiro/mod/logs/2026-08-03 08 39 261.log": {
+            "offset": 467,
+            "tamanho": 467,
+            "modificado_em": "2026-08-08 10:09:03"
+        },
+        "/home1/ieclbp28/retiro/mod/logs/2026-08-03.log": {
+            "offset": 3798,
+            "tamanho": 3798,
+            "modificado_em": "2026-08-08 10:09:03"
+        },
+        "/home1/ieclbp28/retiro/mod/logs/2026-08-04.log": {
+            "offset": 2539,
+            "tamanho": 2539,
+            "modificado_em": "2026-08-08 10:09:03"
+        },
+        "/home1/ieclbp28/retiro/mod/logs/2026-08-08.log": {
+            "offset": 836427,
+            "tamanho": 836427,
+            "modificado_em": "2026-08-08 17:35:22"
+        }
+    },
+    "ultima_execucao_com_sucesso": "2026-08-08 17:45:01",
+    "ultimo_email": "secretaria@ieclbparobe.com.br"
+}

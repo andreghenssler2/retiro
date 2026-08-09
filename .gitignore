@@ -1,0 +1,21 @@
+oculta.txt
+/ieclb-mail/*
+
+# Credenciais locais de integrações
+/config/integracoes.php
+
+# Chave mestra das credenciais bancárias
+/config/.bancario.key
+
+# Certificados gerados e imagens dos modelos
+/storage/certificados/*
+!/storage/certificados/.htaccess
+!/storage/certificados/.gitkeep
+/uploads/certificados/modelos/*
+/logs/*
+!/uploads/certificados/modelos/.gitkeep
+
+# ignore IDE files
+*.zip
+
+*.bak-eventos

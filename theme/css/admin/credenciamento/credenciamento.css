@@ -1,0 +1,121 @@
+.credenciamento-lista {
+    --credenciamento-check-width: 220px;
+}
+
+.credenciamento-item {
+    display: grid;
+    grid-template-columns: 42px minmax(260px, 1fr) minmax(190px, auto) var(--credenciamento-check-width);
+    gap: 18px;
+    align-items: center;
+    padding: 18px 20px;
+    transition: background-color .2s ease, border-color .2s ease;
+}
+
+.credenciamento-item:hover {
+    background: #f8fafc;
+}
+
+.credenciamento-item.credenciamento-presente {
+    background: rgba(var(--bs-success-rgb), .045);
+    border-left: 4px solid var(--bs-success);
+}
+
+.credenciamento-numero {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #eef2ff;
+    color: #3730a3;
+    font-weight: 700;
+}
+
+.nome-participante,
+.dados-participante {
+    overflow-wrap: anywhere;
+}
+
+.credenciamento-situacoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.credenciamento-check {
+    min-width: 0;
+}
+
+.credenciamento-check .form-check-input {
+    width: 3rem;
+    height: 1.5rem;
+    cursor: pointer;
+}
+
+.credenciamento-check .form-check-input:disabled {
+    cursor: not-allowed;
+}
+
+.credenciamento-resumo .card {
+    border-radius: 14px;
+}
+
+.credenciamento-check label{
+    margin-left: 10%;
+}
+
+@media (max-width: 1199.98px) {
+    .credenciamento-item {
+        grid-template-columns: 42px minmax(0, 1fr) 220px;
+    }
+
+    .credenciamento-situacoes {
+        grid-column: 2;
+        justify-content: flex-start;
+    }
+
+    .credenciamento-check {
+        grid-column: 3;
+        grid-row: 1 / span 2;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .credenciamento-item {
+        grid-template-columns: 38px minmax(0, 1fr);
+        gap: 12px;
+        padding: 16px;
+    }
+
+    .credenciamento-situacoes,
+    .credenciamento-check {
+        grid-column: 1 / -1;
+        grid-row: auto;
+        padding-left: 50px;
+    }
+
+    .credenciamento-check {
+        padding-top: 6px;
+    }
+}
+
+@media (max-width: 479.98px) {
+    .credenciamento-item {
+        grid-template-columns: 1fr;
+    }
+
+    .credenciamento-numero {
+        width: auto;
+        height: auto;
+        justify-content: flex-start;
+        background: transparent;
+    }
+
+    .credenciamento-situacoes,
+    .credenciamento-check {
+        grid-column: 1;
+        padding-left: 0;
+    }
+}

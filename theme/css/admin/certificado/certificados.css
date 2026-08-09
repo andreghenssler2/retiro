@@ -1,0 +1,64 @@
+.certificado-page {
+    min-width: 0;
+}
+
+.certificado-page .card,
+.certificado-page .card-body,
+.certificado-page .table-responsive {
+    min-width: 0;
+}
+
+.certificado-resumo .display-6 {
+    font-size: clamp(1.7rem, 3vw, 2.5rem);
+}
+
+.certificado-page code {
+    color: var(--bs-primary);
+    overflow-wrap: anywhere;
+}
+
+.arquivo-atual {
+    padding: .75rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: .75rem;
+    background: var(--bs-tertiary-bg);
+}
+
+.arquivo-atual img {
+    display: block;
+    max-width: 100%;
+    max-height: 90px;
+    margin: 0 auto;
+    object-fit: contain;
+}
+
+.arquivo-atual .fundo-preview {
+    width: 100%;
+    max-height: 180px;
+    object-fit: cover;
+    border-radius: .5rem;
+}
+
+.certificado-page textarea {
+    resize: vertical;
+    min-height: 135px;
+}
+
+.certificado-page .form-control-color {
+    min-height: 38px;
+}
+
+@media (max-width: 767.98px) {
+    .certificado-page {
+        padding: 1rem;
+    }
+
+    .certificado-page .card-body {
+        padding: 1rem;
+    }
+
+    .certificado-page .table td,
+    .certificado-page .table th {
+        white-space: nowrap;
+    }
+}

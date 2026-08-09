@@ -1,0 +1,5 @@
+# @author: AndrÃ© Gustavo Henssler
+# @mail: admin@ieclbparobe.com.br
+# @phone: +55 51 995262803
+
+Disallow: /*

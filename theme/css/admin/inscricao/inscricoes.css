@@ -1,0 +1,270 @@
+.inscricoes-page {
+    min-width: 0;
+    container-name: inscricoes;
+    container-type: inline-size;
+}
+
+.inscricoes-page .card,
+.inscricoes-page .card-body,
+#listaInscricoes,
+.inscricoes-table-wrapper {
+    min-width: 0;
+}
+
+#listaInscricoes {
+    width: 100%;
+    container-name: lista-inscricoes;
+    container-type: inline-size;
+}
+
+.inscricoes-resumo .card-body {
+    padding: 1rem;
+}
+
+.inscricoes-resumo h2 {
+    font-size: clamp(1.45rem, 2.5vw, 2rem);
+}
+
+.inscricoes-card-header h5 {
+    flex-shrink: 0;
+}
+
+.inscricoes-acoes-topo .btn {
+    white-space: nowrap;
+}
+
+.inscricoes-alerta {
+    line-height: 1.45;
+}
+
+.inscricoes-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.inscricoes-table {
+    min-width: 1040px;
+}
+
+.inscricoes-table td,
+.inscricoes-table th {
+    vertical-align: middle;
+}
+
+.inscricoes-table .participante-cell,
+.inscricoes-table .evento-cell {
+    min-width: 145px;
+}
+
+.inscricoes-table .contato-cell {
+    min-width: 220px;
+    overflow-wrap: anywhere;
+}
+
+.acoes-inscricao {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    gap: .3rem;
+}
+
+.acoes-inscricao .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+    min-width: 36px;
+    min-height: 34px;
+    margin: 0 !important;
+    border-radius: .55rem !important;
+}
+
+.acao-texto {
+    display: none;
+}
+
+@container lista-inscricoes (max-width: 1120px) {
+    .inscricoes-table-wrapper {
+        overflow: visible;
+    }
+
+    .inscricoes-table {
+        display: block;
+        min-width: 0;
+        border-collapse: separate;
+    }
+
+    .inscricoes-table thead {
+        display: none;
+    }
+
+    .inscricoes-table tbody {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .inscricoes-table .inscricao-row {
+        display: block;
+        min-width: 0;
+        overflow: hidden;
+        border: 1px solid var(--bs-border-color);
+        border-radius: .85rem;
+        background: var(--bs-body-bg);
+        box-shadow: 0 .2rem .7rem rgba(15, 23, 42, .06);
+    }
+
+    .inscricoes-table .inscricao-row:hover {
+        background: var(--bs-body-bg);
+    }
+
+    .inscricoes-table .inscricao-row td {
+        display: grid;
+        grid-template-columns: minmax(96px, 32%) minmax(0, 1fr);
+        gap: .65rem;
+        align-items: start;
+        width: 100%;
+        min-width: 0;
+        padding: .65rem .85rem !important;
+        border: 0;
+        border-bottom: 1px solid rgba(var(--bs-secondary-rgb), .12);
+        text-align: left !important;
+        overflow-wrap: anywhere;
+    }
+
+    .inscricoes-table .inscricao-row td::before {
+        content: attr(data-label);
+        color: var(--bs-secondary-color);
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .035em;
+        text-transform: uppercase;
+    }
+
+    .inscricoes-table .inscricao-row .id-cell {
+        color: var(--bs-primary);
+        background: rgba(var(--bs-primary-rgb), .045);
+    }
+
+    .inscricoes-table .inscricao-row .acao-cell {
+        display: block;
+        border-bottom: 0;
+        background: rgba(var(--bs-secondary-rgb), .035);
+    }
+
+    .inscricoes-table .inscricao-row .acao-cell::before {
+        display: block;
+        margin-bottom: .6rem;
+    }
+
+    .acoes-inscricao {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .5rem;
+        width: 100%;
+    }
+
+    .acoes-inscricao .btn {
+        width: 100% !important;
+        min-height: 38px;
+        padding: .4rem .55rem;
+    }
+
+    .acao-texto {
+        display: inline;
+        font-size: .78rem;
+        font-weight: 600;
+    }
+
+    .inscricoes-table .inscricoes-vazio {
+        display: block;
+        grid-column: 1 / -1;
+    }
+
+    .inscricoes-table .inscricoes-vazio td {
+        display: block;
+        width: 100%;
+        border: 1px dashed var(--bs-border-color);
+        border-radius: .85rem;
+    }
+}
+
+@container lista-inscricoes (max-width: 760px) {
+    .inscricoes-table tbody {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .inscricoes-page {
+        padding: 1rem;
+    }
+
+    .inscricoes-card-header,
+    .inscricoes-acoes-topo {
+        width: 100%;
+    }
+
+    .inscricoes-acoes-topo .btn {
+        flex: 1 1 100%;
+    }
+
+    .inscricoes-alerta {
+        font-size: .9rem;
+    }
+
+    .inscricoes-page .card-body {
+        padding: 1rem !important;
+    }
+
+    .pagination {
+        flex-wrap: wrap;
+        gap: .2rem;
+    }
+}
+
+@media (max-width: 479.98px) {
+    .inscricoes-resumo .card-body {
+        padding: .8rem;
+    }
+
+    .inscricoes-resumo small {
+        font-size: .72rem;
+    }
+
+    .inscricoes-table .inscricao-row td {
+        grid-template-columns: 1fr;
+        gap: .15rem;
+    }
+
+    .inscricoes-table .inscricao-row td::before {
+        margin-bottom: .15rem;
+    }
+
+    .acoes-inscricao {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* Ajustes adicionais para áreas estreitas e sidebar aberta */
+@container lista-inscricoes (max-width: 1120px) {
+    .inscricoes-table .contato-cell small,
+    .inscricoes-table .participante-cell,
+    .inscricoes-table .evento-cell {
+        overflow-wrap: anywhere;
+        word-break: normal;
+    }
+
+    .inscricoes-table .inscricao-row td > * {
+        min-width: 0;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .inscricoes-page {
+        padding-left: .65rem;
+        padding-right: .65rem;
+    }
+}

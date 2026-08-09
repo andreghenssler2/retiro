@@ -1,0 +1,52 @@
+[08-Aug-2026 15:37:57 America/Sao_Paulo] PHP Fatal error:  Uncaught Error: Undefined constant "string" in /home1/ieclbp28/retiro/eventos/detalhe.php:521
+Stack trace:
+#0 {main}
+  thrown in /home1/ieclbp28/retiro/eventos/detalhe.php on line 521
+[08-Aug-2026 15:46:51 America/Sao_Paulo] PHP Fatal error:  Uncaught Error: Undefined constant "string" in /home1/ieclbp28/retiro/eventos/detalhe.php:521
+Stack trace:
+#0 {main}
+  thrown in /home1/ieclbp28/retiro/eventos/detalhe.php on line 521
+[08-Aug-2026 15:46:58 America/Sao_Paulo] PHP Fatal error:  Uncaught Error: Undefined constant "string" in /home1/ieclbp28/retiro/eventos/detalhe.php:521
+Stack trace:
+#0 {main}
+  thrown in /home1/ieclbp28/retiro/eventos/detalhe.php on line 521
+[08-Aug-2026 15:47:11 America/Sao_Paulo] PHP Fatal error:  Uncaught Error: Undefined constant "string" in /home1/ieclbp28/retiro/eventos/detalhe.php:521
+Stack trace:
+#0 {main}
+  thrown in /home1/ieclbp28/retiro/eventos/detalhe.php on line 521
+[08-Aug-2026 15:51:07 America/Sao_Paulo] PHP Fatal error:  Uncaught Error: Undefined constant "string" in /home1/ieclbp28/retiro/eventos/detalhe.php:524
+Stack trace:
+#0 {main}
+  thrown in /home1/ieclbp28/retiro/eventos/detalhe.php on line 524
+[08-Aug-2026 15:51:12 America/Sao_Paulo] PHP Fatal error:  Uncaught Error: Undefined constant "string" in /home1/ieclbp28/retiro/eventos/detalhe.php:524
+Stack trace:
+#0 {main}
+  thrown in /home1/ieclbp28/retiro/eventos/detalhe.php on line 524
+[08-Aug-2026 15:51:52 America/Sao_Paulo] PHP Fatal error:  Uncaught Error: Undefined constant "string" in /home1/ieclbp28/retiro/eventos/detalhe.php:524
+Stack trace:
+#0 {main}
+  thrown in /home1/ieclbp28/retiro/eventos/detalhe.php on line 524
+[08-Aug-2026 15:52:03 America/Sao_Paulo] PHP Fatal error:  Uncaught Error: Undefined constant "string" in /home1/ieclbp28/retiro/eventos/detalhe.php:524
+Stack trace:
+#0 {main}
+  thrown in /home1/ieclbp28/retiro/eventos/detalhe.php on line 524
+[08-Aug-2026 15:52:41 America/Sao_Paulo] PHP Fatal error:  Uncaught Error: Undefined constant "string" in /home1/ieclbp28/retiro/eventos/detalhe.php:524
+Stack trace:
+#0 {main}
+  thrown in /home1/ieclbp28/retiro/eventos/detalhe.php on line 524
+[08-Aug-2026 15:55:45 America/Sao_Paulo] PHP Fatal error:  Uncaught Error: Undefined constant "string" in /home1/ieclbp28/retiro/eventos/detalhe.php:524
+Stack trace:
+#0 {main}
+  thrown in /home1/ieclbp28/retiro/eventos/detalhe.php on line 524
+[08-Aug-2026 16:15:22 America/Sao_Paulo] PHP Fatal error:  Uncaught Error: Undefined constant "string" in /home1/ieclbp28/retiro/eventos/detalhe.php:524
+Stack trace:
+#0 {main}
+  thrown in /home1/ieclbp28/retiro/eventos/detalhe.php on line 524
+[08-Aug-2026 16:16:38 America/Sao_Paulo] PHP Fatal error:  Uncaught Error: Undefined constant "string" in /home1/ieclbp28/retiro/eventos/detalhe.php:524
+Stack trace:
+#0 {main}
+  thrown in /home1/ieclbp28/retiro/eventos/detalhe.php on line 524
+[08-Aug-2026 16:22:58 America/Sao_Paulo] PHP Fatal error:  Uncaught Error: Undefined constant "string" in /home1/ieclbp28/retiro/eventos/detalhe.php:524
+Stack trace:
+#0 {main}
+  thrown in /home1/ieclbp28/retiro/eventos/detalhe.php on line 524

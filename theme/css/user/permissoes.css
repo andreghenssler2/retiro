@@ -1,0 +1,40 @@
+.permissoes-page .card {
+    border-radius: 14px;
+}
+
+.permissoes-resumo-icone {
+    width: 48px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    border-radius: 12px;
+    font-size: 1.2rem;
+}
+
+.permissoes-table th,
+.permissoes-table td {
+    vertical-align: middle;
+}
+
+.permissao-coluna {
+    width: 150px;
+    min-width: 125px;
+}
+
+.permissao-checkbox {
+    width: 1.35rem;
+    height: 1.35rem;
+    cursor: pointer;
+}
+
+.permissao-checkbox:disabled {
+    cursor: not-allowed;
+}
+
+@media (max-width: 767.98px) {
+    .permissao-coluna {
+        min-width: 110px;
+    }
+}

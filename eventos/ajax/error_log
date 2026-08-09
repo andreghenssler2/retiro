@@ -1,0 +1,8 @@
+[08-Aug-2026 15:18:35 America/Sao_Paulo] Falha no checkout | pagamento=4 | usuario=38 | forma=Cartao | erro=Call to undefined method AsaasPagamentoService::pagarCobrancaCartao()
+[08-Aug-2026 15:22:56 America/Sao_Paulo] Falha no checkout | pagamento=4 | usuario=38 | forma=Cartao | erro=Call to undefined method AsaasPagamentoService::pagarCobrancaCartao()
+[08-Aug-2026 15:27:48 America/Sao_Paulo] Falha no checkout | pagamento=4 | usuario=38 | forma=Cartao | erro=Call to undefined method AsaasPagamentoService::pagarCobrancaCartao()
+[08-Aug-2026 15:27:59 America/Sao_Paulo] Falha no checkout | pagamento=4 | usuario=38 | forma=Cartao | erro=Call to undefined method AsaasPagamentoService::pagarCobrancaCartao()
+[08-Aug-2026 15:29:41 America/Sao_Paulo] Falha no checkout | pagamento=4 | usuario=38 | forma=Cartao | ambiente=sandbox | erro=Call to undefined method AsaasPagamentoService::pagarCobrancaCartao()
+[08-Aug-2026 15:29:51 America/Sao_Paulo] Falha no checkout | pagamento=4 | usuario=38 | forma=Cartao | ambiente=sandbox | erro=Call to undefined method AsaasPagamentoService::pagarCobrancaCartao()
+[08-Aug-2026 15:33:34 America/Sao_Paulo] Falha no checkout | pagamento=4 | usuario=38 | forma=Cartao | ambiente=sandbox | erro=Call to undefined method AsaasPagamentoService::pagarCobrancaCartao()
+[08-Aug-2026 15:34:47 America/Sao_Paulo] Falha no checkout | pagamento=4 | usuario=38 | forma=Cartao | ambiente=sandbox | erro=Call to undefined method AsaasPagamentoService::pagarCobrancaCartao()

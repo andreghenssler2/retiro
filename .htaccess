@@ -1,0 +1,87 @@
+#############################################
+# CONFIGURAÇÕES GERAIS
+#############################################
+
+Options -Indexes
+ServerSignature Off
+
+RewriteEngine On
+RewriteBase /login/
+
+#############################################
+# REDIRECIONAMENTO PARA PUBLIC
+#############################################
+
+RewriteCond %{REQUEST_URI} !^/login/public/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ public/$1 [L]
+
+#############################################
+# PROTEÇÃO DE ARQUIVOS
+#############################################
+
+<FilesMatch "^(\.env|composer\.(json|lock)|package\.json|README\.md|phpunit\.xml)$">
+    Require all denied
+</FilesMatch>
+
+RewriteRule ^(app|auth|config|storage|vendor|logs)/ - [F,L]
+
+#############################################
+# PÁGINAS DE ERRO
+#############################################
+
+ErrorDocument 400 /mod/errors/302php
+ErrorDocument 400 /mod/errors/400.php
+ErrorDocument 401 /mod/errors/401.php
+ErrorDocument 403 /mod/errors/403.php
+ErrorDocument 404 /mod/errors/404.php
+ErrorDocument 405 /mod/errors/405.php
+ErrorDocument 408 /mod/errors/408.php
+ErrorDocument 408 /mod/errors/429.php
+ErrorDocument 500 /mod/errors/500.php
+ErrorDocument 500 /mod/errors/501.php
+ErrorDocument 502 /mod/errors/502.php
+ErrorDocument 503 /mod/errors/503.php
+
+#############################################
+# SEGURANÇA
+#############################################
+
+<IfModule mod_headers.c>
+    Header always unset X-Powered-By
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+#############################################
+# COMPRESSÃO
+#############################################
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/json
+</IfModule>
+
+#############################################
+# CACHE
+#############################################
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png  "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+
+    ExpiresByType text/css "access plus 30 days"
+    ExpiresByType application/javascript "access plus 30 days"
+
+    ExpiresDefault "access plus 1 day"
+</IfModule>
