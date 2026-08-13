@@ -77,7 +77,54 @@ class AsaasService
         );
     }
 
-    public function consultarClienteOuNull(string $idAsaas): ?array
+        /**
+     * Desabilita as notificações padrão do Asaas
+     * para o cliente.
+     *
+     * O site é a única camada responsável pelas
+     * comunicações com o participante.
+     */
+    public function desabilitarNotificacoesCliente(
+        string $idAsaas
+    ): array {
+        $idAsaas =
+            $this->idValido(
+                $idAsaas
+            );
+
+        $cliente =
+            $this->requisitar(
+                "PUT",
+                "/customers/"
+                    . rawurlencode(
+                        $idAsaas
+                    ),
+                [
+                    "notificationDisabled"
+                        => true
+                ]
+            );
+
+        if (
+            array_key_exists(
+                "notificationDisabled",
+                $cliente
+            )
+            && $cliente[
+                "notificationDisabled"
+            ] !== true
+        ) {
+            throw new RuntimeException(
+                "O Asaas não confirmou "
+                . "a desativação das "
+                . "notificações do cliente."
+            );
+        }
+
+        return $cliente;
+    }
+
+public function consultarClienteOuNull(string $idAsaas): ?array
     {
         try {
             return $this->consultarCliente($idAsaas);
@@ -103,87 +150,288 @@ class AsaasService
         }
     }
 
-    public function obterOuCriarCliente(array $dados, ?string $clienteExistente = null): array
-    {
-        $clienteExistente = trim((string) ($clienteExistente ?? ""));
+        public function obterOuCriarCliente(
+        array $dados,
+        ?string $clienteExistente = null
+    ): array {
+        $clienteExistente =
+            trim(
+                (string) (
+                    $clienteExistente
+                    ?? ""
+                )
+            );
 
-        $cpfCnpj = preg_replace('/\D+/', '', (string) ($dados["cpfCnpj"] ?? "")) ?? "";
-        $referencia = trim((string) ($dados["externalReference"] ?? ""));
+        $cpfCnpj =
+            preg_replace(
+                '/\D+/',
+                '',
+                (string) (
+                    $dados["cpfCnpj"]
+                    ?? ""
+                )
+            )
+            ?? "";
 
+        $referencia =
+            trim(
+                (string) (
+                    $dados[
+                        "externalReference"
+                    ]
+                    ?? ""
+                )
+            );
+
+        /*
+         * Cliente já vinculado no banco local.
+         */
         if ($clienteExistente !== "") {
-            $clienteValidado = $this->consultarClienteOuNull($clienteExistente);
+            $clienteValidado =
+                $this
+                    ->consultarClienteOuNull(
+                        $clienteExistente
+                    );
 
-            if ($clienteValidado !== null) {
-                $cpfExistente = preg_replace(
-                    '/\D+/',
-                    '',
-                    (string) ($clienteValidado["cpfCnpj"] ?? "")
-                ) ?? "";
-                $referenciaExistente = trim(
-                    (string) ($clienteValidado["externalReference"] ?? "")
-                );
+            if (
+                $clienteValidado
+                !== null
+            ) {
+                $cpfExistente =
+                    preg_replace(
+                        '/\D+/',
+                        '',
+                        (string) (
+                            $clienteValidado[
+                                "cpfCnpj"
+                            ]
+                            ?? ""
+                        )
+                    )
+                    ?? "";
 
-                $mesmoCpf = $cpfCnpj !== ""
+                $referenciaExistente =
+                    trim(
+                        (string) (
+                            $clienteValidado[
+                                "externalReference"
+                            ]
+                            ?? ""
+                        )
+                    );
+
+                $mesmoCpf =
+                    $cpfCnpj !== ""
                     && $cpfExistente !== ""
-                    && hash_equals($cpfCnpj, $cpfExistente);
-                $mesmaReferencia = $referencia !== ""
-                    && $referenciaExistente !== ""
-                    && hash_equals($referencia, $referenciaExistente);
+                    && hash_equals(
+                        $cpfCnpj,
+                        $cpfExistente
+                    );
 
-                if ($mesmoCpf || ($cpfCnpj === "" && $mesmaReferencia)) {
-                    $clienteValidado["reutilizado"] = true;
+                $mesmaReferencia =
+                    $referencia !== ""
+                    && $referenciaExistente !== ""
+                    && hash_equals(
+                        $referencia,
+                        $referenciaExistente
+                    );
+
+                if (
+                    $mesmoCpf
+                    || (
+                        $cpfCnpj === ""
+                        && $mesmaReferencia
+                    )
+                ) {
+                    $clienteValidado =
+                        $this
+                            ->desabilitarNotificacoesCliente(
+                                (string) (
+                                    $clienteValidado[
+                                        "id"
+                                    ]
+                                    ?? $clienteExistente
+                                )
+                            );
+
+                    $clienteValidado[
+                        "reutilizado"
+                    ] = true;
+
                     return $clienteValidado;
                 }
             }
         }
 
-        $localizado = $this->localizarCliente($cpfCnpj, $referencia);
+        /*
+         * Procura cliente existente no ambiente
+         * atual do Asaas por CPF/referência.
+         */
+        $localizado =
+            $this->localizarCliente(
+                $cpfCnpj,
+                $referencia
+            );
 
         if ($localizado !== null) {
-            $localizado["reutilizado"] = true;
+            $idLocalizado =
+                trim(
+                    (string) (
+                        $localizado["id"]
+                        ?? ""
+                    )
+                );
+
+            if ($idLocalizado === "") {
+                throw new RuntimeException(
+                    "O cliente localizado "
+                    . "no Asaas não possui "
+                    . "identificador."
+                );
+            }
+
+            $localizado =
+                $this
+                    ->desabilitarNotificacoesCliente(
+                        $idLocalizado
+                    );
+
+            $localizado[
+                "reutilizado"
+            ] = true;
+
             return $localizado;
         }
 
-        $nome = trim((string) ($dados["name"] ?? ""));
+        /*
+         * Novo cliente.
+         */
+        $nome =
+            trim(
+                (string) (
+                    $dados["name"]
+                    ?? ""
+                )
+            );
 
         if ($nome === "") {
-            throw new InvalidArgumentException("O nome do participante é obrigatório para gerar a cobrança no Asaas.");
+            throw new InvalidArgumentException(
+                "O nome do participante "
+                . "é obrigatório para gerar "
+                . "a cobrança no Asaas."
+            );
         }
 
-        if (!in_array(strlen($cpfCnpj), [11, 14], true)) {
-            throw new InvalidArgumentException("O participante precisa ter um CPF ou CNPJ válido para gerar a cobrança no Asaas.");
+        if (
+            !in_array(
+                strlen($cpfCnpj),
+                [11, 14],
+                true
+            )
+        ) {
+            throw new InvalidArgumentException(
+                "O participante precisa ter "
+                . "um CPF ou CNPJ válido "
+                . "para gerar a cobrança "
+                . "no Asaas."
+            );
         }
 
         $payload = [
             "name" => $nome,
             "cpfCnpj" => $cpfCnpj,
-            "externalReference" => $referencia !== "" ? $referencia : null,
-            "notificationDisabled" => false
+
+            "externalReference" =>
+                $referencia !== ""
+                    ? $referencia
+                    : null,
+
+            /*
+             * REGRA DO SISTEMA:
+             *
+             * Asaas = processador financeiro.
+             * Site = comunicação com participante.
+             */
+            "notificationDisabled"
+                => true
         ];
 
-        $email = trim((string) ($dados["email"] ?? ""));
-        if ($email !== "" && filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $payload["email"] = $email;
+        $email =
+            trim(
+                (string) (
+                    $dados["email"]
+                    ?? ""
+                )
+            );
+
+        if (
+            $email !== ""
+            && filter_var(
+                $email,
+                FILTER_VALIDATE_EMAIL
+            )
+        ) {
+            $payload["email"] =
+                $email;
         }
 
-        $telefone = preg_replace('/\D+/', '', (string) ($dados["mobilePhone"] ?? "")) ?? "";
+        $telefone =
+            preg_replace(
+                '/\D+/',
+                '',
+                (string) (
+                    $dados[
+                        "mobilePhone"
+                    ]
+                    ?? ""
+                )
+            )
+            ?? "";
+
         if ($telefone !== "") {
-            $payload["mobilePhone"] = $telefone;
+            $payload["mobilePhone"] =
+                $telefone;
         }
 
-        $payload = array_filter(
-            $payload,
-            static fn (mixed $valor): bool => $valor !== null && $valor !== ""
-        );
+        $payload =
+            array_filter(
+                $payload,
+                static function (
+                    mixed $valor
+                ): bool {
+                    return
+                        $valor !== null
+                        && $valor !== "";
+                }
+            );
 
-        $resposta = $this->requisitar("POST", "/customers", $payload);
-        $id = trim((string) ($resposta["id"] ?? ""));
+        $resposta =
+            $this->requisitar(
+                "POST",
+                "/customers",
+                $payload
+            );
+
+        $id =
+            trim(
+                (string) (
+                    $resposta["id"]
+                    ?? ""
+                )
+            );
 
         if ($id === "") {
-            throw new RuntimeException("O Asaas não retornou o identificador do cliente criado.");
+            throw new RuntimeException(
+                "O Asaas não retornou "
+                . "o identificador do "
+                . "cliente criado."
+            );
         }
 
-        $resposta["reutilizado"] = false;
+        $resposta[
+            "reutilizado"
+        ] = false;
+
         return $resposta;
     }
 

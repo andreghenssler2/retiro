@@ -141,7 +141,14 @@ function active($arquivos)
                         <span>Atividades</span>
                     </a>
                 </li>
-                <li>
+                                <li>
+                    <a class="<?= active(['comunidades.php']); ?>"
+                       href="<?= BASE_URL ?>admin/configuracoes/comunidades.php">
+                        <i class="fa-solid fa-church"></i>
+                        <span>Comunidades</span>
+                    </a>
+                </li>
+<li>
                     <a class="<?= active(['bancario.php']); ?>"
                        href="<?= BASE_URL ?>admin/configuracoes/bancario.php">
                         <i class="fa fa-building-columns"></i>

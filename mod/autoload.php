@@ -31,6 +31,7 @@ require_once __DIR__ . '/auth/Auth.php';
 require_once __DIR__ . '/auth/Session.php';
 require_once __DIR__ . '/auth/Middleware.php';
 require_once __DIR__ . '/auth/Usuario.php';
+require_once __DIR__ . '/auth/Comunidade.php';
 require_once __DIR__ . '/auth/AtividadeUsuario.php';
 require_once __DIR__ . '/auth/Evento.php';
 require_once __DIR__ . '/auth/Inscricao.php';
