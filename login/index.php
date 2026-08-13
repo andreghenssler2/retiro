@@ -132,8 +132,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                                 </span>
 
-                                <input type="password" name="senha" class="form-control" required>
-                                <button class="btn btn-outline-secondary toggleSenha" type="button" id="toggleSenha">
+                                <input type="password" name="senha" id="senha" class="form-control" autocomplete="current-password" required>
+                                <button class="btn btn-outline-secondary" type="button" data-toggle-password="#senha" aria-label="Mostrar senha" aria-pressed="false">
                                     <i class="fa fa-eye" ></i>
                                 </button>
 
@@ -191,7 +191,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
     ?>
     <?php
-        echo '<script src="' . THEME_JS . 'login/login.js"></script>';
+        echo '<script src="' . THEME_JS . 'login/index.js?v=<?php echo VERSION; ?>"></script>';
     ?>
 </body>
 
