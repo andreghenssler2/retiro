@@ -381,6 +381,51 @@ try {
 |--------------------------------------------------------------------------
 */
 
+
+/*
+|--------------------------------------------------------------------------
+| Configuração do formulário público de inscrição
+|--------------------------------------------------------------------------
+*/
+if (
+    !empty($ret["status"])
+    && !empty($ret["id"])
+) {
+    try {
+        $configPublica =
+            new EventoInscricaoPublicaConfig(
+                $db
+            );
+
+        $configPublica->salvarTermos(
+            (int) $ret["id"],
+            is_array(
+                $_POST["termos"]
+                ?? null
+            )
+                ? $_POST["termos"]
+                : []
+        );
+
+        $configPublica->salvarCamisetas(
+            (int) $ret["id"],
+            is_array(
+                $_POST["camisetas"]
+                ?? null
+            )
+                ? $_POST["camisetas"]
+                : []
+        );
+    } catch (Throwable $configErro) {
+        $ret["status"] = false;
+
+        $ret["msg"] =
+            "O evento foi salvo, mas houve "
+            . "erro ao salvar os termos "
+            . "ou tamanhos de camiseta: "
+            . $configErro->getMessage();
+    }
+}
 echo json_encode($ret);
 
 exit;

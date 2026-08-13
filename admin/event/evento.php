@@ -631,6 +631,11 @@ class="btn btn-success">
 
 </div>
 
+
+            <?php
+            require __DIR__
+                . "/includes/form-inscricao-publica.php";
+            ?>
 </form>
 
 </div>

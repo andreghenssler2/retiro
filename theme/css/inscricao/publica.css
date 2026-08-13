@@ -1,0 +1,602 @@
+:root {
+    /*
+     * Mesma identidade visual utilizada pelo sistema.
+     * Valores equivalentes ao theme/css/admin/admin.css.
+     */
+    --primary: #0d6efd;
+    --primary-dark: #0b5ed7;
+
+    --sidebar: #1f2937;
+    --sidebar-hover: #374151;
+
+    --body: #f4f6f9;
+    --card: #ffffff;
+
+    --text: #1f2937;
+    --text-light: #6b7280;
+
+    --border: #e5e7eb;
+
+    --shadow:
+        0 5px 20px
+        rgba(0, 0, 0, .08);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body.inscricao-publica {
+    min-height: 100vh;
+    margin: 0;
+
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    background:
+        var(--body);
+
+    color:
+        var(--text);
+}
+
+/*
+|--------------------------------------------------------------------------
+| TOPO
+|--------------------------------------------------------------------------
+*/
+
+.inscricao-publica-topo {
+    background:
+        var(--primary);
+
+    box-shadow:
+        0 2px 12px
+        rgba(0, 0, 0, .08);
+}
+
+.inscricao-publica-topo a {
+    color: #ffffff;
+}
+
+.inscricao-publica-topo a:hover {
+    color: #ffffff;
+    opacity: .92;
+}
+
+/*
+|--------------------------------------------------------------------------
+| EVENTO
+|--------------------------------------------------------------------------
+*/
+
+.evento-resumo {
+    overflow: hidden;
+
+    border:
+        1px solid
+        var(--border) !important;
+
+    border-radius: 15px;
+
+    background:
+        var(--card);
+
+    box-shadow:
+        var(--shadow) !important;
+}
+
+.evento-resumo-imagem {
+    display: block;
+
+    width: 100%;
+
+    aspect-ratio: 4 / 3;
+
+    object-fit: cover;
+
+    border-radius: 12px;
+
+    background:
+        #eef2f7;
+}
+
+/*
+|--------------------------------------------------------------------------
+| ETAPAS
+|--------------------------------------------------------------------------
+*/
+
+.etapa-inscricao {
+    max-width: 980px;
+
+    margin-inline: auto;
+
+    border:
+        1px solid
+        var(--border) !important;
+
+    border-radius: 15px;
+
+    background:
+        var(--card);
+
+    box-shadow:
+        var(--shadow) !important;
+}
+
+.etapa-inscricao h2,
+.etapa-inscricao h3 {
+    color:
+        var(--text);
+}
+
+.text-muted {
+    color:
+        var(--text-light) !important;
+}
+
+/*
+|--------------------------------------------------------------------------
+| CAMPOS
+|--------------------------------------------------------------------------
+*/
+
+.inscricao-publica .form-label {
+    color:
+        var(--text);
+
+    font-weight: 600;
+}
+
+.inscricao-publica .form-control,
+.inscricao-publica .form-select {
+    min-height: 44px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: 9px;
+
+    background:
+        #ffffff;
+
+    color:
+        var(--text);
+
+    transition:
+        border-color .2s ease,
+        box-shadow .2s ease;
+}
+
+.inscricao-publica textarea.form-control {
+    min-height: unset;
+}
+
+.inscricao-publica .form-control:focus,
+.inscricao-publica .form-select:focus {
+    border-color:
+        var(--primary);
+
+    box-shadow:
+        0 0 0 .20rem
+        rgba(13, 110, 253, .15);
+}
+
+.inscricao-publica .form-control[readonly] {
+    background:
+        #f8fafc;
+}
+
+.codigo-validacao {
+    max-width: 260px;
+
+    text-align: center;
+
+    font-weight: 700;
+
+    letter-spacing: .35rem;
+}
+
+/*
+|--------------------------------------------------------------------------
+| BOTÕES
+|--------------------------------------------------------------------------
+*/
+
+.btn-inscricao {
+    color: #ffffff;
+
+    background:
+        var(--primary);
+
+    border-color:
+        var(--primary);
+
+    border-radius: 9px;
+
+    font-weight: 600;
+
+    transition:
+        background-color .2s ease,
+        border-color .2s ease,
+        transform .15s ease;
+}
+
+.btn-inscricao:hover,
+.btn-inscricao:focus,
+.btn-inscricao:active {
+    color: #ffffff !important;
+
+    background:
+        var(--primary-dark) !important;
+
+    border-color:
+        var(--primary-dark) !important;
+}
+
+.btn-inscricao:hover {
+    transform:
+        translateY(-1px);
+}
+
+.inscricao-publica
+.btn-outline-primary {
+    color:
+        var(--primary);
+
+    border-color:
+        var(--primary);
+}
+
+.inscricao-publica
+.btn-outline-primary:hover {
+    color: #ffffff;
+
+    background:
+        var(--primary);
+
+    border-color:
+        var(--primary);
+}
+
+/*
+|--------------------------------------------------------------------------
+| TERMOS
+|--------------------------------------------------------------------------
+*/
+
+.termos-evento {
+    padding: 20px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: 12px;
+
+    background:
+        #f8fafc;
+}
+
+.termos-evento
+.form-check-input:checked {
+    background-color:
+        var(--primary);
+
+    border-color:
+        var(--primary);
+}
+
+.termos-evento a {
+    color:
+        var(--primary);
+}
+
+.termos-evento a:hover {
+    color:
+        var(--primary-dark);
+}
+
+/*
+|--------------------------------------------------------------------------
+| CAMISETA
+|--------------------------------------------------------------------------
+*/
+
+.camisetas-grid {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 10px;
+}
+
+.camiseta-opcao {
+    position: relative;
+}
+
+.camiseta-opcao input {
+    position: absolute;
+
+    opacity: 0;
+
+    pointer-events: none;
+}
+
+.camiseta-opcao span {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-width: 62px;
+
+    height: 46px;
+
+    padding:
+        0 14px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: 9px;
+
+    background:
+        #ffffff;
+
+    color:
+        var(--text);
+
+    cursor: pointer;
+
+    font-weight: 600;
+
+    transition:
+        .2s ease;
+}
+
+.camiseta-opcao
+input:hover + span {
+    border-color:
+        var(--primary);
+}
+
+.camiseta-opcao
+input:checked + span {
+    color: #ffffff;
+
+    border-color:
+        var(--primary);
+
+    background:
+        var(--primary);
+
+    box-shadow:
+        0 4px 12px
+        rgba(13, 110, 253, .22);
+}
+
+/*
+|--------------------------------------------------------------------------
+| PAGAMENTO
+|--------------------------------------------------------------------------
+*/
+
+.formas-pagamento {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 14px;
+}
+
+.forma-pagamento {
+    position: relative;
+}
+
+.forma-pagamento input {
+    position: absolute;
+
+    opacity: 0;
+
+    pointer-events: none;
+}
+
+.forma-pagamento span {
+    min-height: 92px;
+
+    display: flex;
+
+    gap: 10px;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 16px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: 12px;
+
+    background:
+        #ffffff;
+
+    color:
+        var(--text);
+
+    cursor: pointer;
+
+    font-weight: 600;
+
+    transition:
+        border-color .2s ease,
+        background-color .2s ease,
+        color .2s ease,
+        box-shadow .2s ease;
+}
+
+.forma-pagamento
+span i {
+    color:
+        var(--text-light);
+
+    font-size: 1.25rem;
+}
+
+.forma-pagamento
+input:hover + span {
+    border-color:
+        var(--primary);
+}
+
+.forma-pagamento
+input:checked + span {
+    color:
+        var(--primary-dark);
+
+    border-color:
+        var(--primary);
+
+    background:
+        rgba(
+            13,
+            110,
+            253,
+            .07
+        );
+
+    box-shadow:
+        0 0 0 2px
+        rgba(
+            13,
+            110,
+            253,
+            .08
+        );
+}
+
+.forma-pagamento
+input:checked + span i {
+    color:
+        var(--primary);
+}
+
+#cartaoCampos {
+    border-color:
+        var(--border) !important;
+
+    background:
+        #ffffff;
+}
+
+/*
+|--------------------------------------------------------------------------
+| RESUMO
+|--------------------------------------------------------------------------
+*/
+
+.resumo-compra {
+    border:
+        1px solid
+        var(--border);
+
+    background:
+        #f8fafc;
+}
+
+/*
+|--------------------------------------------------------------------------
+| PIX / BOLETO
+|--------------------------------------------------------------------------
+*/
+
+.pix-qr {
+    display: block;
+
+    width:
+        min(
+            300px,
+            100%
+        );
+
+    margin:
+        0 auto;
+
+    padding: 10px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: 12px;
+
+    background:
+        #ffffff;
+
+    box-shadow:
+        var(--shadow);
+}
+
+#resultadoPagamento {
+    border:
+        1px solid
+        var(--border) !important;
+
+    border-radius: 15px;
+
+    background:
+        var(--card);
+
+    box-shadow:
+        var(--shadow) !important;
+}
+
+/*
+|--------------------------------------------------------------------------
+| ALERTAS
+|--------------------------------------------------------------------------
+*/
+
+.inscricao-publica
+.alert {
+    border-radius:
+        10px;
+}
+
+/*
+|--------------------------------------------------------------------------
+| RESPONSIVO
+|--------------------------------------------------------------------------
+*/
+
+@media (
+    max-width: 767.98px
+) {
+    .formas-pagamento {
+        grid-template-columns:
+            1fr;
+    }
+
+    .forma-pagamento span {
+        min-height:
+            72px;
+    }
+
+    .etapa-inscricao
+    .card-body {
+        padding:
+            20px !important;
+    }
+}

@@ -723,21 +723,21 @@ if (Auth::check()) {
 
                         <?php elseif (!Auth::check()): ?>
                             <a
-                                href="<?= BASE_URL ?>login/"
+                                href="<?= BASE_URL ?>inscricao/?evento=<?= $idEvento; ?>"
                                 class="btn btn-primary btn-lg w-100"
                             >
                                 <i
                                     class="fa-solid
                                         fa-right-to-bracket me-1"
                                 ></i>
-                                Entrar para se inscrever
+                                Inscrever-se
                             </a>
 
                         <?php else: ?>
 
                             <form
                                 method="post"
-                                action="<?= BASE_URL ?>eventos/inscrever.php"
+                                action="<?= BASE_URL ?>inscricao/"
                             >
                                 <input
                                     type="hidden"

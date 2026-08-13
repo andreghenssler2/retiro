@@ -45,6 +45,8 @@ require_once __DIR__ . '/services/AsaasPagamentoService.php';
 require_once __DIR__ . '/services/BoletoVencidoService.php';
 require_once __DIR__ . '/services/PagamentoWebhookService.php';
 require_once __DIR__ . '/services/EmailNotificacaoService.php';
+require_once __DIR__ . '/services/EventoInscricaoPublicaConfig.php';
+require_once __DIR__ . '/services/InscricaoPublicaService.php';
 require_once __DIR__ . '/services/CancelamentoInscricaoNotificacaoService.php';
 require_once __DIR__ . '/services/CertificadoService.php';
 require_once __DIR__ . '/auth/DashboardEvento.php';

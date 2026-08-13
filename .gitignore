@@ -1,5 +1,6 @@
 oculta.txt
 /ieclb-mail/*
+/ofertas/*
 
 # Credenciais locais de integrações
 /config/integracoes.php
