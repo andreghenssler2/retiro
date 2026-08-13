@@ -161,17 +161,17 @@ function meusEventosUrl(
         (string) ($item["slug"] ?? "")
     );
 
+    if ($slug !== "") {
+        return BASE_URL
+            . "eventos/"
+            . rawurlencode($slug);
+    }
+
     return BASE_URL
-        . "eventos/detalhe.php"
-        . (
-            $slug !== ""
-                ? "?slug="
-                    . rawurlencode($slug)
-                : "?id="
-                    . (int) (
-                        $item["idEvento"]
-                        ?? 0
-                    )
+        . "eventos/detalhe.php?id="
+        . (int) (
+            $item["idEvento"]
+            ?? 0
         );
 }
 

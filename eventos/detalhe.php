@@ -31,6 +31,42 @@ if (!$evento || (int) ($evento["ativo"] ?? 0) !== 1) {
 }
 
 $idEvento = (int) $evento["idEvento"];
+
+/*
+ * EVENTO_URL_CANONICA_V1
+ *
+ * Se alguém acessar diretamente:
+ * detalhe.php?slug=...
+ *
+ * redireciona para:
+ * /eventos/slug
+ *
+ * Na reescrita interna, REQUEST_URI continua
+ * sendo /eventos/slug e não ocorre loop.
+ */
+$requestUri = (string) (
+    $_SERVER["REQUEST_URI"]
+    ?? ""
+);
+
+if (
+    $slug !== ""
+    && str_contains(
+        $requestUri,
+        "/eventos/detalhe.php"
+    )
+) {
+    header(
+        "Location: "
+        . BASE_URL
+        . "eventos/"
+        . rawurlencode($slug),
+        true,
+        301
+    );
+
+    exit;
+}
 $idUsuario = (int) (Auth::id() ?? 0);
 
 $inscricaoUsuario = false;
@@ -207,17 +243,22 @@ function eventoDetalheImagem(array $evento): string
 
 function eventoDetalheUrl(array $evento): string
 {
-    $slug = trim((string) ($evento["slug"] ?? ""));
+    $slug = trim(
+        (string) ($evento["slug"] ?? "")
+    );
 
     if ($slug !== "") {
         return BASE_URL
-            . "eventos/detalhe.php?slug="
+            . "eventos/"
             . rawurlencode($slug);
     }
 
     return BASE_URL
         . "eventos/detalhe.php?id="
-        . (int) ($evento["idEvento"] ?? 0);
+        . (int) (
+            $evento["idEvento"]
+            ?? 0
+        );
 }
 
 $pageStyles = [

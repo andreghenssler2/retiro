@@ -1,54 +1,120 @@
-CORREÇÃO V3 - CARTÃO ASAAS
-==========================
+EVENTOS - URL AMIGÁVEL V1
+=========================
 
-ERRO CORRIGIDO
+OBJETIVO
 
-Call to undefined method
-AsaasPagamentoService::pagarCobrancaCartao()
+Trocar:
 
-CAUSA
+http://localhost/eventos/detalhe.php?slug=retiro-paroquial-2026
 
-O endpoint AJAX V2 foi atualizado, porém os serviços PHP antigos
-continuaram no servidor.
+por:
+
+http://localhost/eventos/retiro-paroquial-2026
+
+
+COMO FUNCIONA
+
+O banco continua usando o campo:
+
+eventos.slug
+
+A classe Evento já possui:
+
+Evento::slug()
+Evento::buscarPorSlug()
+Evento::slugExisteOutro()
+
+O Apache recebe:
+
+/eventos/retiro-paroquial-2026
+
+e internamente executa:
+
+/eventos/detalhe.php?slug=retiro-paroquial-2026
+
+A URL no navegador continua limpa.
+
+
+REDIRECIONAMENTO DA URL ANTIGA
+
+Se alguém abrir:
+
+/eventos/detalhe.php?slug=retiro-paroquial-2026
+
+o sistema redireciona com HTTP 301 para:
+
+/eventos/retiro-paroquial-2026
+
 
 ARQUIVOS ALTERADOS
 
-mod/services/AsaasService.php
-mod/services/AsaasPagamentoService.php
-eventos/ajax/processar-pagamento.php
+.htaccess
+index.php
+eventos/index.php
+eventos/detalhe.php
+user/eventos.php
 
-COMO APLICAR
 
-Copie para a raiz do projeto:
+BANCO
 
-atualizar-servicos-cartao-v3.php
-arquivos/
+Nenhuma nova tabela.
+
+O instalador apenas verifica se existem eventos antigos sem slug.
+
+Se encontrar:
+
+Retiro Paroquial 2026
+
+gera:
+
+retiro-paroquial-2026
+
+Se já existir, utiliza:
+
+retiro-paroquial-2026-2
+retiro-paroquial-2026-3
+...
+
+
+INSTALAÇÃO
+
+Coloque na raiz:
+
+atualizar-eventos-url-amigavel-v1.php
 
 Execute:
 
-php atualizar-servicos-cartao-v3.php
+php atualizar-eventos-url-amigavel-v1.php
 
-O script cria backups antes de alterar qualquer arquivo.
 
-DEPOIS
+XAMPP
 
-Teste novamente o cartão no Sandbox.
+É necessário que o Apache tenha:
 
-A resposta deve conter:
+mod_rewrite habilitado
 
-"versao": "2026-08-08-04"
+e AllowOverride permita .htaccess.
 
-Se ainda faltar algum método, o endpoint agora retorna explicitamente
-a etapa "servico".
+Normalmente o XAMPP já possui mod_rewrite habilitado.
 
-SEGURANÇA
 
-O sistema continua NÃO salvando:
+TESTE
 
-- número completo do cartão;
-- CVV;
-- validade;
-- creditCardToken;
-- objeto creditCard.
+1. Reinicie o Apache se necessário.
+2. Ctrl + F5.
+3. Abra:
 
-Não registre $_POST durante testes de cartão.
+http://localhost/eventos/retiro-paroquial-2026
+
+4. Teste também:
+
+http://localhost/eventos/detalhe.php?slug=retiro-paroquial-2026
+
+A URL antiga deve redirecionar para a nova.
+
+
+PRODUÇÃO
+
+O mesmo padrão será:
+
+https://seu-dominio.com/eventos/retiro-paroquial-2026

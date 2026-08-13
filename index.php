@@ -138,12 +138,17 @@ function eventoPublicoUrl(array $evento): string
         (string) ($evento["slug"] ?? "")
     );
 
+    if ($slug !== "") {
+        return BASE_URL
+            . "eventos/"
+            . rawurlencode($slug);
+    }
+
     return BASE_URL
-        . "eventos/detalhe.php"
-        . (
-            $slug !== ""
-                ? "?slug=" . rawurlencode($slug)
-                : "?id=" . (int) ($evento["idEvento"] ?? 0)
+        . "eventos/detalhe.php?id="
+        . (int) (
+            $evento["idEvento"]
+            ?? 0
         );
 }
 

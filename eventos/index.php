@@ -25,14 +25,21 @@ function eventosListaEscapar(string $valor): string
 
 function eventosListaUrl(array $evento): string
 {
-    $slug = trim((string) ($evento["slug"] ?? ""));
+    $slug = trim(
+        (string) ($evento["slug"] ?? "")
+    );
+
+    if ($slug !== "") {
+        return BASE_URL
+            . "eventos/"
+            . rawurlencode($slug);
+    }
 
     return BASE_URL
-        . "eventos/detalhe.php"
-        . (
-            $slug !== ""
-                ? "?slug=" . rawurlencode($slug)
-                : "?id=" . (int) $evento["idEvento"]
+        . "eventos/detalhe.php?id="
+        . (int) (
+            $evento["idEvento"]
+            ?? 0
         );
 }
 

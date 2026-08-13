@@ -6,6 +6,30 @@ Options -Indexes
 ServerSignature Off
 
 RewriteEngine On
+
+# BEGIN EVENTOS URL AMIGAVEL
+#############################################
+# URL AMIGÁVEL DOS EVENTOS
+#############################################
+
+# URL antiga:
+# /eventos/detalhe.php?slug=meu-evento
+#
+# URL nova:
+# /eventos/meu-evento
+#
+# THE_REQUEST evita redirecionar a reescrita
+# interna feita pela regra seguinte.
+RewriteCond %{THE_REQUEST} \s/+eventos/detalhe\.php\?slug=([a-z0-9-]+)(?:[&\s]) [NC]
+RewriteRule ^eventos/detalhe\.php$ /eventos/%1 [R=301,L,NE,QSD]
+
+# Faz a URL limpa carregar detalhe.php internamente.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^eventos/([a-z0-9-]+)/?$ /eventos/detalhe.php?slug=$1 [L,QSA,NC]
+
+# END EVENTOS URL AMIGAVEL
+
 RewriteBase /login/
 
 #############################################
