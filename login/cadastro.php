@@ -646,8 +646,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                                         <button
                                             type="button"
-                                            class="btn btn-outline-secondary toggleSenha"
-                                            aria-label="Mostrar ou ocultar senha"
+                                            class="btn btn-outline-secondary toggleSenhaCadastro"
+                                            data-target="senha"
+                                            aria-label="Mostrar senha"
                                         >
                                             <i class="fa fa-eye"></i>
                                         </button>
@@ -679,8 +680,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                                         <button
                                             type="button"
-                                            class="btn btn-outline-secondary toggleSenha"
-                                            aria-label="Mostrar ou ocultar senha"
+                                            class="btn btn-outline-secondary toggleSenhaCadastro"
+                                            data-target="confirmar_senha"
+                                            aria-label="Mostrar senha"
                                         >
                                             <i class="fa fa-eye"></i>
                                         </button>
@@ -782,6 +784,37 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </div>
 
     </div>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".toggleSenhaCadastro").forEach(function (botao) {
+                botao.addEventListener("click", function () {
+                    const targetId = this.getAttribute("data-target");
+                    const campo = document.getElementById(targetId);
+                    const icone = this.querySelector("i");
+
+                    if (!campo) {
+                        return;
+                    }
+
+                    const mostrar = campo.type === "password";
+
+                    campo.type = mostrar ? "text" : "password";
+
+                    if (icone) {
+                        icone.classList.toggle("fa-eye", !mostrar);
+                        icone.classList.toggle("fa-eye-slash", mostrar);
+                    }
+
+                    this.setAttribute(
+                        "aria-label",
+                        mostrar ? "Ocultar senha" : "Mostrar senha"
+                    );
+                });
+            });
+        });
+    </script>
 
     <script src="../theme/js/login/login.js"></script>
     <script src="../theme/js/login/cadastro.js"></script>
