@@ -240,11 +240,54 @@
         );
     };
 
+    const normalizarTexto = (
+        valor
+    ) => {
+        return String(
+            valor || ""
+        )
+            .normalize("NFD")
+            .replace(
+                /[\u0300-\u036f]/g,
+                ""
+            )
+            .trim()
+            .toLowerCase();
+    };
+
     const comunidadeEhVisitante = () => {
         if (!comunidade) {
             return false;
         }
 
+        const idSelecionado =
+            Number(
+                comunidade.value
+                || 0
+            );
+
+        const idVisitante =
+            Number(
+                cfg.idComunidadeVisitante
+                || 0
+            );
+
+        /*
+         * Regra principal:
+         * usa o ID real da opção Visitante.
+         */
+        if (
+            idVisitante > 0
+            && idSelecionado > 0
+        ) {
+            return
+            idSelecionado
+                === idVisitante;
+        }
+
+        /*
+         * Fallback para instalações antigas.
+         */
         const opcao =
             comunidade
                 .selectedOptions?.[0]
@@ -254,9 +297,16 @@
             return false;
         }
 
-        return
+        if (
             opcao.dataset.visitante
-            === "1";
+            === "1"
+        ) {
+            return true;
+        }
+
+        return normalizarTexto(
+            opcao.textContent
+        ) === "visitante";
     };
 
     const valorAtual = () => {
@@ -275,7 +325,7 @@
 
         return Number(
             cfg.valorPadrao
-                ?? 0
+            ?? 0
         );
     };
 
@@ -356,6 +406,11 @@
         atualizarVisitante
     );
 
+    comunidade?.addEventListener(
+        "input",
+        atualizarVisitante
+    );
+
     const mostrarEtapa = (
         nome
     ) => {
@@ -402,7 +457,7 @@
                 field.disabled
                 || field.hidden
                 || field.type
-                    === "hidden"
+                === "hidden"
             ) {
                 continue;
             }
@@ -511,7 +566,7 @@
                         atual === "pessoal"
                         && cpf.dataset
                             .validado
-                            !== "1"
+                        !== "1"
                     ) {
                         showAlert(
                             "warning",
@@ -794,15 +849,15 @@
                 ].forEach((name) => {
                     const field =
                         form.elements[
-                            name
+                        name
                         ];
 
                     if (
                         field
                         && d[name]
-                            !== undefined
+                        !== undefined
                         && d[name]
-                            !== null
+                        !== null
                     ) {
                         field.value =
                             d[name];
@@ -871,6 +926,12 @@
                     d.restricao_alimentar
                     ?? "0"
                 );
+
+                /*
+                 * idComunidade pode ter sido
+                 * preenchido automaticamente.
+                 */
+                atualizarVisitante();
 
                 cpf.dataset
                     .validado =
@@ -1018,7 +1079,7 @@
                     const isCard =
                         radio.checked
                         && radio.value
-                            === "Cartao";
+                        === "Cartao";
 
                     card.hidden =
                         !isCard;
@@ -1147,7 +1208,7 @@
                     .textContent =
                     d.statusPagamento
                         === "Pago"
-                    || d.gratuito
+                        || d.gratuito
                         ? "Inscrição confirmada"
                         : "Inscrição realizada";
 

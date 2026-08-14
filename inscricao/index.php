@@ -78,6 +78,45 @@ function inscricaoPubImagem(
             . "sem-imagem.png";
 }
 
+$idComunidadeVisitante = 0;
+
+foreach ($comunidades as $comunidadeItem) {
+    $nomeComunidadeItem =
+        trim(
+            (string) (
+                $comunidadeItem[
+                    "nome_comunidade"
+                ]
+                ?? ""
+            )
+        );
+
+    $nomeComunidadeNormalizado =
+        function_exists(
+            "mb_strtolower"
+        )
+            ? mb_strtolower(
+                $nomeComunidadeItem,
+                "UTF-8"
+            )
+            : strtolower(
+                $nomeComunidadeItem
+            );
+
+    if (
+        $nomeComunidadeNormalizado
+        === "visitante"
+    ) {
+        $idComunidadeVisitante =
+            (int) (
+                $comunidadeItem["id"]
+                ?? 0
+            );
+
+        break;
+    }
+}
+
 $valor = (float) (
     $evento["valor_inscricao"]
     ?? $evento["valor"]
@@ -1693,7 +1732,9 @@ $temCamiseta =
             "temValorVisitante" =>
                 $temValorVisitante,
             "valorVisitante" =>
-                $valorVisitante
+                $valorVisitante,
+            "idComunidadeVisitante" =>
+                $idComunidadeVisitante
         ],
         JSON_UNESCAPED_UNICODE
         | JSON_UNESCAPED_SLASHES
@@ -1709,7 +1750,7 @@ $temCamiseta =
     ></script>
 
     <script
-        src="<?= THEME_JS ?>inscricao/publica.js?v=<?= VERSION ?>"
+        src="<?= THEME_JS ?>inscricao/publica.js?v=<?= VERSION ?>&cv=21"
     ></script>
 
 </body>
