@@ -48,6 +48,59 @@ $valorVisitanteEventoForm =
         )
         : "";
 
+$eventoEditandoSaude =
+    !empty($editando);
+
+$perguntasSaudeEventoForm = [
+    "restricao_medicacao" =>
+        $eventoEditandoSaude
+            ? (
+                (int) (
+                    $dados[
+                        "perguntar_restricao_medicacao"
+                    ]
+                    ?? 1
+                ) === 1
+            )
+            : false,
+
+    "deficiencia" =>
+        $eventoEditandoSaude
+            ? (
+                (int) (
+                    $dados[
+                        "perguntar_deficiencia"
+                    ]
+                    ?? 1
+                ) === 1
+            )
+            : false,
+
+    "acessibilidade" =>
+        $eventoEditandoSaude
+            ? (
+                (int) (
+                    $dados[
+                        "perguntar_acessibilidade"
+                    ]
+                    ?? 1
+                ) === 1
+            )
+            : false,
+
+    "restricao_alimentar" =>
+        $eventoEditandoSaude
+            ? (
+                (int) (
+                    $dados[
+                        "perguntar_restricao_alimentar"
+                    ]
+                    ?? 1
+                ) === 1
+            )
+            : false
+];
+
 $todosTamanhos = [
     "P",
     "M",
@@ -306,6 +359,209 @@ $todosTamanhos = [
                     </div>
                 </div>
             </div>
+        </div>
+
+        <hr class="my-4">
+
+        <div
+            class="d-flex flex-wrap
+                justify-content-between
+                align-items-start
+                gap-3"
+        >
+            <div>
+                <h6 class="fw-bold mb-1">
+                    Saúde e Acessibilidade
+                </h6>
+
+                <p class="text-muted small mb-0">
+                    Marque somente as perguntas
+                    necessárias para este evento.
+                </p>
+            </div>
+
+            <span class="badge text-bg-light border">
+                Configuração por evento
+            </span>
+        </div>
+
+        <div class="row g-3 mt-1">
+
+            <div class="col-md-6">
+                <div
+                    class="form-check
+                        border rounded p-3"
+                >
+                    <input
+                        class="form-check-input
+                            ms-0 me-2"
+                        type="checkbox"
+                        name="perguntas_saude[restricao_medicacao]"
+                        id="perguntaRestricaoMedicacao"
+                        value="1"
+                        <?= !empty(
+                            $perguntasSaudeEventoForm[
+                                "restricao_medicacao"
+                            ]
+                        )
+                            ? "checked"
+                            : ""; ?>
+                    >
+
+                    <label
+                        class="form-check-label
+                            fw-semibold"
+                        for="perguntaRestricaoMedicacao"
+                    >
+                        Restrição a medicação
+                    </label>
+
+                    <div
+                        class="small
+                            text-muted mt-1"
+                    >
+                        Pergunta se possui restrição
+                        e solicita detalhes quando
+                        a resposta for Sim.
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div
+                    class="form-check
+                        border rounded p-3"
+                >
+                    <input
+                        class="form-check-input
+                            ms-0 me-2"
+                        type="checkbox"
+                        name="perguntas_saude[deficiencia]"
+                        id="perguntaDeficiencia"
+                        value="1"
+                        <?= !empty(
+                            $perguntasSaudeEventoForm[
+                                "deficiencia"
+                            ]
+                        )
+                            ? "checked"
+                            : ""; ?>
+                    >
+
+                    <label
+                        class="form-check-label
+                            fw-semibold"
+                        for="perguntaDeficiencia"
+                    >
+                        Deficiência
+                    </label>
+
+                    <div
+                        class="small
+                            text-muted mt-1"
+                    >
+                        Exibe o tipo de deficiência
+                        e o campo para detalhes.
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div
+                    class="form-check
+                        border rounded p-3"
+                >
+                    <input
+                        class="form-check-input
+                            ms-0 me-2"
+                        type="checkbox"
+                        name="perguntas_saude[acessibilidade]"
+                        id="perguntaAcessibilidade"
+                        value="1"
+                        <?= !empty(
+                            $perguntasSaudeEventoForm[
+                                "acessibilidade"
+                            ]
+                        )
+                            ? "checked"
+                            : ""; ?>
+                    >
+
+                    <label
+                        class="form-check-label
+                            fw-semibold"
+                        for="perguntaAcessibilidade"
+                    >
+                        Recurso de acessibilidade
+                    </label>
+
+                    <div
+                        class="small
+                            text-muted mt-1"
+                    >
+                        Pergunta se a pessoa precisa
+                        de algum recurso específico.
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div
+                    class="form-check
+                        border rounded p-3"
+                >
+                    <input
+                        class="form-check-input
+                            ms-0 me-2"
+                        type="checkbox"
+                        name="perguntas_saude[restricao_alimentar]"
+                        id="perguntaRestricaoAlimentar"
+                        value="1"
+                        <?= !empty(
+                            $perguntasSaudeEventoForm[
+                                "restricao_alimentar"
+                            ]
+                        )
+                            ? "checked"
+                            : ""; ?>
+                    >
+
+                    <label
+                        class="form-check-label
+                            fw-semibold"
+                        for="perguntaRestricaoAlimentar"
+                    >
+                        Restrição alimentar
+                    </label>
+
+                    <div
+                        class="small
+                            text-muted mt-1"
+                    >
+                        Pergunta sobre restrições
+                        alimentares e solicita
+                        a descrição.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div
+            class="alert alert-light
+                border mt-3 mb-0"
+        >
+            <i
+                class="fa-solid
+                    fa-circle-info
+                    text-primary me-1"
+            ></i>
+
+            Se nenhuma pergunta estiver marcada,
+            a etapa
+            <strong>Saúde e Acessibilidade</strong>
+            será ignorada automaticamente
+            durante a inscrição.
         </div>
 
         <hr class="my-4">

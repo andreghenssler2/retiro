@@ -939,71 +939,136 @@ class InscricaoPublicaService
             }
         }
 
+        $perguntaRestricaoMedicacao =
+            (int) (
+                $evento[
+                    "perguntar_restricao_medicacao"
+                ]
+                ?? 1
+            ) === 1;
+
+        $perguntaDeficiencia =
+            (int) (
+                $evento[
+                    "perguntar_deficiencia"
+                ]
+                ?? 1
+            ) === 1;
+
+        $perguntaAcessibilidade =
+            (int) (
+                $evento[
+                    "perguntar_acessibilidade"
+                ]
+                ?? 1
+            ) === 1;
+
+        $perguntaRestricaoAlimentar =
+            (int) (
+                $evento[
+                    "perguntar_restricao_alimentar"
+                ]
+                ?? 1
+            ) === 1;
+
         $restricaoMedicacao =
-            (string) (
-                $dados["restricao_medicacao"]
-                ?? "0"
-            ) === "1"
+            $perguntaRestricaoMedicacao
+            && (
+                (string) (
+                    $dados["restricao_medicacao"]
+                    ?? "0"
+                ) === "1"
+            )
                 ? 1
                 : 0;
 
-        $medicacaoDetalhes = trim(
-            (string) (
-                $dados["medicacao_detalhes"]
-                ?? ""
-            )
-        );
+        $medicacaoDetalhes =
+            $perguntaRestricaoMedicacao
+                ? trim(
+                    (string) (
+                        $dados[
+                            "medicacao_detalhes"
+                        ]
+                        ?? ""
+                    )
+                )
+                : "";
 
-        $deficiencia = trim(
-            (string) (
-                $dados["deficiencia"]
-                ?? "Não"
-            )
-        );
+        $deficiencia =
+            $perguntaDeficiencia
+                ? trim(
+                    (string) (
+                        $dados["deficiencia"]
+                        ?? "Não"
+                    )
+                )
+                : "Não";
 
-        $deficienciaDetalhes = trim(
-            (string) (
-                $dados["deficiencia_detalhes"]
-                ?? ""
-            )
-        );
+        $deficienciaDetalhes =
+            $perguntaDeficiencia
+                ? trim(
+                    (string) (
+                        $dados[
+                            "deficiencia_detalhes"
+                        ]
+                        ?? ""
+                    )
+                )
+                : "";
 
         $precisaAcessibilidade =
-            (string) (
-                $dados[
-                    "precisa_acessibilidade"
-                ]
-                ?? "0"
-            ) === "1"
+            $perguntaAcessibilidade
+            && (
+                (string) (
+                    $dados[
+                        "precisa_acessibilidade"
+                    ]
+                    ?? "0"
+                ) === "1"
+            )
                 ? 1
                 : 0;
 
-        $acessibilidadeDetalhes = trim(
-            (string) (
-                $dados[
-                    "acessibilidade_detalhes"
-                ]
-                ?? ""
-            )
-        );
+        $acessibilidadeDetalhes =
+            $perguntaAcessibilidade
+                ? trim(
+                    (string) (
+                        $dados[
+                            "acessibilidade_detalhes"
+                        ]
+                        ?? ""
+                    )
+                )
+                : "";
 
         $restricaoAlimentar =
-            (string) (
-                $dados["restricao_alimentar"]
-                ?? "0"
-            ) === "1"
+            $perguntaRestricaoAlimentar
+            && (
+                (string) (
+                    $dados[
+                        "restricao_alimentar"
+                    ]
+                    ?? "0"
+                ) === "1"
+            )
                 ? 1
                 : 0;
 
-        $alimentarDetalhes = trim(
-            (string) (
-                $dados["alimentar_detalhes"]
-                ?? ""
-            )
-        );
+        $alimentarDetalhes =
+            $perguntaRestricaoAlimentar
+                ? trim(
+                    (string) (
+                        $dados[
+                            "alimentar_detalhes"
+                        ]
+                        ?? ""
+                    )
+                )
+                : "";
 
         if (
-            $restricaoMedicacao === 1
+            $perguntaRestricaoMedicacao
+            && $restricaoMedicacao === 1
             && $medicacaoDetalhes === ""
         ) {
             throw new InvalidArgumentException(
@@ -1013,7 +1078,8 @@ class InscricaoPublicaService
         }
 
         if (
-            $precisaAcessibilidade === 1
+            $perguntaAcessibilidade
+            && $precisaAcessibilidade === 1
             && $acessibilidadeDetalhes === ""
         ) {
             throw new InvalidArgumentException(
@@ -1023,7 +1089,8 @@ class InscricaoPublicaService
         }
 
         if (
-            $restricaoAlimentar === 1
+            $perguntaRestricaoAlimentar
+            && $restricaoAlimentar === 1
             && $alimentarDetalhes === ""
         ) {
             throw new InvalidArgumentException(

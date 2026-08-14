@@ -594,9 +594,14 @@
         () => {
             const etapas = [
                 "pessoal",
-                "endereco",
-                "saude"
+                "endereco"
             ];
+
+            if (cfg.temSaude) {
+                etapas.push(
+                    "saude"
+                );
+            }
 
             if (cfg.temCamiseta) {
                 etapas.push(

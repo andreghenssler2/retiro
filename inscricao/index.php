@@ -166,6 +166,44 @@ $temCamiseta =
         ?? 0
     ) === 1
     && $camisetas !== [];
+
+$perguntaRestricaoMedicacao =
+    (int) (
+        $evento[
+            "perguntar_restricao_medicacao"
+        ]
+        ?? 1
+    ) === 1;
+
+$perguntaDeficiencia =
+    (int) (
+        $evento[
+            "perguntar_deficiencia"
+        ]
+        ?? 1
+    ) === 1;
+
+$perguntaAcessibilidade =
+    (int) (
+        $evento[
+            "perguntar_acessibilidade"
+        ]
+        ?? 1
+    ) === 1;
+
+$perguntaRestricaoAlimentar =
+    (int) (
+        $evento[
+            "perguntar_restricao_alimentar"
+        ]
+        ?? 1
+    ) === 1;
+
+$temSaude =
+    $perguntaRestricaoMedicacao
+    || $perguntaDeficiencia
+    || $perguntaAcessibilidade
+    || $perguntaRestricaoAlimentar;
 ?>
 <!doctype html>
 <html lang="pt-BR">
@@ -1024,7 +1062,13 @@ $temCamiseta =
                         <button
                             type="button"
                             class="btn btn-inscricao px-4"
-                            data-proximo="saude"
+                            data-proximo="<?= $temSaude
+                                ? "saude"
+                                : (
+                                    $temCamiseta
+                                        ? "camiseta"
+                                        : "pagamento"
+                                ); ?>"
                         >
                             Próximo
                             <i
@@ -1036,7 +1080,8 @@ $temCamiseta =
 
                 </div>
             </section>
-            <section
+            <?php if ($temSaude): ?>
+<section
                 class="card border-0 shadow-sm etapa-inscricao"
                 data-etapa="saude"
                 hidden
@@ -1047,7 +1092,8 @@ $temCamiseta =
                         Saúde e Acessibilidade
                     </h2>
 
-                    <div class="mb-4">
+                    <?php if ($perguntaRestricaoMedicacao): ?>
+<div class="mb-4">
                         <label
                             class="form-label fw-semibold d-block"
                         >
@@ -1102,8 +1148,10 @@ $temCamiseta =
                             hidden
                         ></textarea>
                     </div>
+<?php endif; ?>
 
-                    <div class="mb-4">
+                    <?php if ($perguntaDeficiencia): ?>
+<div class="mb-4">
                         <label
                             class="form-label fw-semibold"
                             for="deficiencia"
@@ -1134,8 +1182,10 @@ $temCamiseta =
                             placeholder="Se necessário, detalhe"
                         ></textarea>
                     </div>
+<?php endif; ?>
 
-                    <div class="mb-4">
+                    <?php if ($perguntaAcessibilidade): ?>
+<div class="mb-4">
                         <label
                             class="form-label fw-semibold d-block"
                         >
@@ -1191,8 +1241,10 @@ $temCamiseta =
                             hidden
                         ></textarea>
                     </div>
+<?php endif; ?>
 
-                    <div class="mb-4">
+                    <?php if ($perguntaRestricaoAlimentar): ?>
+<div class="mb-4">
                         <label
                             class="form-label fw-semibold d-block"
                         >
@@ -1247,6 +1299,7 @@ $temCamiseta =
                             hidden
                         ></textarea>
                     </div>
+<?php endif; ?>
 
                     <div
                         class="d-flex justify-content-between mt-4"
@@ -1276,6 +1329,7 @@ $temCamiseta =
 
                 </div>
             </section>
+<?php endif; ?>
 
             <?php if ($temCamiseta): ?>
                 <section
@@ -1324,7 +1378,9 @@ $temCamiseta =
                             <button
                                 type="button"
                                 class="btn btn-outline-secondary"
-                                data-voltar="saude"
+                                data-voltar="<?= $temSaude
+                                    ? "saude"
+                                    : "endereco"; ?>"
                             >
                                 Voltar
                             </button>
@@ -1623,7 +1679,11 @@ $temCamiseta =
                             class="btn btn-outline-secondary"
                             data-voltar="<?= $temCamiseta
                                 ? "camiseta"
-                                : "saude"; ?>"
+                                : (
+                                    $temSaude
+                                        ? "saude"
+                                        : "endereco"
+                                ); ?>"
                         >
                             Voltar para o formulário
                         </button>
@@ -1744,6 +1804,7 @@ $temCamiseta =
             "idEvento" => $idEvento,
             "eventoPago" => $eventoPago,
             "temCamiseta" => $temCamiseta,
+            "temSaude" => $temSaude,
             "pagamentoObrigatorio" =>
                 $pagamentoObrigatorioEvento,
             "valorPadrao" => $valor,
@@ -1768,7 +1829,7 @@ $temCamiseta =
     ></script>
 
     <script
-        src="<?= THEME_JS ?>inscricao/publica.js?v=<?= VERSION ?>&cv=23"
+        src="<?= THEME_JS ?>inscricao/publica.js?v=<?= VERSION ?>&cv=24"
     ></script>
 
 </body>

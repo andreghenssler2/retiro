@@ -396,4 +396,90 @@ class EventoInscricaoPublicaConfig
     }
 
 
+
+    /**
+     * Define quais perguntas de Saúde e Acessibilidade
+     * devem aparecer na inscrição deste evento.
+     */
+    public function salvarPerguntasSaude(
+        int $idEvento,
+        array $perguntas
+    ): void {
+        if ($idEvento <= 0) {
+            throw new InvalidArgumentException(
+                "Evento inválido para salvar "
+                . "as perguntas de saúde."
+            );
+        }
+
+        $restricaoMedicacao =
+            !empty(
+                $perguntas[
+                    "restricao_medicacao"
+                ]
+            )
+                ? 1
+                : 0;
+
+        $deficiencia =
+            !empty(
+                $perguntas[
+                    "deficiencia"
+                ]
+            )
+                ? 1
+                : 0;
+
+        $acessibilidade =
+            !empty(
+                $perguntas[
+                    "acessibilidade"
+                ]
+            )
+                ? 1
+                : 0;
+
+        $restricaoAlimentar =
+            !empty(
+                $perguntas[
+                    "restricao_alimentar"
+                ]
+            )
+                ? 1
+                : 0;
+
+        $stmt =
+            $this->db->prepare("
+                UPDATE eventos
+                SET
+                    perguntar_restricao_medicacao =
+                        :restricao_medicacao,
+                    perguntar_deficiencia =
+                        :deficiencia,
+                    perguntar_acessibilidade =
+                        :acessibilidade,
+                    perguntar_restricao_alimentar =
+                        :restricao_alimentar
+                WHERE idEvento = :idEvento
+            ");
+
+        $stmt->execute([
+            ":restricao_medicacao" =>
+                $restricaoMedicacao,
+
+            ":deficiencia" =>
+                $deficiencia,
+
+            ":acessibilidade" =>
+                $acessibilidade,
+
+            ":restricao_alimentar" =>
+                $restricaoAlimentar,
+
+            ":idEvento" =>
+                $idEvento
+        ]);
+    }
+
+
 }

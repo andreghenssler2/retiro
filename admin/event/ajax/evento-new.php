@@ -412,6 +412,15 @@ if (
             $_POST["valor_visitante"]
                 ?? null
         );
+        $configPublica->salvarPerguntasSaude(
+            (int) $ret["id"],
+            is_array(
+                $_POST["perguntas_saude"]
+                ?? null
+            )
+                ? $_POST["perguntas_saude"]
+                : []
+        );
 $configPublica->salvarCamisetas(
             (int) $ret["id"],
             is_array(
