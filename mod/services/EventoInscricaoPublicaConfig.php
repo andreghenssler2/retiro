@@ -292,4 +292,108 @@ class EventoInscricaoPublicaConfig
             throw $erro;
         }
     }
+
+    /**
+     * Define o valor especial para visitante.
+     *
+     * NULL = não disponibiliza a opção "Sou visitante".
+     * 0.00 = visitante gratuito.
+     */
+    public function salvarValorVisitante(
+        int $idEvento,
+        mixed $valor
+    ): void {
+        if ($idEvento <= 0) {
+            throw new InvalidArgumentException(
+                "Evento inválido para salvar "
+                . "o valor de visitante."
+            );
+        }
+
+        $valorTexto = trim(
+            (string) ($valor ?? "")
+        );
+
+        $valorFinal = null;
+
+        if ($valorTexto !== "") {
+            $valorTexto = str_replace(
+                ["R$", " "],
+                "",
+                $valorTexto
+            );
+
+            if (
+                str_contains($valorTexto, ",")
+                && str_contains($valorTexto, ".")
+            ) {
+                $valorTexto = str_replace(
+                    ".",
+                    "",
+                    $valorTexto
+                );
+            }
+
+            $valorTexto = str_replace(
+                ",",
+                ".",
+                $valorTexto
+            );
+
+            if (!is_numeric($valorTexto)) {
+                throw new InvalidArgumentException(
+                    "Informe um valor válido "
+                    . "para visitante."
+                );
+            }
+
+            $valorFinal = round(
+                (float) $valorTexto,
+                2
+            );
+
+            if ($valorFinal < 0) {
+                throw new InvalidArgumentException(
+                    "O valor para visitante "
+                    . "não pode ser negativo."
+                );
+            }
+        }
+
+        $stmt = $this->db->prepare("
+            UPDATE eventos
+            SET valor_visitante =
+                :valor_visitante
+            WHERE idEvento = :idEvento
+        ");
+
+        if ($valorFinal === null) {
+            $stmt->bindValue(
+                ":valor_visitante",
+                null,
+                PDO::PARAM_NULL
+            );
+        } else {
+            $stmt->bindValue(
+                ":valor_visitante",
+                number_format(
+                    $valorFinal,
+                    2,
+                    ".",
+                    ""
+                ),
+                PDO::PARAM_STR
+            );
+        }
+
+        $stmt->bindValue(
+            ":idEvento",
+            $idEvento,
+            PDO::PARAM_INT
+        );
+
+        $stmt->execute();
+    }
+
+
 }

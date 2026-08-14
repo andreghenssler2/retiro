@@ -63,6 +63,41 @@
             "cpfStatus"
         );
 
+    const visitante =
+        document.getElementById(
+            "visitante"
+        );
+
+    const comunidade =
+        document.getElementById(
+            "idComunidade"
+        );
+
+    const comunidadeArea =
+        document.getElementById(
+            "comunidadeArea"
+        );
+
+    const pagamentoOpcoes =
+        document.getElementById(
+            "pagamentoOpcoes"
+        );
+
+    const resumoValor =
+        document.getElementById(
+            "resumoValor"
+        );
+
+    const resumoTipo =
+        document.getElementById(
+            "resumoTipoParticipante"
+        );
+
+    const textoBtnConcluir =
+        document.getElementById(
+            "textoBtnConcluir"
+        );
+
     const resultado =
         document.getElementById(
             "resultadoPagamento"
@@ -195,6 +230,142 @@
                     .originalHtml;
         }
     };
+
+    const moeda = (
+        valor
+    ) => {
+        return Number(
+            valor || 0
+        ).toLocaleString(
+            "pt-BR",
+            {
+                style: "currency",
+                currency: "BRL"
+            }
+        );
+    };
+
+    const valorAtual = () => {
+        const isVisitante =
+            Boolean(
+                visitante?.checked
+            );
+
+        if (
+            isVisitante
+            && cfg.temValorVisitante
+        ) {
+            return Number(
+                cfg.valorVisitante
+                ?? 0
+            );
+        }
+
+        return Number(
+            cfg.valorPadrao
+                ?? 0
+        );
+    };
+
+    const atualizarVisitante = () => {
+        const isVisitante =
+            Boolean(
+                visitante?.checked
+            );
+
+        if (comunidade) {
+            comunidade.required =
+                !isVisitante;
+
+            comunidade.disabled =
+                isVisitante;
+
+            if (isVisitante) {
+                comunidade.value = "";
+            }
+        }
+
+        if (comunidadeArea) {
+            comunidadeArea
+                .classList
+                .toggle(
+                    "opacity-50",
+                    isVisitante
+                );
+        }
+
+        const valor =
+            valorAtual();
+
+        const precisaPagamento =
+            Boolean(
+                cfg.pagamentoObrigatorio
+            )
+            && valor > 0;
+
+        if (resumoValor) {
+            resumoValor.textContent =
+                precisaPagamento
+                    ? moeda(valor)
+                    : "Gratuito";
+        }
+
+        if (resumoTipo) {
+            resumoTipo.textContent =
+                isVisitante
+                    ? "Visitante"
+                    : "Comunidade/Paróquia";
+        }
+
+        if (pagamentoOpcoes) {
+            pagamentoOpcoes.hidden =
+                !precisaPagamento;
+
+            pagamentoOpcoes
+                .querySelectorAll(
+                    '[name="forma_pagamento"]'
+                )
+                .forEach((radio) => {
+                    radio.required =
+                        precisaPagamento;
+                });
+        }
+
+        const cartao =
+            document.getElementById(
+                "cartaoCampos"
+            );
+
+        if (
+            !precisaPagamento
+            && cartao
+        ) {
+            cartao.hidden = true;
+
+            cartao
+                .querySelectorAll(
+                    "input"
+                )
+                .forEach((input) => {
+                    input.required =
+                        false;
+
+                    input.value = "";
+                });
+        }
+
+        if (textoBtnConcluir) {
+            textoBtnConcluir.textContent =
+                precisaPagamento
+                    ? "Concluir inscrição"
+                    : "Confirmar inscrição";
+        }
+    };
+
+    visitante?.addEventListener(
+        "change",
+        atualizarVisitante
+    );
 
     const mostrarEtapa = (
         nome
@@ -368,6 +539,7 @@
                             .proximo
                         === "pagamento"
                     ) {
+                        atualizarVisitante();
                         document
                             .getElementById(
                                 "resumoNome"
@@ -833,6 +1005,8 @@
         "restricao_alimentar",
         "alimentar_detalhes"
     );
+
+    atualizarVisitante();
 
     document
         .querySelectorAll(

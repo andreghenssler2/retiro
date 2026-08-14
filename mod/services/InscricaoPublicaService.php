@@ -766,6 +766,34 @@ class InscricaoPublicaService
             ?? 0
         );
 
+        $visitante =
+            (string) (
+                $dados["visitante"]
+                ?? "0"
+            ) === "1"
+                ? 1
+                : 0;
+
+        $valorVisitanteConfigurado =
+            array_key_exists(
+                "valor_visitante",
+                $evento
+            )
+            && $evento["valor_visitante"]
+                !== null
+            && $evento["valor_visitante"]
+                !== "";
+
+        if (
+            $visitante === 1
+            && !$valorVisitanteConfigurado
+        ) {
+            throw new InvalidArgumentException(
+                "Este evento não possui "
+                . "valor especial para visitante."
+            );
+        }
+
         if ($nome === "") {
             throw new InvalidArgumentException(
                 "Informe o nome completo."
@@ -820,14 +848,29 @@ class InscricaoPublicaService
         }
 
         if (
-            !$this->comunidadeExiste(
+            $visitante === 0
+            && !$this->comunidadeExiste(
                 $idComunidade
             )
         ) {
             throw new InvalidArgumentException(
-                "Selecione a comunidade/paróquia."
+                "Selecione a comunidade/paróquia "
+                . "ou marque a opção visitante."
             );
         }
+
+        /*
+         * A opção visitante é específica desta inscrição.
+         * Ela não apaga uma comunidade já salva no perfil.
+         */
+        $idComunidadePerfil =
+            $visitante === 1
+                ? null
+                : (
+                    $idComunidade > 0
+                        ? $idComunidade
+                        : null
+                );
 
         $this->validarIdade(
             $dataNascimento,
@@ -998,10 +1041,28 @@ class InscricaoPublicaService
             );
         }
 
-        $valor = (float) (
+        $valorPadrao = (float) (
             $evento["valor_inscricao"]
             ?? $evento["valor"]
             ?? 0
+        );
+
+        $valorVisitante =
+            $valorVisitanteConfigurado
+                ? (float) $evento[
+                    "valor_visitante"
+                ]
+                : null;
+
+        $valor =
+            $visitante === 1
+            && $valorVisitante !== null
+                ? $valorVisitante
+                : $valorPadrao;
+
+        $valor = round(
+            max(0, $valor),
+            2
         );
 
         $pagamentoObrigatorio =
@@ -1064,7 +1125,7 @@ class InscricaoPublicaService
                         "cidade" => $cidade,
                         "estado" => $estado,
                         "idComunidade" =>
-                            $idComunidade
+                            $idComunidadePerfil
                     ]);
             } else {
                 /*
@@ -1094,7 +1155,7 @@ class InscricaoPublicaService
                         "cidade" => $cidade,
                         "estado" => $estado,
                         "idComunidade" =>
-                            $idComunidade
+                            $idComunidadePerfil
                     ]
                 );
             }
@@ -1193,7 +1254,14 @@ class InscricaoPublicaService
                         :data_nascimento,
                     cidade = :cidade,
                     estado = :estado,
-                    camiseta = :camiseta
+                    camiseta = :camiseta,
+                    valor = :valor,
+                    pagamento =
+                        CASE
+                            WHEN pagamento = 'Pago'
+                                THEN pagamento
+                            ELSE :pagamento
+                        END
                 WHERE idInscricao =
                     :idInscricao
             ");
@@ -1210,6 +1278,11 @@ class InscricaoPublicaService
                 ":cidade" => $cidade,
                 ":estado" => $estado,
                 ":camiseta" => $camiseta,
+                ":valor" => $valor,
+                ":pagamento" =>
+                    $pagamentoObrigatorio
+                        ? "Pendente"
+                        : "Pago",
                 ":idInscricao" =>
                     $idInscricao
             ]);
@@ -1231,7 +1304,11 @@ class InscricaoPublicaService
                     "cidade" => $cidade,
                     "estado" => $estado,
                     "idComunidade" =>
-                        $idComunidade,
+                        $visitante === 1
+                            ? null
+                            : $idComunidade,
+                    "visitante" =>
+                        $visitante,
                     "restricao_medicacao" =>
                         $restricaoMedicacao,
                     "medicacao_detalhes" =>
@@ -1893,7 +1970,10 @@ class InscricaoPublicaService
                 PASSWORD_DEFAULT
             ),
             ":idComunidade" =>
-                $dados["idComunidade"],
+                isset($dados["idComunidade"])
+                && (int) $dados["idComunidade"] > 0
+                    ? (int) $dados["idComunidade"]
+                    : null,
             ":logradouro" =>
                 $dados["logradouro"],
             ":numero" => $dados["numero"],
@@ -1947,7 +2027,11 @@ class InscricaoPublicaService
                 email = :email,
                 telefone = :telefone,
                 cpf = :cpf,
-                idComunidade = :idComunidade,
+                idComunidade =
+                    COALESCE(
+                        :idComunidade,
+                        idComunidade
+                    ),
                 logradouro = :logradouro,
                 numero = :numero,
                 bairro = :bairro,
@@ -1975,7 +2059,10 @@ class InscricaoPublicaService
                 $dados["telefone"],
             ":cpf" => $cpf,
             ":idComunidade" =>
-                $dados["idComunidade"],
+                isset($dados["idComunidade"])
+                && (int) $dados["idComunidade"] > 0
+                    ? (int) $dados["idComunidade"]
+                    : null,
             ":logradouro" =>
                 $dados["logradouro"],
             ":numero" => $dados["numero"],
@@ -2021,6 +2108,7 @@ class InscricaoPublicaService
                     cidade,
                     estado,
                     idComunidade,
+                    visitante,
                     restricao_medicacao,
                     medicacao_detalhes,
                     deficiencia,
@@ -2043,6 +2131,7 @@ class InscricaoPublicaService
                 :cidade,
                 :estado,
                 :idComunidade,
+                :visitante,
                 :restricao_medicacao,
                 :medicacao_detalhes,
                 :deficiencia,
@@ -2068,6 +2157,8 @@ class InscricaoPublicaService
                 estado = VALUES(estado),
                 idComunidade =
                     VALUES(idComunidade),
+                visitante =
+                    VALUES(visitante),
                 restricao_medicacao =
                     VALUES(restricao_medicacao),
                 medicacao_detalhes =
@@ -2127,6 +2218,10 @@ class InscricaoPublicaService
                 ) > 0
                     ? (int) $dados["idComunidade"]
                     : null,
+            ":visitante" =>
+                !empty($dados["visitante"])
+                    ? 1
+                    : 0,
             ":restricao_medicacao" =>
                 (int) (
                     $dados[

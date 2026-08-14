@@ -84,12 +84,42 @@ $valor = (float) (
     ?? 0
 );
 
-$eventoPago =
+$temValorVisitante =
+    array_key_exists(
+        "valor_visitante",
+        $evento
+    )
+    && $evento["valor_visitante"]
+        !== null
+    && $evento["valor_visitante"]
+        !== "";
+
+$valorVisitante =
+    $temValorVisitante
+        ? (float) $evento[
+            "valor_visitante"
+        ]
+        : null;
+
+$pagamentoObrigatorioEvento =
     (int) (
         $evento["pagamento_obrigatorio"]
         ?? 1
-    ) === 1
+    ) === 1;
+
+$eventoPago =
+    $pagamentoObrigatorioEvento
     && $valor > 0;
+
+$podeTerPagamento =
+    $pagamentoObrigatorioEvento
+    && (
+        $valor > 0
+        || (
+            $valorVisitante !== null
+            && $valorVisitante > 0
+        )
+    );
 
 $temCamiseta =
     (int) (
@@ -271,6 +301,28 @@ $temCamiseta =
                                     )
                                 : "Gratuito"; ?>
                         </strong>
+
+                        <?php if (
+                            $temValorVisitante
+                        ): ?>
+                            <small
+                                class="text-muted d-block mt-1"
+                            >
+                                Visitante:
+                                <strong>
+                                    <?= $pagamentoObrigatorioEvento
+                                        && $valorVisitante > 0
+                                        ? "R$ "
+                                            . number_format(
+                                                $valorVisitante,
+                                                2,
+                                                ",",
+                                                "."
+                                            )
+                                        : "Gratuito"; ?>
+                                </strong>
+                            </small>
+                        <?php endif; ?>
                     </div>
 
                 </div>
@@ -806,7 +858,67 @@ $temCamiseta =
                             >
                         </div>
 
-                        <div class="col-md-7">
+                        <?php if (
+                            $temValorVisitante
+                        ): ?>
+                            <div class="col-12">
+                                <div
+                                    class="border rounded
+                                        p-3 bg-light"
+                                >
+                                    <div class="form-check">
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            name="visitante"
+                                            id="visitante"
+                                            value="1"
+                                        >
+
+                                        <label
+                                            class="form-check-label
+                                                fw-semibold"
+                                            for="visitante"
+                                        >
+                                            Sou visitante
+                                        </label>
+                                    </div>
+
+                                    <div
+                                        class="small
+                                            text-muted mt-1"
+                                    >
+                                        Ao marcar como visitante,
+                                        o valor da inscrição será
+                                        <strong>
+                                            <?= $pagamentoObrigatorioEvento
+                                                && $valorVisitante > 0
+                                                ? "R$ "
+                                                    . number_format(
+                                                        $valorVisitante,
+                                                        2,
+                                                        ",",
+                                                        "."
+                                                    )
+                                                : "gratuito"; ?>
+                                        </strong>
+                                        e a Comunidade/Paróquia
+                                        não será obrigatória.
+                                    </div>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <input
+                                type="hidden"
+                                name="visitante"
+                                value="0"
+                            >
+                        <?php endif; ?>
+
+                        <div
+                            class="col-md-7"
+                            id="comunidadeArea"
+                        >
                             <label
                                 class="form-label fw-semibold"
                                 for="idComunidade"
@@ -1229,6 +1341,19 @@ $temCamiseta =
                             </small>
                             <strong id="resumoTelefone">-</strong>
                         </div>
+
+                        <div class="col-md-6">
+                            <small
+                                class="text-muted d-block"
+                            >
+                                Tipo de inscrição
+                            </small>
+                            <strong
+                                id="resumoTipoParticipante"
+                            >
+                                Comunidade/Paróquia
+                            </strong>
+                        </div>
                     </div>
 
                     <h3 class="h6 fw-bold">
@@ -1250,7 +1375,7 @@ $temCamiseta =
                                 ); ?>
                             </strong>
 
-                            <strong>
+                            <strong id="resumoValor">
                                 <?= $eventoPago
                                     ? "R$ "
                                         . number_format(
@@ -1264,14 +1389,15 @@ $temCamiseta =
                         </div>
                     </div>
 
-                    <?php if ($eventoPago): ?>
-                        <h3 class="h6 fw-bold mb-3">
-                            Escolha a forma de pagamento
-                        </h3>
+                    <?php if ($podeTerPagamento): ?>
+                        <div id="pagamentoOpcoes">
+                            <h3 class="h6 fw-bold mb-3">
+                                Escolha a forma de pagamento
+                            </h3>
 
-                        <div
-                            class="formas-pagamento mb-4"
-                        >
+                            <div
+                                class="formas-pagamento mb-4"
+                            >
                             <label
                                 class="forma-pagamento"
                             >
@@ -1434,6 +1560,7 @@ $temCamiseta =
 
                             </div>
                         </div>
+                        </div>
                     <?php endif; ?>
 
                     <div
@@ -1454,9 +1581,11 @@ $temCamiseta =
                             class="btn btn-inscricao px-4"
                             id="btnConcluirInscricao"
                         >
-                            <?= $eventoPago
-                                ? "Concluir inscrição"
-                                : "Confirmar inscrição"; ?>
+                            <span id="textoBtnConcluir">
+                                <?= $eventoPago
+                                    ? "Concluir inscrição"
+                                    : "Confirmar inscrição"; ?>
+                            </span>
 
                             <i
                                 class="fa-solid
@@ -1562,7 +1691,14 @@ $temCamiseta =
             "baseUrl" => BASE_URL,
             "idEvento" => $idEvento,
             "eventoPago" => $eventoPago,
-            "temCamiseta" => $temCamiseta
+            "temCamiseta" => $temCamiseta,
+            "pagamentoObrigatorio" =>
+                $pagamentoObrigatorioEvento,
+            "valorPadrao" => $valor,
+            "temValorVisitante" =>
+                $temValorVisitante,
+            "valorVisitante" =>
+                $valorVisitante
         ],
         JSON_UNESCAPED_UNICODE
         | JSON_UNESCAPED_SLASHES

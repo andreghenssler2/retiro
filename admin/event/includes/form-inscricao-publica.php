@@ -29,6 +29,25 @@ $camisetasEventoForm =
             )
         : [];
 
+$valorVisitanteEventoForm =
+    array_key_exists(
+        "valor_visitante",
+        $dados
+    )
+    && $dados["valor_visitante"]
+        !== null
+    && $dados["valor_visitante"]
+        !== ""
+        ? number_format(
+            (float) $dados[
+                "valor_visitante"
+            ],
+            2,
+            ".",
+            ""
+        )
+        : "";
+
 $todosTamanhos = [
     "P",
     "M",
@@ -230,6 +249,61 @@ $todosTamanhos = [
                 </div>
             <?php endforeach; ?>
 
+        </div>
+
+        <hr class="my-4">
+
+        <div class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label
+                    class="form-label fw-bold"
+                    for="valor_visitante"
+                >
+                    Valor para visitante
+                </label>
+
+                <div class="input-group">
+                    <span class="input-group-text">
+                        R$
+                    </span>
+
+                    <input
+                        type="number"
+                        class="form-control"
+                        id="valor_visitante"
+                        name="valor_visitante"
+                        min="0"
+                        step="0.01"
+                        value="<?= htmlspecialchars(
+                            $valorVisitanteEventoForm,
+                            ENT_QUOTES
+                            | ENT_SUBSTITUTE,
+                            "UTF-8"
+                        ); ?>"
+                        placeholder="Ex.: 150,00"
+                    >
+                </div>
+            </div>
+
+            <div class="col-md-7">
+                <div class="alert alert-light border mb-0">
+                    <i
+                        class="fa-solid
+                            fa-person-walking
+                            text-primary me-1"
+                    ></i>
+
+                    Preencha somente quando o evento
+                    possuir um valor diferente para
+                    <strong>visitantes</strong>.
+
+                    <div class="small text-muted mt-1">
+                        Em branco: não aparece a opção
+                        “Sou visitante”. Valor 0,00:
+                        visitante participa gratuitamente.
+                    </div>
+                </div>
+            </div>
         </div>
 
         <hr class="my-4">

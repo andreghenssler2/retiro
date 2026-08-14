@@ -407,7 +407,12 @@ if (
                 : []
         );
 
-        $configPublica->salvarCamisetas(
+                $configPublica->salvarValorVisitante(
+            (int) $ret["id"],
+            $_POST["valor_visitante"]
+                ?? null
+        );
+$configPublica->salvarCamisetas(
             (int) $ret["id"],
             is_array(
                 $_POST["camisetas"]
