@@ -255,43 +255,26 @@
             .toLowerCase();
     };
 
+    const opcaoComunidadeSelecionada =
+        () => {
+            const campo =
+                document.getElementById(
+                    "idComunidade"
+                );
+
+            if (!campo) {
+                return null;
+            }
+
+            return (
+                campo.selectedOptions?.[0]
+                || null
+            );
+        };
+
     const comunidadeEhVisitante = () => {
-        if (!comunidade) {
-            return false;
-        }
-
-        const idSelecionado =
-            Number(
-                comunidade.value
-                || 0
-            );
-
-        const idVisitante =
-            Number(
-                cfg.idComunidadeVisitante
-                || 0
-            );
-
-        /*
-         * Regra principal:
-         * usa o ID real da opção Visitante.
-         */
-        if (
-            idVisitante > 0
-            && idSelecionado > 0
-        ) {
-            return
-            idSelecionado
-                === idVisitante;
-        }
-
-        /*
-         * Fallback para instalações antigas.
-         */
         const opcao =
-            comunidade
-                .selectedOptions?.[0]
-            || null;
+            opcaoComunidadeSelecionada();
 
         if (!opcao) {
             return false;
@@ -310,6 +293,38 @@
     };
 
     const valorAtual = () => {
+        const opcao =
+            opcaoComunidadeSelecionada();
+
+        /*
+         * A própria opção selecionada informa
+         * qual valor deve aparecer no resumo.
+         *
+         * Ex.:
+         * Parobé   -> data-valor="70.00"
+         * Visitante-> data-valor="100.00"
+         */
+        if (
+            opcao
+            && opcao.dataset.valor
+                !== undefined
+            && opcao.dataset.valor
+                !== ""
+        ) {
+            const valorOpcao =
+                Number(
+                    opcao.dataset.valor
+                );
+
+            if (
+                Number.isFinite(
+                    valorOpcao
+                )
+            ) {
+                return valorOpcao;
+            }
+        }
+
         const isVisitante =
             comunidadeEhVisitante();
 
@@ -325,7 +340,7 @@
 
         return Number(
             cfg.valorPadrao
-            ?? 0
+                ?? 0
         );
     };
 
@@ -342,25 +357,53 @@
             )
             && valor > 0;
 
-        if (resumoValor) {
-            resumoValor.textContent =
+        /*
+         * Busca novamente os elementos a cada
+         * atualização. Assim o resumo sempre usa
+         * os elementos atuais da etapa Pagamento.
+         */
+        const resumoValorAtual =
+            document.getElementById(
+                "resumoValor"
+            );
+
+        const resumoTipoAtual =
+            document.getElementById(
+                "resumoTipoParticipante"
+            );
+
+        const pagamentoOpcoesAtual =
+            document.getElementById(
+                "pagamentoOpcoes"
+            );
+
+        const textoBtnAtual =
+            document.getElementById(
+                "textoBtnConcluir"
+            );
+
+        if (resumoValorAtual) {
+            resumoValorAtual.textContent =
                 precisaPagamento
                     ? moeda(valor)
                     : "Gratuito";
+
+            resumoValorAtual.dataset.valor =
+                String(valor);
         }
 
-        if (resumoTipo) {
-            resumoTipo.textContent =
+        if (resumoTipoAtual) {
+            resumoTipoAtual.textContent =
                 isVisitante
                     ? "Visitante"
                     : "Comunidade/Paróquia";
         }
 
-        if (pagamentoOpcoes) {
-            pagamentoOpcoes.hidden =
+        if (pagamentoOpcoesAtual) {
+            pagamentoOpcoesAtual.hidden =
                 !precisaPagamento;
 
-            pagamentoOpcoes
+            pagamentoOpcoesAtual
                 .querySelectorAll(
                     '[name="forma_pagamento"]'
                 )
@@ -393,8 +436,8 @@
                 });
         }
 
-        if (textoBtnConcluir) {
-            textoBtnConcluir.textContent =
+        if (textoBtnAtual) {
+            textoBtnAtual.textContent =
                 precisaPagamento
                     ? "Concluir inscrição"
                     : "Confirmar inscrição";
@@ -409,6 +452,26 @@
     comunidade?.addEventListener(
         "input",
         atualizarVisitante
+    );
+
+    /*
+     * Listener delegado como garantia adicional.
+     */
+    document.addEventListener(
+        "change",
+        (event) => {
+            const target =
+                event.target;
+
+            if (
+                target instanceof
+                    HTMLSelectElement
+                && target.id
+                    === "idComunidade"
+            ) {
+                atualizarVisitante();
+            }
+        }
     );
 
     const mostrarEtapa = (
@@ -432,7 +495,7 @@
         });
     };
 
-    const validarEtapa = (
+    const camposDaEtapa = (
         nome
     ) => {
         const section =
@@ -441,37 +504,131 @@
             );
 
         if (!section) {
-            return true;
+            return [];
         }
 
-        const fields =
+        return Array.from(
             section.querySelectorAll(
                 "input,select,textarea"
+            )
+        ).filter((field) => {
+            return !(
+                field.disabled
+                || field.type
+                    === "hidden"
             );
+        });
+    };
 
+    const primeiroCampoInvalido = (
+        nome
+    ) => {
         for (
             const field
-            of fields
+            of camposDaEtapa(nome)
         ) {
-            if (
-                field.disabled
-                || field.hidden
-                || field.type
-                === "hidden"
-            ) {
-                continue;
-            }
-
             if (
                 !field.checkValidity()
             ) {
-                field.reportValidity();
-                return false;
+                return field;
             }
         }
 
-        return true;
+        return null;
     };
+
+    const exibirCampoInvalido = (
+        nome,
+        field
+    ) => {
+        /*
+         * A etapa precisa estar visível antes
+         * de focar/reportar o campo. Isso evita:
+         *
+         * "An invalid form control is not focusable"
+         */
+        mostrarEtapa(nome);
+
+        window.setTimeout(
+            () => {
+                try {
+                    field.focus({
+                        preventScroll: true
+                    });
+                } catch {
+                    field.focus();
+                }
+
+                field.reportValidity();
+
+                field.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
+            },
+            0
+        );
+    };
+
+    const validarEtapa = (
+        nome
+    ) => {
+        const invalido =
+            primeiroCampoInvalido(
+                nome
+            );
+
+        if (!invalido) {
+            return true;
+        }
+
+        exibirCampoInvalido(
+            nome,
+            invalido
+        );
+
+        return false;
+    };
+
+    const validarFormularioCompleto =
+        () => {
+            const etapas = [
+                "pessoal",
+                "endereco",
+                "saude"
+            ];
+
+            if (cfg.temCamiseta) {
+                etapas.push(
+                    "camiseta"
+                );
+            }
+
+            etapas.push(
+                "pagamento"
+            );
+
+            for (
+                const etapa
+                of etapas
+            ) {
+                const invalido =
+                    primeiroCampoInvalido(
+                        etapa
+                    );
+
+                if (invalido) {
+                    exibirCampoInvalido(
+                        etapa,
+                        invalido
+                    );
+
+                    return false;
+                }
+            }
+
+            return true;
+        };
 
     const formatCpf = (
         value
@@ -566,7 +723,7 @@
                         atual === "pessoal"
                         && cpf.dataset
                             .validado
-                        !== "1"
+                            !== "1"
                     ) {
                         showAlert(
                             "warning",
@@ -620,10 +777,26 @@
                             || "-";
                     }
 
-                    mostrarEtapa(
+                    const proximaEtapa =
                         button.dataset
-                            .proximo
+                            .proximo;
+
+                    mostrarEtapa(
+                        proximaEtapa
                     );
+
+                    if (
+                        proximaEtapa
+                        === "pagamento"
+                    ) {
+                        /*
+                         * Atualiza novamente depois
+                         * que o resumo está visível.
+                         */
+                        window.requestAnimationFrame(
+                            atualizarVisitante
+                        );
+                    }
                 }
             );
         });
@@ -849,15 +1022,15 @@
                 ].forEach((name) => {
                     const field =
                         form.elements[
-                        name
+                            name
                         ];
 
                     if (
                         field
                         && d[name]
-                        !== undefined
+                            !== undefined
                         && d[name]
-                        !== null
+                            !== null
                     ) {
                         field.value =
                             d[name];
@@ -1079,7 +1252,7 @@
                     const isCard =
                         radio.checked
                         && radio.value
-                        === "Cartao";
+                            === "Cartao";
 
                     card.hidden =
                         !isCard;
@@ -1133,10 +1306,16 @@
             event.preventDefault();
             clearAlert();
 
+            /*
+             * O formulário possui novalidate porque
+             * as etapas anteriores ficam escondidas.
+             *
+             * Revalidamos tudo manualmente aqui.
+             */
+            atualizarVisitante();
+
             if (
-                !validarEtapa(
-                    "pagamento"
-                )
+                !validarFormularioCompleto()
             ) {
                 return;
             }
@@ -1208,7 +1387,7 @@
                     .textContent =
                     d.statusPagamento
                         === "Pago"
-                        || d.gratuito
+                    || d.gratuito
                         ? "Inscrição confirmada"
                         : "Inscrição realizada";
 

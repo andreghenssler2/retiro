@@ -377,6 +377,7 @@ $temCamiseta =
         <form
             id="formInscricaoPublica"
             autocomplete="off"
+            novalidate
         >
             <input
                 type="hidden"
@@ -973,6 +974,14 @@ $temCamiseta =
                                     $comunidadeEhVisitante =
                                         $nomeComunidadeNormalizado
                                         === "visitante";
+
+                                    $valorOpcaoComunidade =
+                                        $comunidadeEhVisitante
+                                        && $temValorVisitante
+                                            ? (float)
+                                                $valorVisitante
+                                            : (float)
+                                                $valor;
                                     ?>
                                     <option
                                         value="<?= (int) $comunidade[
@@ -981,6 +990,15 @@ $temCamiseta =
                                         data-visitante="<?= $comunidadeEhVisitante
                                             ? "1"
                                             : "0"; ?>"
+                                        data-valor="<?= number_format(
+                                            $valorOpcaoComunidade,
+                                            2,
+                                            ".",
+                                            ""
+                                        ); ?>"
+                                        data-tipo="<?= $comunidadeEhVisitante
+                                            ? "Visitante"
+                                            : "Comunidade/Paróquia"; ?>"
                                     >
                                         <?= inscricaoPubEscapar(
                                             $nomeComunidadeOpcao
@@ -1750,7 +1768,7 @@ $temCamiseta =
     ></script>
 
     <script
-        src="<?= THEME_JS ?>inscricao/publica.js?v=<?= VERSION ?>&cv=21"
+        src="<?= THEME_JS ?>inscricao/publica.js?v=<?= VERSION ?>&cv=23"
     ></script>
 
 </body>
