@@ -145,23 +145,32 @@ class Pagamento
             $inscricao["pagamento_obrigatorio"] ?? 1
         ) === 1;
 
-        $valorConfigurado = (float) (
-            $inscricao["valor_inscricao"] ?? 0
-        );
-
-        if ($valorConfigurado <= 0) {
-            $valorConfigurado = (float) (
-                $inscricao["valorInscricaoAtual"]
-                ?? $inscricao["valor"]
-                ?? 0
+                /*
+         * VALOR_DA_INSCRICAO_V2
+         *
+         * O valor final já foi calculado no momento
+         * da inscrição. Isso inclui valor normal,
+         * valor de visitante e gratuidade.
+         *
+         * Por isso inscricoes.valor é a fonte
+         * de verdade do pagamento.
+         */
+        $valorConfigurado =
+            round(
+                (float) (
+                    $inscricao[
+                        "valorInscricaoAtual"
+                    ]
+                    ?? 0
+                ),
+                2
             );
+
+        if ($valorConfigurado < 0) {
+            $valorConfigurado = 0;
         }
 
-        if ($valorConfigurado <= 0) {
-            $valorConfigurado = (float) ($inscricao["valor"] ?? 0);
-        }
-
-        $existente = $this->buscarPorInscricao($idInscricao);
+$existente = $this->buscarPorInscricao($idInscricao);
 
         /*
          * Evento gratuito ou que não exige pagamento:

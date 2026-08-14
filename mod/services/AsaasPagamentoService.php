@@ -102,8 +102,67 @@ class AsaasPagamentoService
                     );
                 }
 
-                if ($billingAtual === $billingType && !$this->cobrancaFoiEncerrada($statusAtual)) {
-                    return $this->persistirRetornoAsaas($pagamento, $forma, $cobrancaAtual);
+                                if (
+                    $billingAtual === $billingType
+                    && !$this->cobrancaFoiEncerrada(
+                        $statusAtual
+                    )
+                ) {
+                    /*
+                     * VALOR_COBRANCA_ATUAL_V2
+                     *
+                     * Se o participante mudou para/de
+                     * Visitante antes de pagar, não
+                     * reutilizamos uma cobrança pendente
+                     * com o valor antigo.
+                     */
+                    $valorBaseEsperado =
+                        round(
+                            (float) (
+                                $pagamento["valor"]
+                                ?? 0
+                            ),
+                            2
+                        );
+
+                    $repassarTaxaEsperada =
+                        (int) (
+                            $pagamento[
+                                "repassarTaxaAsaasEvento"
+                            ]
+                            ?? 0
+                        ) === 1;
+
+                    $valorEsperado =
+                        $repassarTaxaEsperada
+                            ? $this->calcularValorComTaxa(
+                                $valorBaseEsperado,
+                                $billingType
+                            )
+                            : $valorBaseEsperado;
+
+                    $valorAtualAsaas =
+                        round(
+                            (float) (
+                                $cobrancaAtual["value"]
+                                ?? 0
+                            ),
+                            2
+                        );
+
+                    if (
+                        abs(
+                            $valorAtualAsaas
+                            - $valorEsperado
+                        ) < 0.01
+                    ) {
+                        return $this
+                            ->persistirRetornoAsaas(
+                                $pagamento,
+                                $forma,
+                                $cobrancaAtual
+                            );
+                    }
                 }
 
                 if (!$this->cobrancaFoiEncerrada($statusAtual)) {
@@ -153,8 +212,59 @@ class AsaasPagamentoService
                 );
             }
 
-            if ($billingRecuperado === $billingType && !$this->cobrancaFoiEncerrada($statusRecuperado)) {
-                return $this->persistirRetornoAsaas($pagamento, $forma, $cobrancaRecuperada);
+                        if (
+                $billingRecuperado === $billingType
+                && !$this->cobrancaFoiEncerrada(
+                    $statusRecuperado
+                )
+            ) {
+                $valorBaseEsperado =
+                    round(
+                        (float) (
+                            $pagamento["valor"]
+                            ?? 0
+                        ),
+                        2
+                    );
+
+                $repassarTaxaEsperada =
+                    (int) (
+                        $pagamento[
+                            "repassarTaxaAsaasEvento"
+                        ]
+                        ?? 0
+                    ) === 1;
+
+                $valorEsperado =
+                    $repassarTaxaEsperada
+                        ? $this->calcularValorComTaxa(
+                            $valorBaseEsperado,
+                            $billingType
+                        )
+                        : $valorBaseEsperado;
+
+                $valorRecuperadoAsaas =
+                    round(
+                        (float) (
+                            $cobrancaRecuperada["value"]
+                            ?? 0
+                        ),
+                        2
+                    );
+
+                if (
+                    abs(
+                        $valorRecuperadoAsaas
+                        - $valorEsperado
+                    ) < 0.01
+                ) {
+                    return $this
+                        ->persistirRetornoAsaas(
+                            $pagamento,
+                            $forma,
+                            $cobrancaRecuperada
+                        );
+                }
             }
 
             $idRecuperado = trim((string) ($cobrancaRecuperada["id"] ?? ""));

@@ -298,9 +298,11 @@ $todosTamanhos = [
                     <strong>visitantes</strong>.
 
                     <div class="small text-muted mt-1">
-                        Em branco: não aparece a opção
-                        “Sou visitante”. Valor 0,00:
-                        visitante participa gratuitamente.
+                        Em branco: a opção
+                        <strong>Visitante</strong> usa o
+                        mesmo valor normal do evento.
+                        Valor 0,00: visitante participa
+                        gratuitamente.
                     </div>
                 </div>
             </div>

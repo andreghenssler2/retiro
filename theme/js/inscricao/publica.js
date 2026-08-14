@@ -63,11 +63,6 @@
             "cpfStatus"
         );
 
-    const visitante =
-        document.getElementById(
-            "visitante"
-        );
-
     const comunidade =
         document.getElementById(
             "idComunidade"
@@ -245,11 +240,28 @@
         );
     };
 
+    const comunidadeEhVisitante = () => {
+        if (!comunidade) {
+            return false;
+        }
+
+        const opcao =
+            comunidade
+                .selectedOptions?.[0]
+            || null;
+
+        if (!opcao) {
+            return false;
+        }
+
+        return
+            opcao.dataset.visitante
+            === "1";
+    };
+
     const valorAtual = () => {
         const isVisitante =
-            Boolean(
-                visitante?.checked
-            );
+            comunidadeEhVisitante();
 
         if (
             isVisitante
@@ -269,30 +281,7 @@
 
     const atualizarVisitante = () => {
         const isVisitante =
-            Boolean(
-                visitante?.checked
-            );
-
-        if (comunidade) {
-            comunidade.required =
-                !isVisitante;
-
-            comunidade.disabled =
-                isVisitante;
-
-            if (isVisitante) {
-                comunidade.value = "";
-            }
-        }
-
-        if (comunidadeArea) {
-            comunidadeArea
-                .classList
-                .toggle(
-                    "opacity-50",
-                    isVisitante
-                );
-        }
+            comunidadeEhVisitante();
 
         const valor =
             valorAtual();
@@ -362,7 +351,7 @@
         }
     };
 
-    visitante?.addEventListener(
+    comunidade?.addEventListener(
         "change",
         atualizarVisitante
     );

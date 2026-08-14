@@ -858,63 +858,6 @@ $temCamiseta =
                             >
                         </div>
 
-                        <?php if (
-                            $temValorVisitante
-                        ): ?>
-                            <div class="col-12">
-                                <div
-                                    class="border rounded
-                                        p-3 bg-light"
-                                >
-                                    <div class="form-check">
-                                        <input
-                                            class="form-check-input"
-                                            type="checkbox"
-                                            name="visitante"
-                                            id="visitante"
-                                            value="1"
-                                        >
-
-                                        <label
-                                            class="form-check-label
-                                                fw-semibold"
-                                            for="visitante"
-                                        >
-                                            Sou visitante
-                                        </label>
-                                    </div>
-
-                                    <div
-                                        class="small
-                                            text-muted mt-1"
-                                    >
-                                        Ao marcar como visitante,
-                                        o valor da inscrição será
-                                        <strong>
-                                            <?= $pagamentoObrigatorioEvento
-                                                && $valorVisitante > 0
-                                                ? "R$ "
-                                                    . number_format(
-                                                        $valorVisitante,
-                                                        2,
-                                                        ",",
-                                                        "."
-                                                    )
-                                                : "gratuito"; ?>
-                                        </strong>
-                                        e a Comunidade/Paróquia
-                                        não será obrigatória.
-                                    </div>
-                                </div>
-                            </div>
-                        <?php else: ?>
-                            <input
-                                type="hidden"
-                                name="visitante"
-                                value="0"
-                            >
-                        <?php endif; ?>
-
                         <div
                             class="col-md-7"
                             id="comunidadeArea"
@@ -926,6 +869,33 @@ $temCamiseta =
                                 Comunidade/Paróquia
                                 que faz parte
                             </label>
+
+                            <?php if (
+                                $temValorVisitante
+                            ): ?>
+                                <div
+                                    class="form-text mb-2"
+                                >
+                                    Selecione
+                                    <strong>Visitante</strong>
+                                    caso não pertença a uma
+                                    Comunidade/Paróquia.
+                                    Nesse caso, será aplicado
+                                    o valor de
+                                    <strong>
+                                        <?= $pagamentoObrigatorioEvento
+                                            && $valorVisitante > 0
+                                            ? "R$ "
+                                                . number_format(
+                                                    $valorVisitante,
+                                                    2,
+                                                    ",",
+                                                    "."
+                                                )
+                                            : "gratuito"; ?>
+                                    </strong>.
+                                </div>
+                            <?php endif; ?>
 
                             <select
                                 class="form-select"
@@ -941,15 +911,40 @@ $temCamiseta =
                                     $comunidades
                                     as $comunidade
                                 ): ?>
+                                    <?php
+                                    $nomeComunidadeOpcao =
+                                        trim(
+                                            (string) $comunidade[
+                                                "nome_comunidade"
+                                            ]
+                                        );
+
+                                    $nomeComunidadeNormalizado =
+                                        function_exists(
+                                            "mb_strtolower"
+                                        )
+                                            ? mb_strtolower(
+                                                $nomeComunidadeOpcao,
+                                                "UTF-8"
+                                            )
+                                            : strtolower(
+                                                $nomeComunidadeOpcao
+                                            );
+
+                                    $comunidadeEhVisitante =
+                                        $nomeComunidadeNormalizado
+                                        === "visitante";
+                                    ?>
                                     <option
                                         value="<?= (int) $comunidade[
                                             "id"
                                         ]; ?>"
+                                        data-visitante="<?= $comunidadeEhVisitante
+                                            ? "1"
+                                            : "0"; ?>"
                                     >
                                         <?= inscricaoPubEscapar(
-                                            (string) $comunidade[
-                                                "nome_comunidade"
-                                            ]
+                                            $nomeComunidadeOpcao
                                         ); ?>
                                     </option>
                                 <?php endforeach; ?>

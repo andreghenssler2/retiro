@@ -66,13 +66,10 @@ $ehModerador = Permissao::ehModerador();
 
         <?php if (Permissao::pode("dashboard.visualizar")): ?>
             <li>
-                <a
-                    class="<?= str_contains(
-                        $caminhoAtual,
-                        "/admin/dashboard/"
-                    ) ? "active" : ""; ?>"
-                    href="<?= BASE_URL ?>admin/dashboard/"
-                >
+                <a class="<?= str_contains(
+                    $caminhoAtual,
+                    "/admin/dashboard/"
+                ) ? "active" : ""; ?>" href="<?= BASE_URL ?>admin/dashboard/">
                     <i class="fas fa-home"></i>
                     <span>Dashboard</span>
                 </a>
@@ -82,12 +79,9 @@ $ehModerador = Permissao::ehModerador();
 
         <?php if ($ehAdmin): ?>
             <li>
-                <a
-                    class="<?= active(
-                        ["usuarios.php", "usuario.php"]
-                    ); ?>"
-                    href="<?= BASE_URL ?>admin/user/usuarios.php"
-                >
+                <a class="<?= active(
+                    ["usuarios.php", "usuario.php"]
+                ); ?>" href="<?= BASE_URL ?>admin/user/usuarios.php">
                     <i class="fas fa-users"></i>
                     <span>Usuários</span>
                 </a>
@@ -97,12 +91,9 @@ $ehModerador = Permissao::ehModerador();
 
         <?php if (Permissao::pode("eventos.visualizar")): ?>
             <li>
-                <a
-                    class="<?= active(
-                        ["eventos.php", "evento.php"]
-                    ); ?>"
-                    href="<?= BASE_URL ?>admin/event/eventos.php"
-                >
+                <a class="<?= active(
+                    ["eventos.php", "evento.php"]
+                ); ?>" href="<?= BASE_URL ?>admin/event/eventos.php">
                     <i class="fas fa-calendar-days"></i>
                     <span>Eventos</span>
                 </a>
@@ -112,10 +103,7 @@ $ehModerador = Permissao::ehModerador();
 
         <?php if (Permissao::pode("inscricoes.visualizar")): ?>
             <li>
-                <a
-                    class="<?= active(["inscricoes.php"]); ?>"
-                    href="<?= BASE_URL ?>admin/inscricao/inscricoes.php"
-                >
+                <a class="<?= active(["inscricoes.php"]); ?>" href="<?= BASE_URL ?>admin/inscricao/inscricoes.php">
                     <i class="fas fa-clipboard-check"></i>
                     <span>Inscrições</span>
                 </a>
@@ -125,13 +113,10 @@ $ehModerador = Permissao::ehModerador();
 
         <?php if (Permissao::pode("credenciamento.visualizar")): ?>
             <li>
-                <a
-                    class="<?= str_contains(
-                        $caminhoAtual,
-                        "/admin/credenciamento/"
-                    ) ? "active" : ""; ?>"
-                    href="<?= BASE_URL ?>admin/credenciamento/"
-                >
+                <a class="<?= str_contains(
+                    $caminhoAtual,
+                    "/admin/credenciamento/"
+                ) ? "active" : ""; ?>" href="<?= BASE_URL ?>admin/credenciamento/">
                     <i class="fas fa-id-card-clip"></i>
                     <span>Credenciamento</span>
                 </a>
@@ -141,10 +126,7 @@ $ehModerador = Permissao::ehModerador();
 
         <?php if (Permissao::pode("pagamentos.visualizar")): ?>
             <li>
-                <a
-                    class="<?= active(["pagamentos.php"]); ?>"
-                    href="<?= BASE_URL ?>admin/financeiro/pagamentos.php"
-                >
+                <a class="<?= active(["pagamentos.php"]); ?>" href="<?= BASE_URL ?>admin/financeiro/pagamentos.php">
                     <i class="fas fa-credit-card"></i>
                     <span>Pagamentos</span>
                 </a>
@@ -154,17 +136,14 @@ $ehModerador = Permissao::ehModerador();
 
         <?php if (Permissao::pode("financeiro.visualizar")): ?>
             <li>
-                <a
-                    class="<?= (
-                        str_contains(
-                            $caminhoAtual,
-                            "/admin/financeiro/"
-                        )
-                        && basename($caminhoAtual)
-                            !== "pagamentos.php"
-                    ) ? "active" : ""; ?>"
-                    href="<?= BASE_URL ?>admin/financeiro/"
-                >
+                <a class="<?= (
+                    str_contains(
+                        $caminhoAtual,
+                        "/admin/financeiro/"
+                    )
+                    && basename($caminhoAtual)
+                    !== "pagamentos.php"
+                ) ? "active" : ""; ?>" href="<?= BASE_URL ?>admin/financeiro/">
                     <i class="fas fa-chart-line"></i>
                     <span>Financeiro</span>
                 </a>
@@ -174,13 +153,10 @@ $ehModerador = Permissao::ehModerador();
 
         <?php if (Permissao::pode("certificados.visualizar")): ?>
             <li>
-                <a
-                    class="<?= str_contains(
-                        $caminhoAtual,
-                        "/admin/certificado/"
-                    ) ? "active" : ""; ?>"
-                    href="<?= BASE_URL ?>admin/certificado/"
-                >
+                <a class="<?= str_contains(
+                    $caminhoAtual,
+                    "/admin/certificado/"
+                ) ? "active" : ""; ?>" href="<?= BASE_URL ?>admin/certificado/">
                     <i class="fas fa-award"></i>
                     <span>Certificados</span>
                 </a>
@@ -190,13 +166,10 @@ $ehModerador = Permissao::ehModerador();
 
         <?php if (Permissao::pode("relatorios.visualizar")): ?>
             <li>
-                <a
-                    class="<?= str_contains(
-                        $caminhoAtual,
-                        "/admin/relatorios/"
-                    ) ? "active" : ""; ?>"
-                    href="<?= BASE_URL ?>admin/relatorios/"
-                >
+                <a class="<?= str_contains(
+                    $caminhoAtual,
+                    "/admin/relatorios/"
+                ) ? "active" : ""; ?>" href="<?= BASE_URL ?>admin/relatorios/">
                     <i class="fas fa-chart-pie"></i>
                     <span>Relatórios</span>
                 </a>
@@ -206,59 +179,55 @@ $ehModerador = Permissao::ehModerador();
 
         <?php if ($ehAdmin): ?>
 
-            <li
-                class="has-submenu <?= $configuracoesAtivas
-                    ? "open"
-                    : ""; ?>"
-            >
+            <li class="has-submenu <?= $configuracoesAtivas
+                ? "open"
+                : ""; ?>">
 
-                <a
-                    href="#"
-                    class="<?= $configuracoesAtivas
-                        ? "active"
-                        : ""; ?>"
-                >
+                <a href="#" class="<?= $configuracoesAtivas
+                    ? "active"
+                    : ""; ?>">
                     <i class="fa fa-gears"></i>
                     <span>Configurações</span>
-                    <i
-                        class="fa fa-chevron-down submenu-arrow"
-                    ></i>
+                    <i class="fa fa-chevron-down submenu-arrow"></i>
                 </a>
 
                 <ul class="submenu">
-
                     <li>
-                        <a
-                            class="<?= active(["email.php"]); ?>"
-                            href="<?= BASE_URL ?>admin/configuracoes/email.php"
-                        >
+                        <a class="<?= active(['email.php']); ?>" href="<?= BASE_URL ?>admin/configuracoes/email.php">
                             <i class="fa fa-envelope"></i>
                             <span>E-mail</span>
                         </a>
                     </li>
-
                     <li>
-                        <a
-                            class="<?= active(["bancario.php"]); ?>"
-                            href="<?= BASE_URL ?>admin/configuracoes/bancario.php"
-                        >
-                            <i class="fa fa-building-columns"></i>
-                            <span>Bancário</span>
+                        <a class="<?= active(['title.php']); ?>" href="<?= BASE_URL ?>admin/configuracoes/title.php">
+                            <i class="fa fa-heading"></i>
+                            <span>Title</span>
                         </a>
                     </li>
-
                     <li>
-                        <a
-                            class="<?= active(
-                                ["atividades.php"]
-                            ); ?>"
-                            href="<?= BASE_URL ?>admin/configuracoes/atividades.php"
-                        >
+                        <a class="<?= active(['atividades.php']); ?>" href="<?= BASE_URL ?>user/atividades.php">
                             <i class="fa fa-clock-rotate-left"></i>
                             <span>Atividades</span>
                         </a>
                     </li>
-
+                    <li>
+                        <a class="<?= active(['bancario.php']); ?>" href="<?= BASE_URL ?>admin/configuracoes/bancario.php">
+                            <i class="fa fa-building-columns"></i>
+                            <span>Bancário</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="<?= active(['user/index.php']); ?>" href="<?= BASE_URL ?>user/index.php">
+                            <i class="fa fa-user"></i>
+                            <span>Usuários</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="<?= active(['permissoes.php']); ?>" href="<?= BASE_URL ?>user/permissoes.php">
+                            <i class="fa fa-lock"></i>
+                            <span>Permissões</span>
+                        </a>
+                    </li>
                 </ul>
 
             </li>

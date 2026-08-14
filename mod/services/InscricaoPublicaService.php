@@ -766,11 +766,16 @@ class InscricaoPublicaService
             ?? 0
         );
 
+        /*
+         * A condição de visitante NÃO vem de checkbox.
+         *
+         * Ela é definida exclusivamente pela opção
+         * selecionada em minha_comunidade.
+         */
         $visitante =
-            (string) (
-                $dados["visitante"]
-                ?? "0"
-            ) === "1"
+            $this->comunidadeEhVisitante(
+                $idComunidade
+            )
                 ? 1
                 : 0;
 
@@ -783,16 +788,6 @@ class InscricaoPublicaService
                 !== null
             && $evento["valor_visitante"]
                 !== "";
-
-        if (
-            $visitante === 1
-            && !$valorVisitanteConfigurado
-        ) {
-            throw new InvalidArgumentException(
-                "Este evento não possui "
-                . "valor especial para visitante."
-            );
-        }
 
         if ($nome === "") {
             throw new InvalidArgumentException(
@@ -848,29 +843,24 @@ class InscricaoPublicaService
         }
 
         if (
-            $visitante === 0
-            && !$this->comunidadeExiste(
+            !$this->comunidadeExiste(
                 $idComunidade
             )
         ) {
             throw new InvalidArgumentException(
-                "Selecione a comunidade/paróquia "
-                . "ou marque a opção visitante."
+                "Selecione a Comunidade/Paróquia."
             );
         }
 
         /*
-         * A opção visitante é específica desta inscrição.
-         * Ela não apaga uma comunidade já salva no perfil.
+         * Inclusive para visitante, salvamos o ID
+         * selecionado em minha_comunidade.
+         *
+         * Assim o perfil fica vinculado à opção
+         * "Visitante" já existente no cadastro.
          */
         $idComunidadePerfil =
-            $visitante === 1
-                ? null
-                : (
-                    $idComunidade > 0
-                        ? $idComunidade
-                        : null
-                );
+            $idComunidade;
 
         $this->validarIdade(
             $dataNascimento,
@@ -1304,9 +1294,7 @@ class InscricaoPublicaService
                     "cidade" => $cidade,
                     "estado" => $estado,
                     "idComunidade" =>
-                        $visitante === 1
-                            ? null
-                            : $idComunidade,
+                        $idComunidade,
                     "visitante" =>
                         $visitante,
                     "restricao_medicacao" =>
@@ -2577,6 +2565,56 @@ class InscricaoPublicaService
                 . "é {$maxima} anos."
             );
         }
+    }
+
+    /**
+     * Retorna true somente quando o ID selecionado
+     * corresponde à comunidade chamada "Visitante".
+     *
+     * A regra é validada diretamente no banco para
+     * impedir alteração manual do valor pelo navegador.
+     */
+    private function comunidadeEhVisitante(
+        int $idComunidade
+    ): bool {
+        if ($idComunidade <= 0) {
+            return false;
+        }
+
+        $stmt = $this->db->prepare("
+            SELECT nome_comunidade
+            FROM minha_comunidade
+            WHERE id = :id
+            LIMIT 1
+        ");
+
+        $stmt->execute([
+            ":id" => $idComunidade
+        ]);
+
+        $nome =
+            trim(
+                (string) (
+                    $stmt->fetchColumn()
+                    ?: ""
+                )
+            );
+
+        if ($nome === "") {
+            return false;
+        }
+
+        $nomeNormalizado =
+            function_exists("mb_strtolower")
+                ? mb_strtolower(
+                    $nome,
+                    "UTF-8"
+                )
+                : strtolower($nome);
+
+        return
+            $nomeNormalizado
+            === "visitante";
     }
 
     private function comunidadeExiste(
