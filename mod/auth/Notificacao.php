@@ -597,54 +597,134 @@ class Notificacao
         $this->atualizarFonte("inscricoes", $fim);
     }
 
-    private function sincronizarPagamentos(): void
+        private function sincronizarPagamentos(): void
     {
-        [$inicio, $fim] = $this->janelaFonte("pagamentos");
+        [$inicio, $fim] =
+            $this->janelaFonte(
+                "pagamentos"
+            );
 
-        $stmt = $this->db->prepare("
-            SELECT
-                p.idPagamento,
-                i.idUsuario,
-                p.participante,
-                p.valor,
-                p.formaPagamento,
-                p.dataPagamento,
-                e.titulo AS evento
-            FROM pagamentos p
-            LEFT JOIN inscricoes i
-                ON i.idInscricao = p.idInscricao
-            LEFT JOIN eventos e
-                ON e.idEvento = p.idEvento
-            WHERE p.status = 'Pago'
-              AND p.dataPagamento IS NOT NULL
-              AND p.dataPagamento >= :inicio
-              AND p.dataPagamento <= :fim
-            ORDER BY p.dataPagamento, p.idPagamento
-        ");
+        /*
+         * JANELA_SEGURANCA_PAGAMENTOS_V2
+         *
+         * O Asaas pode devolver paymentDate somente
+         * como YYYY-MM-DD. Ao normalizar, o sistema
+         * grava 00:00:00.
+         *
+         * Exemplo:
+         *
+         * sincronizadoEm = 2026-08-15 12:10:00
+         * dataPagamento  = 2026-08-15 00:00:00
+         *
+         * Sem uma sobreposição, o pagamento pago no
+         * mesmo dia nunca seria importado.
+         *
+         * Reconsultamos 48 horas anteriores. O INSERT
+         * de notificações já é idempotente por
+         * tipo/idReferencia, então essa sobreposição
+         * não cria notificações duplicadas.
+         */
+        $inicioTimestamp =
+            strtotime($inicio);
+
+        if ($inicioTimestamp === false) {
+            $inicioTimestamp =
+                time();
+        }
+
+        $inicioBusca =
+            date(
+                "Y-m-d H:i:s",
+                $inicioTimestamp
+                - (48 * 60 * 60)
+            );
+
+        $stmt =
+            $this->db->prepare("
+                SELECT
+                    p.idPagamento,
+                    i.idUsuario,
+                    p.participante,
+                    p.valor,
+                    p.formaPagamento,
+                    p.dataPagamento,
+                    e.titulo AS evento
+                FROM pagamentos p
+
+                LEFT JOIN inscricoes i
+                    ON i.idInscricao =
+                        p.idInscricao
+
+                LEFT JOIN eventos e
+                    ON e.idEvento =
+                        p.idEvento
+
+                WHERE p.status = 'Pago'
+                  AND p.dataPagamento
+                        IS NOT NULL
+                  AND p.dataPagamento
+                        >= :inicio
+                  AND p.dataPagamento
+                        <= :fim
+
+                ORDER BY
+                    p.dataPagamento,
+                    p.idPagamento
+            ");
 
         $stmt->execute([
-            ":inicio" => $inicio,
-            ":fim" => $fim
+            ":inicio" =>
+                $inicioBusca,
+
+            ":fim" =>
+                $fim
         ]);
 
-        foreach ($stmt->fetchAll() as $registro) {
-            $participante = trim(
-                (string) ($registro["participante"] ?? "Participante")
-            );
-            $evento = trim(
-                (string) ($registro["evento"] ?? "evento")
-            );
-            $valor = number_format(
-                (float) ($registro["valor"] ?? 0),
-                2,
-                ",",
-                "."
-            );
-            $forma = trim(
-                (string) ($registro["formaPagamento"] ?? "")
-            );
+        foreach (
+            $stmt->fetchAll()
+            as $registro
+        ) {
+            $participante =
+                trim(
+                    (string) (
+                        $registro[
+                            "participante"
+                        ]
+                        ?? "Participante"
+                    )
+                );
 
-            $mensagem = "Pagamento de R$ "
+            $evento =
+                trim(
+                    (string) (
+                        $registro["evento"]
+                        ?? "evento"
+                    )
+                );
+
+            $valor =
+                number_format(
+                    (float) (
+                        $registro["valor"]
+                        ?? 0
+                    ),
+                    2,
+                    ",",
+                    "."
+                );
+
+            $forma =
+                trim(
+                    (string) (
+                        $registro[
+                            "formaPagamento"
+                        ]
+                        ?? ""
+                    )
+                );
+
+            $mensagem =
+                "Pagamento de R$ "
                 . $valor
                 . " recebido de "
                 . $participante
@@ -654,32 +734,89 @@ class Notificacao
 
             if (
                 $forma !== ""
-                && $forma !== "NaoDefinido"
+                && $forma
+                    !== "NaoDefinido"
             ) {
-                $mensagem .= " Forma: " . $forma . ".";
+                $formaLabel =
+                    match ($forma) {
+                        "Cartao" =>
+                            "Cartão de crédito",
+
+                        "Transferencia" =>
+                            "Transferência",
+
+                        default =>
+                            $forma
+                    };
+
+                $mensagem .=
+                    " Forma: "
+                    . $formaLabel
+                    . ".";
             }
 
+            $idUsuarioRelacionado =
+                (int) (
+                    $registro["idUsuario"]
+                    ?? 0
+                );
+
             $this->inserir([
-                "tipo" => "pagamento",
-                "idReferencia" => (int) $registro["idPagamento"],
-                "idUsuarioRelacionado" => (int) $registro["idUsuario"],
-                "titulo" => "Novo pagamento recebido",
-                "mensagem" => $mensagem,
-                "url" => "admin/financeiro/pagamentos.php?pesquisa="
-                    . rawurlencode($participante),
-                "tituloUsuario" => "Pagamento recebido",
+                "tipo" =>
+                    "pagamento",
+
+                "idReferencia" =>
+                    (int) $registro[
+                        "idPagamento"
+                    ],
+
+                "idUsuarioRelacionado" =>
+                    $idUsuarioRelacionado > 0
+                        ? $idUsuarioRelacionado
+                        : null,
+
+                "titulo" =>
+                    "Novo pagamento recebido",
+
+                "mensagem" =>
+                    $mensagem,
+
+                "url" =>
+                    "admin/financeiro/"
+                    . "pagamentos.php?pesquisa="
+                    . rawurlencode(
+                        $participante
+                    ),
+
+                "tituloUsuario" =>
+                    "Pagamento recebido",
+
                 "mensagemUsuario" =>
                     "Seu pagamento de R$ "
                     . $valor
                     . " para "
                     . $evento
                     . " foi confirmado.",
-                "urlUsuario" => "user/index.php",
-                "criadoEm" => (string) $registro["dataPagamento"]
+
+                "urlUsuario" =>
+                    "user/pagamentos.php",
+
+                "criadoEm" =>
+                    (string) $registro[
+                        "dataPagamento"
+                    ]
             ]);
         }
 
-        $this->atualizarFonte("pagamentos", $fim);
+        /*
+         * O cursor continua avançando normalmente.
+         * Apenas a leitura do próximo ciclo possui
+         * uma pequena sobreposição.
+         */
+        $this->atualizarFonte(
+            "pagamentos",
+            $fim
+        );
     }
 
     /**

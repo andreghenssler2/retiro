@@ -14,6 +14,7 @@ $caminhoAtualUserSidebar = str_replace(
     (string) ($_SERVER["PHP_SELF"] ?? "")
 );
 
+$paginaAtualUserSidebar = basename($caminhoAtualUserSidebar);
 $tipoUserSidebar = (int) Auth::tipo();
 
 $perfilUserSidebar = match ($tipoUserSidebar) {
@@ -29,140 +30,120 @@ $nomeUserSidebar = htmlspecialchars(
 );
 
 $userSidebarAtivo = static function (
-    string $caminho
+    string|array $caminhos
 ) use ($caminhoAtualUserSidebar): string {
-    return str_contains(
-        $caminhoAtualUserSidebar,
-        $caminho
-    )
-        ? "active"
-        : "";
+    $lista = is_array($caminhos) ? $caminhos : [$caminhos];
+
+    foreach ($lista as $caminho) {
+        if ($caminho !== "" && str_contains($caminhoAtualUserSidebar, $caminho)) {
+            return "active";
+        }
+    }
+
+    return "";
 };
 
-$userSidebarPerfilAtivo = static function () use (
-    $caminhoAtualUserSidebar
-): string {
-    return str_ends_with(
-        $caminhoAtualUserSidebar,
-        "/user/index.php"
-    )
-        ? "active"
-        : "";
-};
+$eventosAtivo = $userSidebarAtivo([
+    "/eventos/",
+    "/user/eventos.php"
+]);
+
+$perfilAtivo = $userSidebarAtivo([
+    "/user/profile.php",
+    "/user/atividades.php",
+    "/user/index.php"
+]);
 ?>
 
 <aside class="sidebar" id="sidebar">
 
     <div class="sidebar-user">
-
         <div class="avatar">
-            <?= $_SESSION["user"]["foto"]
-                ?? '<i class="fas fa-user"></i>'; ?>
+            <?= $_SESSION["user"]["foto"] ?? '<i class="fas fa-user"></i>'; ?>
         </div>
 
         <div class="info">
-            <strong>
-                <?= $nomeUserSidebar; ?>
-            </strong>
-
-            <small>
-                <?= htmlspecialchars(
-                    $perfilUserSidebar,
-                    ENT_QUOTES | ENT_SUBSTITUTE,
-                    "UTF-8"
-                ); ?>
-            </small>
+            <strong><?= $nomeUserSidebar; ?></strong>
+            <small><?= htmlspecialchars($perfilUserSidebar, ENT_QUOTES | ENT_SUBSTITUTE, "UTF-8"); ?></small>
         </div>
-
     </div>
 
     <ul class="sidebar-menu">
 
         <li>
-            <a
-                class="<?= $userSidebarAtivo("/my/"); ?>"
-                href="<?= BASE_URL ?>my/"
-            >
+            <a class="<?= $userSidebarAtivo("/my/"); ?>" href="<?= BASE_URL ?>my/">
                 <i class="fa-solid fa-house"></i>
                 <span>Início</span>
             </a>
         </li>
 
-        <li>
-            <a
-                class="<?= $userSidebarAtivo("/eventos/"); ?>"
-                href="<?= BASE_URL ?>eventos/"
-            >
+        <li class="has-submenu <?= $eventosAtivo !== "" ? "open" : ""; ?>">
+            <a href="#" class="<?= $eventosAtivo; ?>">
                 <i class="fa-solid fa-calendar-days"></i>
                 <span>Eventos</span>
+                <i class="fa fa-chevron-down submenu-arrow"></i>
             </a>
+
+            <ul class="submenu">
+                <li>
+                    <a class="<?= $userSidebarAtivo("/user/eventos.php"); ?>" href="<?= BASE_URL ?>user/eventos.php">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                        <span>Meus eventos</span>
+                    </a>
+                </li>
+            </ul>
         </li>
 
         <li>
-            <a
-                class="<?= $userSidebarAtivo(
-                    "/user/eventos.php"
-                ); ?>"
-                href="<?= BASE_URL ?>user/eventos.php"
-            >
-                <i class="fa-solid fa-clipboard-check"></i>
-                <span>Meus Eventos</span>
-            </a>
-        </li>
-
-        <li>
-            <a
-                class="<?= $userSidebarPerfilAtivo(); ?>"
-                href="<?= BASE_URL ?>user/index.php"
-            >
-                <i class="fa-solid fa-user"></i>
-                <span>Meu Perfil</span>
-            </a>
-        </li>
-
-        <li>
-            <a
-                class="<?= $userSidebarAtivo("/calendar/"); ?>"
-                href="<?= BASE_URL ?>calendar/"
-            >
-                <i class="fa-regular fa-calendar"></i>
-                <span>Meu Calendário</span>
-            </a>
-        </li>
-
-        <li>
-            <a
-                class="<?= $userSidebarAtivo(
-                    "/user/certificados.php"
-                ); ?>"
-                href="<?= BASE_URL ?>user/certificados.php"
-            >
+            <a class="<?= $userSidebarAtivo("/user/certificados.php"); ?>" href="<?= BASE_URL ?>user/certificados.php">
                 <i class="fa-solid fa-certificate"></i>
                 <span>Meus Certificados</span>
             </a>
         </li>
 
-                <li>
-            <a
-                class="<?= $userSidebarAtivo(
-                    "/user/atividades.php"
-                ); ?>"
-                href="<?= BASE_URL ?>user/atividades.php"
-            >
-                <i class="fa-solid fa-clock-rotate-left"></i>
-                <span>Minhas Atividades</span>
+        <li>
+            <a class="<?= $userSidebarAtivo(["/user/pagamentos.php", "/eventos/pagamento.php"]); ?>" href="<?= BASE_URL ?>user/pagamentos.php">
+                <i class="fa-solid fa-credit-card"></i>
+                <span>Meus Pagamentos</span>
             </a>
         </li>
-<li>
-            <a
-                class="<?= $userSidebarAtivo(
-                    "/user/profile.php"
-                ); ?>"
-                href="<?= BASE_URL ?>user/profile.php"
-            >
-                <i class="fa-solid fa-gear"></i>
-                <span>Configurações</span>
+
+        <li>
+            <a class="<?= $userSidebarAtivo("/calendar/"); ?>" href="<?= BASE_URL ?>calendar/">
+                <i class="fa-regular fa-calendar"></i>
+                <span>Meu Calendário</span>
             </a>
+        </li>
+
+        <li class="has-submenu <?= $perfilAtivo !== "" ? "open" : ""; ?>">
+            <a href="#" class="<?= $perfilAtivo; ?>">
+                <i class="fa-solid fa-user"></i>
+                <span>Meu Perfil</span>
+                <i class="fa fa-chevron-down submenu-arrow"></i>
+            </a>
+
+            <ul class="submenu">
+                <li>
+                    <a class="<?= $userSidebarAtivo("/user/profile.php"); ?>" href="<?= BASE_URL ?>user/profile.php">
+                        <i class="fa-solid fa-gears"></i>
+                        <span>Configurações</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="<?= $userSidebarAtivo("/user/atividades.php"); ?>" href="<?= BASE_URL ?>user/atividades.php">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <span>Minhas Atividades</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a class="<?= ($paginaAtualUserSidebar === "index.php" && str_contains($caminhoAtualUserSidebar, "/user/")) ? "active" : ""; ?>" href="<?= BASE_URL ?>user/index.php">
+                        <i class="fa-solid fa-user-pen"></i>
+                        <span>Editar Perfil</span>
+                    </a>
+                </li>
+            </ul>
         </li>
 
         <li>
@@ -175,5 +156,4 @@ $userSidebarPerfilAtivo = static function () use (
     </ul>
 
     <div class="sidebar-footer"></div>
-
 </aside>

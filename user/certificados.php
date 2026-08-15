@@ -79,7 +79,7 @@ require_once __DIR__
 require_once __DIR__
     . "/../admin/includes/navbar.php";
 require_once __DIR__
-    . "/../admin/includes/sidebar.php";
+    . "/../user/includes/sidebar.php";
 ?>
 
 <div

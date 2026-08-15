@@ -1,7 +1,0 @@
-[08-Aug-2026 15:50:56 America/Sao_Paulo] PHP Warning:  require_once(/home1/ieclbp28/retiro/mod/auth/SolicitacaoCancelamentoInscricao.php): Failed to open stream: No such file or directory in /home1/ieclbp28/retiro/mod/autoload.php on line 37
-[08-Aug-2026 15:50:56 America/Sao_Paulo] PHP Fatal error:  Uncaught Error: Failed opening required '/home1/ieclbp28/retiro/mod/auth/SolicitacaoCancelamentoInscricao.php' (include_path='.:/opt/cpanel/ea-php83/root/usr/share/pear') in /home1/ieclbp28/retiro/mod/autoload.php:37
-Stack trace:
-#0 /home1/ieclbp28/retiro/config/settings.php(18): require()
-#1 /home1/ieclbp28/retiro/user/certificados.php(5): require_once('/home1/ieclbp28...')
-#2 {main}
-  thrown in /home1/ieclbp28/retiro/mod/autoload.php on line 37
