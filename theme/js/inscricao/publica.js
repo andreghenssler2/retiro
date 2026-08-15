@@ -822,14 +822,31 @@
             );
         });
 
-    btnEnviar?.addEventListener(
-        "click",
+    const enviarCodigoEmail =
         async () => {
             clearAlert();
 
+            if (!email) {
+                return;
+            }
+
+            /*
+             * O Enter no campo E-mail executa
+             * exatamente a mesma ação do botão.
+             *
+             * E-mail vazio/inválido:
+             * permanece nesta etapa.
+             */
             if (
-                !email.reportValidity()
+                !email.checkValidity()
             ) {
+                mostrarEtapa(
+                    "email"
+                );
+
+                email.reportValidity();
+                email.focus();
+
                 return;
             }
 
@@ -876,17 +893,54 @@
                     "danger",
                     error.message
                 );
+
+                mostrarEtapa(
+                    "email"
+                );
+
+                email.focus();
             } finally {
                 setBusy(
                     btnEnviar,
                     false
                 );
             }
+        };
+
+    btnEnviar?.addEventListener(
+        "click",
+        enviarCodigoEmail
+    );
+
+    email?.addEventListener(
+        "keydown",
+        (event) => {
+            if (
+                event.key
+                !== "Enter"
+            ) {
+                return;
+            }
+
+            /*
+             * Impede o Enter de disparar
+             * o submit geral do wizard.
+             */
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (
+                email.readOnly
+                || emailConfirmado?.value
+            ) {
+                return;
+            }
+
+            enviarCodigoEmail();
         }
     );
 
-    btnValidar?.addEventListener(
-        "click",
+    const validarCodigoEmail =
         async () => {
             clearAlert();
 
@@ -900,6 +954,30 @@
                     "Informe os 6 dígitos "
                     + "do código."
                 );
+
+                mostrarEtapa(
+                    "email"
+                );
+
+                codigo.focus();
+
+                return;
+            }
+
+            if (
+                !fluxoInput.value
+            ) {
+                showAlert(
+                    "warning",
+                    "Envie primeiro o código "
+                    + "de validação para o e-mail."
+                );
+
+                mostrarEtapa(
+                    "email"
+                );
+
+                email.focus();
 
                 return;
             }
@@ -943,12 +1021,39 @@
                     "danger",
                     error.message
                 );
+
+                mostrarEtapa(
+                    "email"
+                );
+
+                codigo.focus();
             } finally {
                 setBusy(
                     btnValidar,
                     false
                 );
             }
+        };
+
+    btnValidar?.addEventListener(
+        "click",
+        validarCodigoEmail
+    );
+
+    codigo?.addEventListener(
+        "keydown",
+        (event) => {
+            if (
+                event.key
+                !== "Enter"
+            ) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            validarCodigoEmail();
         }
     );
 
@@ -1310,6 +1415,57 @@
         async (event) => {
             event.preventDefault();
             clearAlert();
+
+            /*
+             * Nenhum submit geral pode avançar
+             * enquanto o e-mail não estiver validado.
+             *
+             * Isso também protege contra Enter
+             * disparado por navegador/autofill.
+             */
+            if (
+                !emailConfirmado?.value
+            ) {
+                mostrarEtapa(
+                    "email"
+                );
+
+                if (
+                    !email
+                    || !email.checkValidity()
+                ) {
+                    email?.reportValidity();
+                    email?.focus();
+
+                    return;
+                }
+
+                if (
+                    !fluxoInput.value
+                    || codigoArea.hidden
+                ) {
+                    showAlert(
+                        "warning",
+                        "Envie e valide o código "
+                        + "do e-mail antes de continuar."
+                    );
+
+                    email.focus();
+
+                    return;
+                }
+
+                showAlert(
+                    "warning",
+                    "Confirme o código enviado "
+                    + "ao seu e-mail antes "
+                    + "de continuar."
+                );
+
+                codigo.focus();
+
+                return;
+            }
 
             /*
              * O formulário possui novalidate porque
