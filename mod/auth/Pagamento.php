@@ -422,12 +422,26 @@ $existente = $this->buscarPorInscricao($idInscricao);
         }
 
         try {
-            $stmt = $this->db->prepare("
+            
+            /*
+             * HORA_RECEBIMENTO_MANUAL_V1_1
+             *
+             * Se o recebimento for confirmado agora,
+             * grava o instante do sistema.
+             *
+             * COALESCE preserva a primeira hora.
+             */
+            $recebidoEmSql =
+                $status === "Pago"
+                    ? "COALESCE(recebidoEm, NOW())"
+                    : "NULL";
+$stmt = $this->db->prepare("
                 UPDATE pagamentos
                 SET
                     formaPagamento = :formaPagamento,
                     status = :status,
                     dataPagamento = :dataPagamento,
+                    recebidoEm = {$recebidoEmSql},
                     observacao = :observacao,
                     comprovante = :comprovante
                 WHERE idPagamento = :idPagamento
@@ -832,7 +846,30 @@ $existente = $this->buscarPorInscricao($idInscricao);
                 ":idPagamento" => $idPagamento
             ];
 
-            if ($this->possuiColuna("pagamentos", "valorCobrancaAsaas")) {
+                        /*
+             * HORA_RECEBIMENTO_ASAAS_V1_1
+             *
+             * Quando o site detecta status Pago,
+             * registra a hora do sistema.
+             *
+             * A primeira hora é preservada.
+             */
+            if (
+                $this->possuiColuna(
+                    "pagamentos",
+                    "recebidoEm"
+                )
+            ) {
+                if ($status === "Pago") {
+                    $campos[] =
+                        "recebidoEm = "
+                        . "COALESCE(recebidoEm, NOW())";
+                } else {
+                    $campos[] =
+                        "recebidoEm = NULL";
+                }
+            }
+if ($this->possuiColuna("pagamentos", "valorCobrancaAsaas")) {
                 $campos[] = "valorCobrancaAsaas = :valorCobrancaAsaas";
                 $parametros[":valorCobrancaAsaas"] = round(
                     (float) ($dados["valorCobrancaAsaas"] ?? $pagamentoAtual["valor"] ?? 0),

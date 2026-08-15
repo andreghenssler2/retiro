@@ -117,6 +117,22 @@ try {
 
                     $integracao = (string) ($item["integracao"] ?? "Manual");
                     $dataPagamento = trim((string) ($item["dataPagamento"] ?? ""));
+
+                    /*
+                     * HORA_RECEBIMENTO_LISTA_V1_1
+                     */
+                    $recebidoEm =
+                        trim(
+                            (string) (
+                                $item["recebidoEm"]
+                                ?? ""
+                            )
+                        );
+
+                    $dataRecebimento =
+                        $recebidoEm !== ""
+                            ? $recebidoEm
+                            : $dataPagamento;
                     ?>
                     <tr>
                         <td>
@@ -165,8 +181,49 @@ try {
                         </td>
 
                         <td>
-                            <?php if ($dataPagamento !== "" && $dataPagamento !== "0000-00-00 00:00:00"): ?>
-                                <?= htmlspecialchars((new DateTime($dataPagamento))->format("d/m/Y H:i"), ENT_QUOTES, "UTF-8") ?>
+                            <?php if (
+                                $dataRecebimento !== ""
+                                && $dataRecebimento
+                                    !== "0000-00-00 00:00:00"
+                            ): ?>
+                                <?php
+                                $dataRecebimentoObj =
+                                    new DateTime(
+                                        $dataRecebimento
+                                    );
+
+                                $temHoraRecebimento =
+                                    $recebidoEm !== ""
+                                    || $dataRecebimentoObj
+                                        ->format("H:i:s")
+                                        !== "00:00:00";
+                                ?>
+
+                                <span class="fw-semibold">
+                                    <?= htmlspecialchars(
+                                        $dataRecebimentoObj
+                                            ->format(
+                                                $temHoraRecebimento
+                                                    ? "d/m/Y H:i"
+                                                    : "d/m/Y"
+                                            ),
+                                        ENT_QUOTES,
+                                        "UTF-8"
+                                    ); ?>
+                                </span>
+
+                                <?php if (
+                                    !$temHoraRecebimento
+                                    && $statusPagamento
+                                        === "Pago"
+                                ): ?>
+                                    <small
+                                        class="text-muted d-block"
+                                    >
+                                        Horário não registrado
+                                    </small>
+                                <?php endif; ?>
+
                             <?php elseif ($statusPagamento === "Vencido" && !empty($item["dataVencimento"])): ?>
                                 <span class="text-danger">
                                     Vencido em

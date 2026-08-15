@@ -25,6 +25,7 @@ if ($idUsuario > 0) {
             p.status,
             p.dataVencimento,
             p.dataPagamento,
+                p.recebidoEm,
             e.idEvento,
             e.titulo,
             e.slug,
@@ -228,7 +229,24 @@ require_once __DIR__ . "/../includes/sidebar.php";
                                         <?= meusPagEscapar($status); ?>
                                     </span>
                                 </td>
-                                <td><?= meusPagData($pagamento["dataPagamento"] ?? "", true); ?></td>
+                                <td><?php
+                                    /*
+                                     * HORA_RECEBIMENTO_MEUS_V1_1
+                                     */
+                                    $dataRecebimentoUsuario =
+                                        $pagamento[
+                                            "recebidoEm"
+                                        ]
+                                        ?? $pagamento[
+                                            "dataPagamento"
+                                        ]
+                                        ?? "";
+                                    ?>
+
+                                    <?= meusPagData(
+                                        $dataRecebimentoUsuario,
+                                        true
+                                    ); ?></td>
                                 <td class="text-end">
                                     <?php if (in_array($status, ["Pendente", "Vencido"], true) && $idPagamento > 0): ?>
                                         <a href="<?= BASE_URL ?>eventos/pagamento.php?id=<?= $idPagamento; ?>" class="btn btn-sm btn-primary">
