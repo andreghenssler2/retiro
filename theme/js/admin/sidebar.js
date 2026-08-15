@@ -1,73 +1,374 @@
 $(document).ready(function () {
 
-    // Recupera estado salvo
-    if ($(window).width() > 991) {
+    const $sidebar =
+        $("#sidebar");
 
-        let sidebarState = localStorage.getItem("sidebar");
+    const desktop =
+        () => $(window).width() > 991;
 
-        if (sidebarState === "collapsed") {
-            $("#sidebar").addClass("collapsed");
-            $("#content").addClass("expanded");
+    const recolhida =
+        () => (
+            desktop()
+            && $sidebar.hasClass(
+                "collapsed"
+            )
+        );
+
+    /*
+    |--------------------------------------------------------------------------
+    | ESTADO SALVO DA SIDEBAR
+    |--------------------------------------------------------------------------
+    */
+
+    if (desktop()) {
+
+        const sidebarState =
+            localStorage.getItem(
+                "sidebar"
+            );
+
+        if (
+            sidebarState
+            === "collapsed"
+        ) {
+            $sidebar.addClass(
+                "collapsed"
+            );
+
+            $("#content").addClass(
+                "expanded"
+            );
         }
-
     }
 
-    // Botão do menu
-    $("#toggleSidebar").on("click", function () {
+    /*
+    |--------------------------------------------------------------------------
+    | BOTÃO DE RECOLHER / EXPANDIR
+    |--------------------------------------------------------------------------
+    */
 
-        if ($(window).width() <= 991) {
+    $("#toggleSidebar").on(
+        "click",
+        function () {
 
-            $("#sidebar").toggleClass("show");
+            fecharFlyouts();
 
-        } else {
+            if (!desktop()) {
 
-            $("#sidebar").toggleClass("collapsed");
-            $("#content").toggleClass("expanded");
+                $sidebar.toggleClass(
+                    "show"
+                );
 
-            if ($("#sidebar").hasClass("collapsed")) {
-                localStorage.setItem("sidebar", "collapsed");
-            } else {
-                localStorage.setItem("sidebar", "expanded");
+                return;
             }
 
+            $sidebar.toggleClass(
+                "collapsed"
+            );
+
+            $("#content").toggleClass(
+                "expanded"
+            );
+
+            if (
+                $sidebar.hasClass(
+                    "collapsed"
+                )
+            ) {
+                localStorage.setItem(
+                    "sidebar",
+                    "collapsed"
+                );
+            } else {
+                localStorage.setItem(
+                    "sidebar",
+                    "expanded"
+                );
+            }
         }
+    );
 
-    });
+    /*
+    |--------------------------------------------------------------------------
+    | SUBMENUS - MODO EXPANDIDO
+    |--------------------------------------------------------------------------
+    */
 
-    // Submenus
-    $(".has-submenu").each(function (i) {
+    $(".has-submenu > a").on(
+        "click",
+        function (event) {
 
-        if (localStorage.getItem("submenu_" + i) == "open") {
-            $(this).addClass("open");
+            /*
+             * Quando estiver recolhida, o clique
+             * no ícone não alterna .open.
+             * O submenu é controlado pelo hover.
+             */
+            if (recolhida()) {
+                event.preventDefault();
+                return;
+            }
+
+            event.preventDefault();
+
+            $(this)
+                .parent()
+                .toggleClass(
+                    "open"
+                );
         }
+    );
 
-    });
+    /*
+    |--------------------------------------------------------------------------
+    | TÍTULO DO FLYOUT
+    |--------------------------------------------------------------------------
+    |
+    | Ex.:
+    | [ícone Financeiro] -> painel lateral:
+    |
+    | FINANCEIRO
+    | Financeiro
+    | Pagamentos
+    |
+    */
 
-    $(".has-submenu > a").on("click", function (e) {
+    $(".has-submenu").each(
+        function () {
 
-        if ($("#sidebar").hasClass("collapsed")) {
+            const $item =
+                $(this);
+
+            const $submenu =
+                $item.children(
+                    ".submenu"
+                );
+
+            if (
+                !$submenu.length
+                || $submenu.children(
+                    ".submenu-flyout-title"
+                ).length
+            ) {
+                return;
+            }
+
+            const titulo =
+                $.trim(
+                    $item
+                        .children("a")
+                        .children("span")
+                        .first()
+                        .text()
+                );
+
+            if (!titulo) {
+                return;
+            }
+
+            $("<li>", {
+                class:
+                    "submenu-flyout-title",
+                text: titulo
+            }).prependTo(
+                $submenu
+            );
+        }
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | POSICIONAMENTO DO FLYOUT
+    |--------------------------------------------------------------------------
+    */
+
+    function posicionarFlyout(
+        item
+    ) {
+        const $item =
+            $(item);
+
+        const $submenu =
+            $item.children(
+                ".submenu"
+            );
+
+        if (
+            !$submenu.length
+            || !recolhida()
+        ) {
             return;
         }
 
-        e.preventDefault();
+        const elemento =
+            $item.get(0);
 
-        $(this).parent().toggleClass("open");
+        if (!elemento) {
+            return;
+        }
 
-    });
+        const rect =
+            elemento
+                .getBoundingClientRect();
 
-    // Dropdown do usuário
-    $(".user-button").on("click", function (e) {
+        const margem =
+            10;
 
-        e.stopPropagation();
+        /*
+         * Precisamos medir a altura mesmo antes
+         * de o painel estar visível.
+         */
+        const altura =
+            $submenu
+                .outerHeight()
+            || 0;
 
-        $(this).next(".dropdown-menu").toggleClass("show");
+        const viewport =
+            window.innerHeight;
 
-    });
+        let top =
+            rect.top;
 
-    $(document).on("click", function () {
+        /*
+         * Se faltar espaço abaixo, sobe o menu
+         * para que fique dentro da janela.
+         */
+        if (
+            altura > 0
+            && top + altura
+                > viewport - margem
+        ) {
+            top =
+                viewport
+                - altura
+                - margem;
+        }
 
-        $(".dropdown-menu").removeClass("show");
+        top =
+            Math.max(
+                margem,
+                top
+            );
 
-    });
+        $submenu.css(
+            "--flyout-top",
+            top + "px"
+        );
+    }
+
+    function fecharFlyouts() {
+        $(".has-submenu")
+            .removeClass(
+                "flyout-open"
+            );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | HOVER DO MENU RECOLHIDO
+    |--------------------------------------------------------------------------
+    */
+
+    $(".has-submenu").on(
+        "mouseenter",
+        function () {
+
+            if (!recolhida()) {
+                return;
+            }
+
+            fecharFlyouts();
+
+            posicionarFlyout(
+                this
+            );
+
+            $(this).addClass(
+                "flyout-open"
+            );
+        }
+    );
+
+    $(".has-submenu").on(
+        "mouseleave",
+        function () {
+
+            if (!recolhida()) {
+                return;
+            }
+
+            $(this).removeClass(
+                "flyout-open"
+            );
+        }
+    );
+
+    /*
+     * Garante posicionamento correto ao rolar
+     * ou redimensionar a janela.
+     */
+    $(window).on(
+        "resize scroll",
+        function () {
+
+            if (!recolhida()) {
+                fecharFlyouts();
+                return;
+            }
+
+            $(".has-submenu.flyout-open")
+                .each(
+                    function () {
+                        posicionarFlyout(
+                            this
+                        );
+                    }
+                );
+        }
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | FECHAR AO CLICAR EM UM LINK DO FLYOUT
+    |--------------------------------------------------------------------------
+    */
+
+    $(".submenu a").on(
+        "click",
+        function () {
+            fecharFlyouts();
+        }
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | DROPDOWN DO USUÁRIO
+    |--------------------------------------------------------------------------
+    */
+
+    $(".user-button").on(
+        "click",
+        function (event) {
+
+            event.stopPropagation();
+
+            $(this)
+                .next(
+                    ".dropdown-menu"
+                )
+                .toggleClass(
+                    "show"
+                );
+        }
+    );
+
+    $(document).on(
+        "click",
+        function () {
+            $(".dropdown-menu")
+                .removeClass(
+                    "show"
+                );
+        }
+    );
 
 });

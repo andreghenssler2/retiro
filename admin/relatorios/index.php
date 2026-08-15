@@ -45,7 +45,14 @@ require_once '../includes/sidebar.php';
                 Consulte dados financeiros, pagamentos, eventos, usuários e inscrições.
             </p>
         </div>
-        <button type="button" class="btn btn-danger" id="btnExportarPdf">
+                <a
+            href="<?= BASE_URL ?>admin/relatorios/evento-exportacao.php"
+            class="btn btn-primary"
+        >
+            <i class="fa-solid fa-file-export me-1"></i>
+            Exportar evento
+        </a>
+<button type="button" class="btn btn-danger" id="btnExportarPdf">
             <i class="fa-solid fa-file-pdf me-1"></i>
             Exportar PDF
         </button>

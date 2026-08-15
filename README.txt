@@ -1,120 +1,114 @@
-EVENTOS - URL AMIGÁVEL V1
-=========================
+MENU ADMINISTRADOR ORGANIZADO V1
+================================
 
 OBJETIVO
 
-Trocar:
-
-http://localhost/eventos/detalhe.php?slug=retiro-paroquial-2026
-
-por:
-
-http://localhost/eventos/retiro-paroquial-2026
+Reduzir a quantidade de itens soltos no menu
+administrativo e organizar funcionalidades relacionadas
+em submenus.
 
 
-COMO FUNCIONA
+ESTRUTURA
 
-O banco continua usando o campo:
+Dashboard
 
-eventos.slug
+Usuários
 
-A classe Evento já possui:
+Eventos
 
-Evento::slug()
-Evento::buscarPorSlug()
-Evento::slugExisteOutro()
+Inscrições
+  - Inscrições
+  - Inscrição Manual
+  - Credenciamento
 
-O Apache recebe:
+Financeiro
+  - Financeiro
+  - Pagamentos
 
-/eventos/retiro-paroquial-2026
+Certificados
+  - Certificados
+  - Novo Modelo
 
-e internamente executa:
+Relatórios
+  - Central de Relatórios
+  - Exportação de Evento
 
-/eventos/detalhe.php?slug=retiro-paroquial-2026
+Configurações
+  - E-mail
+  - Title
+  - Comunidades, quando instalada
+  - Atividades
+  - Bancário
+  - Permissões
 
-A URL no navegador continua limpa.
+Meu Perfil
+  - Editar Perfil
+  - Calendário
+  - Configurações
 
-
-REDIRECIONAMENTO DA URL ANTIGA
-
-Se alguém abrir:
-
-/eventos/detalhe.php?slug=retiro-paroquial-2026
-
-o sistema redireciona com HTTP 301 para:
-
-/eventos/retiro-paroquial-2026
-
-
-ARQUIVOS ALTERADOS
-
-.htaccess
-index.php
-eventos/index.php
-eventos/detalhe.php
-user/eventos.php
+Sair
 
 
-BANCO
+PERMISSÕES
 
-Nenhuma nova tabela.
+As regras atuais foram mantidas.
 
-O instalador apenas verifica se existem eventos antigos sem slug.
+Exemplos:
 
-Se encontrar:
+dashboard.visualizar
+eventos.visualizar
+inscricoes.visualizar
+credenciamento.visualizar
+financeiro.visualizar
+pagamentos.visualizar
+certificados.visualizar
+relatorios.visualizar
 
-Retiro Paroquial 2026
+Usuários e Configurações administrativas continuam
+restritos ao Administrador.
 
-gera:
 
-retiro-paroquial-2026
+SUBMENUS
 
-Se já existir, utiliza:
+O submenu correspondente fica aberto automaticamente
+quando o usuário estiver dentro daquela seção.
 
-retiro-paroquial-2026-2
-retiro-paroquial-2026-3
-...
+Exemplo:
+
+/admin/financeiro/pagamentos.php
+
+Financeiro
+  - Financeiro
+  - Pagamentos ← ativo
+
+
+ITENS CONDICIONAIS
+
+Comunidades só aparece quando existir:
+
+admin/configuracoes/comunidades.php
+
+Exportação de Evento só aparece quando existir:
+
+admin/relatorios/evento-exportacao.php
+
+
+ARQUIVO ALTERADO
+
+admin/includes/sidebar.php
 
 
 INSTALAÇÃO
 
 Coloque na raiz:
 
-atualizar-eventos-url-amigavel-v1.php
+atualizar-menu-admin-organizado-v1.php
+arquivos/
 
 Execute:
 
-php atualizar-eventos-url-amigavel-v1.php
+php atualizar-menu-admin-organizado-v1.php
 
+Depois:
 
-XAMPP
-
-É necessário que o Apache tenha:
-
-mod_rewrite habilitado
-
-e AllowOverride permita .htaccess.
-
-Normalmente o XAMPP já possui mod_rewrite habilitado.
-
-
-TESTE
-
-1. Reinicie o Apache se necessário.
-2. Ctrl + F5.
-3. Abra:
-
-http://localhost/eventos/retiro-paroquial-2026
-
-4. Teste também:
-
-http://localhost/eventos/detalhe.php?slug=retiro-paroquial-2026
-
-A URL antiga deve redirecionar para a nova.
-
-
-PRODUÇÃO
-
-O mesmo padrão será:
-
-https://seu-dominio.com/eventos/retiro-paroquial-2026
+Ctrl + F5
