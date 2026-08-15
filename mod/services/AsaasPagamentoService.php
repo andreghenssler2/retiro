@@ -771,51 +771,189 @@ class AsaasPagamentoService
      * Calcula o valor bruto necessário para que o valor-base do evento seja
      * preservado após o desconto da tarifa Asaas.
      */
-    private function calcularValorComTaxa(float $valorBase, string $billingType): float
-    {
-        $valorBase = round($valorBase, 2);
+        /**
+     * Calcula o valor bruto necessário para preservar
+     * o valor-base do evento após a tarifa Asaas.
+     *
+     * Tabela de taxas:
+     *
+     * BOLETO:
+     * R$ 1,99 por boleto pago.
+     *
+     * PIX:
+     * R$ 1,99 por cobrança recebida.
+     *
+     * CARTÃO DE CRÉDITO:
+     * 1x       = 2,99% + R$ 0,49
+     * 2 a 6x   = 3,49% + R$ 0,49
+     * 7 a 12x  = 3,99% + R$ 0,49
+     * 13 a 21x = 4,29% + R$ 0,49
+     *
+     * CARTÃO DE DÉBITO:
+     * 1,89% + R$ 0,35.
+     *
+     * O terceiro argumento já deixa a regra pronta
+     * para cartão parcelado. O checkout atual chama
+     * este método sem esse argumento e, portanto,
+     * utiliza 1 parcela.
+     */
+    private function calcularValorComTaxa(
+        float $valorBase,
+        string $billingType,
+        int $parcelas = 1
+    ): float {
+        $valorBase =
+            round(
+                $valorBase,
+                2
+            );
 
         if ($valorBase <= 0) {
-            throw new InvalidArgumentException("O valor-base da cobrança deve ser maior que zero.");
-        }
-
-        try {
-            $taxas = $this->asaas->recuperarTaxasConta();
-        } catch (Throwable $erro) {
-            throw new RuntimeException(
-                "Não foi possível consultar as tarifas atuais da conta Asaas. "
-                . "A cobrança não foi criada para evitar um valor incorreto. "
-                . $erro->getMessage(),
-                0,
-                $erro
+            throw new InvalidArgumentException(
+                "O valor-base da cobrança "
+                . "deve ser maior que zero."
             );
         }
 
-        $pagamento = is_array($taxas["payment"] ?? null)
-            ? $taxas["payment"]
-            : [];
+        $billingType =
+            strtoupper(
+                trim($billingType)
+            );
 
-        $valorBruto = match ($billingType) {
-            "BOLETO" => $this->calcularBoletoComTaxa(
-                $valorBase,
-                is_array($pagamento["bankSlip"] ?? null) ? $pagamento["bankSlip"] : []
-            ),
-            "CREDIT_CARD" => $this->calcularCartaoComTaxa(
-                $valorBase,
-                is_array($pagamento["creditCard"] ?? null) ? $pagamento["creditCard"] : []
-            ),
-            "PIX" => $this->calcularPixComTaxa(
-                $valorBase,
-                is_array($pagamento["pix"] ?? null) ? $pagamento["pix"] : []
-            ),
-            default => $valorBase
-        };
+        $parcelas =
+            max(
+                1,
+                $parcelas
+            );
 
-        if ($valorBruto < $valorBase) {
-            $valorBruto = $valorBase;
+        /*
+         * Taxas exclusivamente fixas.
+         */
+        if (
+            $billingType === "BOLETO"
+            || $billingType === "PIX"
+        ) {
+            return
+                ceil(
+                    (
+                        $valorBase
+                        + 1.99
+                    )
+                    * 100
+                    - 0.000001
+                )
+                / 100;
         }
 
-        return $this->arredondarParaCimaCentavos($valorBruto);
+        /*
+         * Cartão de crédito.
+         */
+        if (
+            $billingType === "CREDIT_CARD"
+            || $billingType === "CARTAO"
+            || $billingType === "CARTÃO"
+        ) {
+            if ($parcelas <= 1) {
+                $percentual = 2.99;
+            } elseif ($parcelas <= 6) {
+                $percentual = 3.49;
+            } elseif ($parcelas <= 12) {
+                $percentual = 3.99;
+            } elseif ($parcelas <= 21) {
+                $percentual = 4.29;
+            } else {
+                throw new InvalidArgumentException(
+                    "O cartão de crédito aceita "
+                    . "no máximo 21 parcelas "
+                    . "para o cálculo da taxa."
+                );
+            }
+
+            $taxaFixa = 0.49;
+
+            /*
+             * Fazemos gross-up.
+             *
+             * Exemplo:
+             *
+             * valor líquido desejado = 100,00
+             * taxa = 2,99% + 0,49
+             *
+             * bruto =
+             * (100,00 + 0,49) / (1 - 0,0299)
+             *
+             * Assim, após a tarifa percentual e
+             * fixa, o evento preserva o valor-base.
+             */
+            $divisor =
+                1
+                - (
+                    $percentual
+                    / 100
+                );
+
+            $valorBruto =
+                (
+                    $valorBase
+                    + $taxaFixa
+                )
+                / $divisor;
+
+            return
+                ceil(
+                    $valorBruto
+                    * 100
+                    - 0.000001
+                )
+                / 100;
+        }
+
+        /*
+         * Cartão de débito.
+         *
+         * A modalidade fica preparada na regra,
+         * embora o checkout atual não exponha
+         * cartão de débito como opção.
+         */
+        if (
+            $billingType === "DEBIT_CARD"
+            || $billingType === "DEBIT"
+            || $billingType === "DEBITO"
+            || $billingType === "DÉBITO"
+        ) {
+            $percentual = 1.89;
+            $taxaFixa = 0.35;
+
+            $divisor =
+                1
+                - (
+                    $percentual
+                    / 100
+                );
+
+            $valorBruto =
+                (
+                    $valorBase
+                    + $taxaFixa
+                )
+                / $divisor;
+
+            return
+                ceil(
+                    $valorBruto
+                    * 100
+                    - 0.000001
+                )
+                / 100;
+        }
+
+        throw new InvalidArgumentException(
+            "Não existe uma taxa Asaas "
+            . "configurada para a forma "
+            . "de pagamento "
+            . $billingType
+            . "."
+        );
     }
 
     private function calcularBoletoComTaxa(float $valorBase, array $taxa): float
