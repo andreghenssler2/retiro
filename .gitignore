@@ -1,7 +1,8 @@
 oculta.txt
 /ieclb-mail/*
 /ofertas/*
-
+# Pagina em construção do portal
+/portal_ieclb_parobe/
 # Credenciais locais de integrações
 /config/integracoes.php
 
