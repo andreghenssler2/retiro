@@ -1,43 +1,79 @@
 name: Atualizar Build
 
 on:
-  push:
+  workflow_run:
+    workflows:
+      - "Qualidade"
+    types:
+      - completed
     branches:
       - main
 
 permissions:
   contents: write
 
-jobs:
+concurrency:
+  group: atualizar-build-main
+  cancel-in-progress: false
 
+jobs:
   version:
+    if: >
+      github.event.workflow_run.conclusion == 'success'
+      && github.event.workflow_run.head_branch == 'main'
 
     runs-on: ubuntu-latest
 
     steps:
-
-      - name: Checkout
+      - name: Checkout do commit validado
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Confirmar que main ainda aponta para o commit validado
+        id: guard
+        shell: bash
+        run: |
+          git fetch origin main
+          VALIDATED="${{ github.event.workflow_run.head_sha }}"
+          CURRENT="$(git rev-parse origin/main)"
+
+          echo "Commit validado: $VALIDATED"
+          echo "Commit atual main: $CURRENT"
+
+          if [ "$VALIDATED" = "$CURRENT" ]; then
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            echo "main avançou; a execução mais nova do CI cuidará da versão."
+          fi
+
       - name: Configurar PHP
+        if: steps.guard.outputs.proceed == 'true'
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.4
+          php-version: "8.4"
+          coverage: none
 
       - name: Atualizar Build
+        if: steps.guard.outputs.proceed == 'true'
         run: php mod/scripts/build.php
 
-      - name: Commit
+      - name: Commit e push
+        if: steps.guard.outputs.proceed == 'true'
+        shell: bash
         run: |
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
 
           git add mod/version.php
 
-          git diff --cached --quiet || git commit -m "Versao atualizada automaticamente"
+          if git diff --cached --quiet; then
+            echo "Nenhuma alteração de versão."
+            exit 0
+          fi
 
-      - name: Push
-        run: git push
+          git commit -m "Versao atualizada automaticamente [skip ci]"
+          git push origin HEAD:main

@@ -52,3 +52,21 @@ oculta.txt
 
 # Instaladores locais
 /atualizar-*.php
+
+# BEGIN ARQUIVOS LOCAIS V2.1
+
+# Conteúdo extraído de pacotes de atualização.
+# Mantido apenas localmente e fora do repositório.
+/arquivos/
+
+# END ARQUIVOS LOCAIS V2.1
+
+# BEGIN COMPOSER RELEASE V1
+
+# Dependências são restauradas por composer install.
+/lib/vendor/
+
+# Pacotes de produção gerados localmente.
+/dist/
+
+# END COMPOSER RELEASE V1

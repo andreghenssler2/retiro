@@ -1,0 +1,40 @@
+name: Gerar Pacote de Producao
+
+on:
+  workflow_dispatch:
+
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configurar PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: zip
+          tools: composer:v2
+          coverage: none
+
+      - name: Gerar pacote
+        run: php tools/build-release.php
+
+      - name: Upload do pacote
+        uses: actions/upload-artifact@v4
+        with:
+          name: retiro-producao
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 14
