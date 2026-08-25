@@ -16,3 +16,7 @@ git push -u origin main
 //force
 git fetch origin
 git push -u origin main --force-with-lease
+
+git fetch origin
+git reset --hard origin/master
+git clean -fd
