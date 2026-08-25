@@ -7,6 +7,31 @@ ServerSignature Off
 
 RewriteEngine On
 
+# BEGIN SEGURANCA ARQUIVOS SENSIVEIS V1
+
+<FilesMatch "(?i)(^\.env|\.log$|\.bak(?:[-.].*)?$|\.backup$|\.sql(?:\.gz)?$|\.key$|\.ini$)">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+
+    <IfModule !mod_authz_core.c>
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+<FilesMatch "(?i)^atualizar-.*\.php$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+
+    <IfModule !mod_authz_core.c>
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# END SEGURANCA ARQUIVOS SENSIVEIS V1
+
+
 # BEGIN EVENTOS URL AMIGAVEL
 #############################################
 # URL AMIGÁVEL DOS EVENTOS

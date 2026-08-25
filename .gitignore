@@ -1,23 +1,54 @@
 oculta.txt
+
 /ieclb-mail/*
 /ofertas/*
-# Pagina em construção do portal
-/portal_ieclb_parobe/
-# Credenciais locais de integrações
-/config/integracoes.php
 
-# Chave mestra das credenciais bancárias
+# Página em construção do portal
+/portal_ieclb_parobe
+
+# Credenciais locais
+/config/conn.php
+/config/integracoes.php
 /config/.bancario.key
+
+.env
+.env.*
+!.env.example
 
 # Certificados gerados e imagens dos modelos
 /storage/certificados/*
 !/storage/certificados/.htaccess
 !/storage/certificados/.gitkeep
+
 /uploads/certificados/modelos/*
-/logs/*
 !/uploads/certificados/modelos/.gitkeep
 
-# ignore IDE files
+# Logs principais
+/logs/*
+!/logs/.htaccess
+!/logs/.gitkeep
+
+# Logs internos
+/mod/logs/*
+!/mod/logs/.htaccess
+!/mod/logs/.gitkeep
+
+# Logs em qualquer outro local
+*.log
+
+# Backups e temporários
+*.bak
+*.bak-*
+*.backup
+*.tmp
+*.temp
+
+# Dumps de banco gerados na raiz
+/*.sql
+/*.sql.gz
+
+# Pacotes
 *.zip
 
-*.bak-eventos
+# Instaladores locais
+/atualizar-*.php
