@@ -620,6 +620,26 @@ $perfilAtivo =
                         </a>
                     </li>
 
+                    <!-- SAUDE_SISTEMA_MENU_V1 -->
+                    <?php if (
+                        is_file(
+                            __DIR__
+                            . "/../configuracoes/saude.php"
+                        )
+                    ): ?>
+                        <li>
+                            <a
+                                class="<?= sidebarAtivoArquivo(
+                                    "saude.php"
+                                ); ?>"
+                                href="<?= BASE_URL ?>admin/configuracoes/saude.php"
+                            >
+                                <i class="fa-solid fa-heart-pulse"></i>
+                                <span>Saúde do Sistema</span>
+                            </a>
+                        </li>
+                    <?php endif; ?>
+
                     <li>
                         <a
                             class="<?= sidebarAtivoCaminho(

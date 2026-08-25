@@ -36,7 +36,7 @@ function conectarBanco($ambiente = 'desenvolvimento')
 
     } catch (PDOException $e) {
 
-        $logDir = __DIR__ . '/logs';
+        $logDir = dirname(__DIR__, 2) . '/logs';
 
         if (!file_exists($logDir)) {
             mkdir($logDir, 0755, true);
@@ -85,7 +85,7 @@ class Database
                 );
 
             } catch (PDOException $e) {
-                $logDir = __DIR__ . '/logs';
+                $logDir = dirname(__DIR__, 2) . '/logs';
 
                 if (!file_exists($logDir)) {
                     mkdir($logDir, 0755, true);
@@ -95,7 +95,13 @@ class Database
 
                 file_put_contents($logDir . '/db_errors.log', $mensagem, FILE_APPEND);
 
-                if ($ambiente === 'desenvolvimento') {
+                $ambienteAtual = defined('conectar')
+                    ? strtolower((string) constant('conectar'))
+                    : ((PHP_SAPI === 'cli' || PHP_SAPI === 'phpdbg')
+                        ? 'desenvolvimento'
+                        : 'producao');
+
+                if ($ambienteAtual === 'desenvolvimento') {
                     die('Erro ao conectar: ' . htmlspecialchars($e->getMessage()));
                 }
 

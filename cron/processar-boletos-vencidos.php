@@ -36,6 +36,18 @@ try {
     $resultado = $servico->processar();
     $sucesso = count($resultado["erros"] ?? []) === 0;
 
+    // SAUDE_CRON_BOLETOS_V1
+    SaudeSistemaService::registrarExecucao(
+        $db,
+        "cron.boletos",
+        $sucesso ? "ok" : "erro",
+        [
+            "erros" => count(
+                $resultado["erros"] ?? []
+            )
+        ]
+    );
+
     $saida = [
         "sucesso" => $sucesso,
         "executadoEm" => date(DATE_ATOM),
@@ -57,6 +69,13 @@ try {
     exit($sucesso ? 0 : 1);
 } catch (Throwable $erro) {
     error_log("Falha geral no cron de boletos vencidos: " . $erro->getMessage());
+
+    SaudeSistemaService::registrarExecucao(
+        $db,
+        "cron.boletos",
+        "erro",
+        $erro->getMessage()
+    );
 
     $saida = [
         "sucesso" => false,

@@ -205,11 +205,77 @@ try {
         $db->commit();
     }
 
+    
+    // SAUDE_WEBHOOK_ASAAS_V1
+    SaudeSistemaService::registrarExecucao(
+        $db,
+        "webhook.asaas",
+        "ok",
+        [
+            "evento" => $evento
+        ]
+    );
+
     responderWebhookAsaas(200, ["sucesso" => true]);
 } catch (Throwable $erro) {
     if ($iniciouTransacao && $db->inTransaction()) {
         $db->rollBack();
     }
+
+
+    // SAUDE_WEBHOOK_ASAAS_V1
+    try {
+        if ($eventoId !== "") {
+            $stmtFalha = $db->prepare("
+                INSERT INTO asaas_webhook_eventos (
+                    eventoId,
+                    evento,
+                    asaasPaymentId,
+                    payload,
+                    recebidoEm,
+                    processadoEm,
+                    erro
+                ) VALUES (
+                    :eventoId,
+                    :evento,
+                    :asaasPaymentId,
+                    :payload,
+                    NOW(),
+                    NULL,
+                    :erro
+                )
+                ON DUPLICATE KEY UPDATE
+                    processadoEm = NULL,
+                    erro = VALUES(erro)
+            ");
+
+            $stmtFalha->execute([
+                ":eventoId" => $eventoId,
+                ":evento" => $evento !== "" ? $evento : "DESCONHECIDO",
+                ":asaasPaymentId" => $asaasPaymentId !== ""
+                    ? $asaasPaymentId
+                    : null,
+                ":payload" => is_string($corpo) ? $corpo : "",
+                ":erro" => mb_substr(
+                    $erro->getMessage(),
+                    0,
+                    4000
+                )
+            ]);
+        }
+    } catch (Throwable $erroRegistro) {
+        error_log(
+            "Falha ao registrar erro do webhook Asaas: "
+            . $erroRegistro->getMessage()
+        );
+    }
+
+    SaudeSistemaService::registrarExecucao(
+        $db,
+        "webhook.asaas",
+        "erro",
+        $erro->getMessage()
+    );
 
     error_log(
         "Erro no Webhook Asaas: "

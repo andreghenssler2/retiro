@@ -13,6 +13,14 @@ try {
     $credenciamento = new Credenciamento($db);
     $resultado = $credenciamento->finalizarEventosEncerrados();
 
+    // SAUDE_CRON_CREDENCIAMENTOS_V1
+    SaudeSistemaService::registrarExecucao(
+        $db,
+        "cron.credenciamentos",
+        "ok",
+        $resultado
+    );
+
     echo sprintf(
         "[%s] Eventos finalizados: %d | Ausências registradas: %d%s",
         date('d/m/Y H:i:s'),
@@ -21,6 +29,13 @@ try {
         PHP_EOL
     );
 } catch (Throwable $erro) {
+
+    SaudeSistemaService::registrarExecucao(
+        $db,
+        "cron.credenciamentos",
+        "erro",
+        $erro->getMessage()
+    );
     fwrite(
         STDERR,
         sprintf(

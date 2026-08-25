@@ -44,6 +44,7 @@ require_once __DIR__ . '/services/HttpClientService.php';
 require_once __DIR__ . '/services/AsaasService.php';
 require_once __DIR__ . '/services/AsaasPagamentoService.php';
 require_once __DIR__ . '/services/BoletoVencidoService.php';
+require_once __DIR__ . '/services/SaudeSistemaService.php';
 require_once __DIR__ . '/services/PagamentoWebhookService.php';
 require_once __DIR__ . '/services/EmailNotificacaoService.php';
 require_once __DIR__ . '/services/EventoInscricaoPublicaConfig.php';
