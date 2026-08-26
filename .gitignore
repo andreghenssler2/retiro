@@ -70,3 +70,12 @@ oculta.txt
 /dist/
 
 # END COMPOSER RELEASE V1
+
+# Dumps locais/legados de banco
+/mod/database/banco.sql
+/mod/database/ieclbp28_retiro.sql
+/mod/database/migrations/sistema_completo_v03082026.sql
+
+# Controle operacional antigo de logs
+/mod/logs/.limpeza.lock
+/mod/logs/.ultima-limpeza
