@@ -45,6 +45,9 @@ jobs:
       - name: Testes críticos
         run: php tests/critical/run.php
 
+      - name: Data/hora do webhook Asaas
+        run: php tests/critical/asaas-data-hora.php
+
       - name: Validar Composer
         working-directory: lib
         run: composer validate --strict --no-check-publish

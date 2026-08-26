@@ -124,6 +124,7 @@ if (!is_array($payment)) {
 
 $asaasPaymentId = trim((string) ($payment["id"] ?? ""));
 $asaasStatus = trim((string) ($payment["status"] ?? ""));
+$eventoCriadoEm = AsaasWebhookDataHoraService::dataHoraEvento($payload);
 
 if ($eventoId === "" || $evento === "") {
     responderWebhookAsaas(400, ["sucesso" => false, "mensagem" => "Evento incompleto."]);
@@ -180,6 +181,14 @@ try {
             is_scalar($dataPagamento) ? (string) $dataPagamento : null,
             $corpo
         );
+
+        if ($statusLocal === "Pago" && $eventoCriadoEm !== null) {
+            AsaasWebhookDataHoraService::registrarRecebidoEm(
+                $db,
+                $asaasPaymentId,
+                $eventoCriadoEm
+            );
+        }
     }
 
     $stmtProcessado = $db->prepare("
