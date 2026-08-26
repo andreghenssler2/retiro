@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/ModoManutencao.php';
 
 $arquivoIntegracoes = __DIR__ . '/integracoes.php';
 if (is_file($arquivoIntegracoes)) {
@@ -8,6 +9,7 @@ if (is_file($arquivoIntegracoes)) {
 }
 
 Config::init();
+ModoManutencao::bloquearWebSeAtivo(dirname(__DIR__));
 
 // Conecta automaticamente com o banco correto
 $db = Config::getDB();

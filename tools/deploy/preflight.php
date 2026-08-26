@@ -42,7 +42,11 @@ is_file($raiz . '/lib/vendor/autoload.php')
     ? $addOk('Composer vendor presente')
     : $addErro('lib/vendor/autoload.php ausente');
 
-foreach (['logs', 'storage/certificados', 'uploads/certificados/modelos'] as $dir) {
+is_file($raiz . '/uploads/.htaccess')
+    ? $addOk('uploads/.htaccess presente')
+    : $addErro('uploads/.htaccess ausente');
+
+foreach (['logs', 'storage/certificados', 'uploads', 'uploads/certificados/modelos', 'theme/img'] as $dir) {
     $path = $raiz . '/' . $dir;
 
     if (!is_dir($path)) {

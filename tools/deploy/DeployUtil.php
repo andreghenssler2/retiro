@@ -78,6 +78,7 @@ final class DeployUtil
             'config/conn.php',
             'config/integracoes.php',
             'config/.bancario.key',
+            'storage/manutencao.json',
         ], true)) {
             return true;
         }
@@ -94,6 +95,50 @@ final class DeployUtil
             return $base !== '.gitkeep';
         }
 
+
+        /*
+         * DADOS_PERSISTENTES_V1
+         *
+         * Conteúdo criado em tempo de execução não pertence à release
+         * e não pode ser sobrescrito/removido por deploy ou rollback.
+         */
+        if (str_starts_with($path, 'uploads/usuarios/')) {
+            return !in_array(
+                $base,
+                ['.gitkeep', '.htaccess', 'user.png'],
+                true
+            );
+        }
+
+        foreach (
+            [
+                'uploads/eventos/',
+                'uploads/comunidades/',
+                'uploads/comprovantes/',
+            ]
+            as $prefixoPersistente
+        ) {
+            if (str_starts_with($path, $prefixoPersistente)) {
+                return !in_array(
+                    $base,
+                    ['.gitkeep', '.htaccess'],
+                    true
+                );
+            }
+        }
+
+        if (str_starts_with($path, 'theme/img/')) {
+            $baseLower = strtolower($base);
+
+            if (
+                preg_match(
+                    '/^(?:favicon|site-imagem)\.(?:ico|png|jpe?g|webp)$/',
+                    $baseLower
+                )
+            ) {
+                return true;
+            }
+        }
         return str_starts_with($path, 'ieclb-mail/') || str_starts_with($path, 'ofertas/');
     }
 

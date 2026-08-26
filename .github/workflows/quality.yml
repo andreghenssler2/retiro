@@ -51,6 +51,15 @@ jobs:
       - name: Segurança HTTP e sessão
         run: php tests/critical/seguranca-http.php
 
+      - name: Modo de manutenção
+        run: php tests/critical/manutencao.php
+
+      - name: Dados persistentes no deploy
+        run: php tests/critical/dados-persistentes.php
+
+      - name: Auditar dados persistentes rastreados
+        run: php tools/deploy/auditar-dados-persistentes.php
+
       - name: Validar Composer
         working-directory: lib
         run: composer validate --strict --no-check-publish

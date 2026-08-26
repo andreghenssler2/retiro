@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/DeployUtil.php';
+require_once dirname(__DIR__, 2) . '/config/ModoManutencao.php';
 DeployUtil::exigirCli();
 
 $args = DeployUtil::args($argv);
@@ -23,6 +24,21 @@ if ($zipPath === '' || $backupDir === '' || $confirm !== 'DEPLOY') {
 $raiz = DeployUtil::raiz();
 $nova = DeployUtil::verificarRelease($zipPath);
 $backup = DeployUtil::backupCodigo($backupDir);
+
+/* MODO_MANUTENCAO_DEPLOY_V1 */
+try {
+    ModoManutencao::ativar(
+        $raiz,
+        'Deploy em andamento.',
+        null
+    );
+} catch (Throwable $erro) {
+    DeployUtil::erro(
+        'Não foi possível ativar manutenção: '
+        . $erro->getMessage()
+    );
+}
+echo '[OK] Modo de manutenção ativado.' . PHP_EOL;
 
 $temp = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'retiro-deploy-' . bin2hex(random_bytes(6));
 
@@ -155,6 +171,17 @@ if ($migrar) {
     echo 'Depois do backup do banco: php database/migrate.php migrate' . PHP_EOL;
     echo 'E: php tools/smoke-test.php' . PHP_EOL;
 }
+
+/* MODO_MANUTENCAO_DESATIVAR_V1 */
+try {
+    ModoManutencao::desativar($raiz);
+} catch (Throwable $erro) {
+    DeployUtil::erro(
+        'Deploy aplicado, mas não foi possível desativar manutenção: '
+        . $erro->getMessage()
+    );
+}
+echo '[OK] Modo de manutenção desativado.' . PHP_EOL;
 
 echo '[INFO] Rollback de código, se necessário:' . PHP_EOL;
 echo 'php tools/deploy/rollback-codigo.php --backup=' . escapeshellarg($backup['zip']) . ' --confirm=ROLLBACK' . PHP_EOL;

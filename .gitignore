@@ -15,6 +15,9 @@ oculta.txt
 .env.*
 !.env.example
 
+# Estado operacional de manutenção
+/storage/manutencao.json
+
 # Certificados gerados e imagens dos modelos
 /storage/certificados/*
 !/storage/certificados/.htaccess
@@ -79,3 +82,22 @@ oculta.txt
 # Controle operacional antigo de logs
 /mod/logs/.limpeza.lock
 /mod/logs/.ultima-limpeza
+
+# BEGIN DADOS PERSISTENTES V1
+# Arquivos criados/modificados em tempo de execução.
+/uploads/usuarios/*
+!/uploads/usuarios/user.png
+!/uploads/usuarios/.gitkeep
+!/uploads/usuarios/.htaccess
+/uploads/eventos/*
+!/uploads/eventos/.gitkeep
+!/uploads/eventos/.htaccess
+/uploads/comunidades/*
+!/uploads/comunidades/.gitkeep
+!/uploads/comunidades/.htaccess
+/uploads/comprovantes/*
+!/uploads/comprovantes/.gitkeep
+!/uploads/comprovantes/.htaccess
+/theme/img/favicon.*
+/theme/img/site-imagem.*
+# END DADOS PERSISTENTES V1

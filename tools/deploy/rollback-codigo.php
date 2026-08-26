@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/DeployUtil.php';
+require_once dirname(__DIR__, 2) . '/config/ModoManutencao.php';
 DeployUtil::exigirCli();
 
 $args = DeployUtil::args($argv);
@@ -67,6 +68,20 @@ try {
     }
 
     $raiz = DeployUtil::raiz();
+
+/* MODO_MANUTENCAO_ROLLBACK_V1 */
+try {
+    ModoManutencao::ativar(
+        $raiz,
+        'Rollback de código em andamento.',
+        null
+    );
+} catch (Throwable $erro) {
+    DeployUtil::erro(
+        'Não foi possível ativar manutenção para rollback: '
+        . $erro->getMessage()
+    );
+}
     $atuais = [];
     $manifestAtualPath = $raiz . '/' . DeployUtil::RELEASE_MANIFEST;
 
@@ -125,3 +140,5 @@ echo '[OK] Código restaurado.' . PHP_EOL;
 echo '[ATENÇÃO] Banco de dados NÃO foi restaurado.' . PHP_EOL;
 echo 'Rode: php database/migrate.php status' . PHP_EOL;
 echo 'Depois: php tools/smoke-test.php' . PHP_EOL;
+echo '[ATENÇÃO] Manutenção continua ATIVA após rollback.' . PHP_EOL;
+echo 'Após validar: php tools/deploy/manutencao.php off' . PHP_EOL;

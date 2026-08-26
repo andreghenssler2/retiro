@@ -127,6 +127,21 @@ if ($status !== []) {
     brErro('Há alterações não commitadas. Faça commit antes de gerar a release.');
 }
 
+[$auditCode, $auditOut] = brExec(
+    escapeshellarg(PHP_BINARY)
+    . ' '
+    . escapeshellarg($raiz . '/tools/deploy/auditar-dados-persistentes.php'),
+    $raiz
+);
+
+foreach ($auditOut as $line) {
+    echo $line . PHP_EOL;
+}
+
+if ($auditCode !== 0) {
+    brErro('Auditoria de dados persistentes falhou.');
+}
+
 $versionFile = $raiz . '/mod/version.php';
 
 if (!is_file($versionFile)) {
