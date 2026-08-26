@@ -20,6 +20,25 @@ if (PHP_VERSION_ID >= 80200) {
     $addErro('PHP ' . PHP_VERSION . '; requer PHP 8.2+.');
 }
 
+foreach (['json', 'pdo', 'pdo_mysql', 'zip', 'fileinfo', 'openssl'] as $ext) {
+    extension_loaded($ext)
+        ? $addOk('Extensão ' . $ext)
+        : $addErro('Extensão ausente: ' . $ext);
+}
+
+foreach ([
+    'config/conn.php',
+    'config/integracoes.php',
+    'config/.bancario.key',
+    'lib/vendor/autoload.php',
+    'uploads/.htaccess',
+    'storage/seguranca/.htaccess',
+] as $rel) {
+    is_file($raiz . '/' . $rel)
+        ? $addOk($rel . ' presente')
+        : $addErro($rel . ' ausente');
+}
+
 foreach (['logs', 'storage/certificados', 'storage/seguranca', 'uploads', 'uploads/certificados/modelos', 'theme/img'] as $dir) {
     $path = $raiz . '/' . $dir;
 

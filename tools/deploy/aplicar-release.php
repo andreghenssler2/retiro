@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/DeployUtil.php';
+require_once __DIR__ . '/DeployRecoveryValidator.php';
+require_once __DIR__ . '/DatabaseBackupValidator.php';
 require_once dirname(__DIR__, 2) . '/config/ModoManutencao.php';
 DeployUtil::exigirCli();
 
@@ -11,19 +13,141 @@ $zipPath = (string) ($args['zip'] ?? '');
 $backupDir = (string) ($args['backup-dir'] ?? '');
 $confirm = (string) ($args['confirm'] ?? '');
 $migrar = isset($args['migrate']);
+$dbBackup = (string) ($args['db-backup'] ?? '');
+$dbBackupConfirm = strtoupper(
+    trim(
+        (string) (
+            $args['db-backup-confirm']
+            ?? ''
+        )
+    )
+);
 
 if ($zipPath === '' || $backupDir === '' || $confirm !== 'DEPLOY') {
     DeployUtil::erro(
         'Uso: php tools/deploy/aplicar-release.php '
         . '--zip=/caminho/release.zip '
         . '--backup-dir=/caminho/fora/do/site '
-        . '--confirm=DEPLOY [--migrate]'
+        . '--confirm=DEPLOY [--migrate '
+        . '--db-backup=/caminho/backup.sql.gz '
+        . '| --db-backup-confirm=CPANEL]'
     );
 }
 
 $raiz = DeployUtil::raiz();
+
+/* GATE_PRE_DEPLOY_FASE14 */
+$rodarPhp = static function (
+    string $arquivo,
+    array $argumentos = []
+): array {
+    $cmd =
+        escapeshellarg(PHP_BINARY)
+        . ' '
+        . escapeshellarg($arquivo);
+
+    foreach ($argumentos as $argumento) {
+        $cmd .= ' '
+            . escapeshellarg(
+                (string) $argumento
+            );
+    }
+
+    $saida = [];
+    $codigo = 0;
+
+    exec(
+        $cmd . ' 2>&1',
+        $saida,
+        $codigo
+    );
+
+    foreach ($saida as $linha) {
+        echo $linha . PHP_EOL;
+    }
+
+    return [
+        'codigo' => $codigo,
+        'saida' => $saida
+    ];
+};
+
+echo '[INFO] Executando preflight antes do deploy...' . PHP_EOL;
+$preflight = $rodarPhp(
+    $raiz . '/tools/deploy/preflight.php'
+);
+
+if ($preflight['codigo'] !== 0) {
+    DeployUtil::erro(
+        'Preflight falhou. Nenhum arquivo foi alterado.'
+    );
+}
+
+echo '[INFO] Executando ensaio da release...' . PHP_EOL;
+$ensaio = $rodarPhp(
+    $raiz . '/tools/deploy/ensaio-release.php',
+    [
+        '--zip=' . $zipPath
+    ]
+);
+
+if ($ensaio['codigo'] !== 0) {
+    DeployUtil::erro(
+        'Ensaio da release falhou. Nenhum arquivo foi alterado.'
+    );
+}
+
+if ($migrar) {
+    if ($dbBackup !== '') {
+        try {
+            $resultadoDb =
+                DatabaseBackupValidator::verificar(
+                    $raiz,
+                    $dbBackup
+                );
+        } catch (Throwable $erro) {
+            DeployUtil::erro(
+                'Backup de banco inválido: '
+                . $erro->getMessage()
+            );
+        }
+
+        echo '[OK] Backup de banco verificado: '
+            . $resultadoDb['path']
+            . PHP_EOL;
+        echo '[OK] SHA-256 banco: '
+            . $resultadoDb['sha256']
+            . PHP_EOL;
+    } elseif ($dbBackupConfirm === 'CPANEL') {
+        echo '[AVISO] Backup do banco confirmado via cPanel/phpMyAdmin; '
+            . 'o arquivo não foi validado pelo PHP.'
+            . PHP_EOL;
+    } else {
+        DeployUtil::erro(
+            'Deploy com --migrate exige --db-backup=/caminho/arquivo '
+            . 'ou --db-backup-confirm=CPANEL.'
+        );
+    }
+}
+
 $nova = DeployUtil::verificarRelease($zipPath);
 $backup = DeployUtil::backupCodigo($backupDir);
+
+try {
+    $backupValidado =
+        DeployRecoveryValidator::verificarBackupCodigo(
+            $backup['zip']
+        );
+} catch (Throwable $erro) {
+    DeployUtil::erro(
+        'Backup de código recém-criado é inválido: '
+        . $erro->getMessage()
+    );
+}
+
+echo '[OK] Backup de código validado: '
+    . $backupValidado['zipPath']
+    . PHP_EOL;
 
 /* MODO_MANUTENCAO_DEPLOY_V1 */
 try {
@@ -141,37 +265,84 @@ echo '[OK] Backup de código: ' . $backup['zip'] . PHP_EOL;
 
 if ($migrar) {
     echo '[INFO] Aplicando migrations...' . PHP_EOL;
-    $cmd = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($raiz . '/database/migrate.php') . ' migrate 2>&1';
-    $out = [];
-    $code = 0;
-    exec($cmd, $out, $code);
-    foreach ($out as $line) { echo $line . PHP_EOL; }
 
-    if ($code !== 0) {
-        echo '[ERRO] Migration falhou. Não restaure banco sem o backup SQL correspondente.' . PHP_EOL;
+    $migration = $rodarPhp(
+        $raiz . '/database/migrate.php',
+        ['migrate']
+    );
+
+    if ($migration['codigo'] !== 0) {
+        echo '[ERRO] Migration falhou. '
+            . 'Manutenção permanece ATIVA.'
+            . PHP_EOL;
         exit(1);
     }
 
-    echo '[INFO] Executando smoke test...' . PHP_EOL;
-    $cmd = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($raiz . '/tools/smoke-test.php') . ' 2>&1';
-    $out = [];
-    $code = 0;
-    exec($cmd, $out, $code);
-    foreach ($out as $line) { echo $line . PHP_EOL; }
-
-    if ($code !== 0) {
-        echo '[ERRO] Smoke test falhou após o deploy.' . PHP_EOL;
-        exit(1);
-    }
-
-    echo '[OK] Migrations e smoke test concluídos.' . PHP_EOL;
+    echo '[OK] Migrations concluídas.' . PHP_EOL;
 } else {
-    echo '[INFO] Migrations NÃO foram executadas.' . PHP_EOL;
-    echo 'Rode: php database/migrate.php status' . PHP_EOL;
-    echo 'Depois do backup do banco: php database/migrate.php migrate' . PHP_EOL;
-    echo 'E: php tools/smoke-test.php' . PHP_EOL;
+    /* STATUS_MIGRATIONS_FASE14 */
+    echo '[INFO] Conferindo migrations após aplicar o código...' . PHP_EOL;
+
+    $statusMigration = $rodarPhp(
+        $raiz . '/database/migrate.php',
+        ['status']
+    );
+
+    if ($statusMigration['codigo'] !== 0) {
+        echo '[ERRO] Não foi possível consultar migrations. '
+            . 'Manutenção permanece ATIVA.'
+            . PHP_EOL;
+        exit(1);
+    }
+
+    $pendente = false;
+    $alterada = false;
+
+    foreach ($statusMigration['saida'] as $linha) {
+        if (str_contains((string) $linha, '[PENDENTE]')) {
+            $pendente = true;
+        }
+
+        if (str_contains((string) $linha, '[ALTERADA]')) {
+            $alterada = true;
+        }
+    }
+
+    if ($alterada) {
+        echo '[ERRO] Existe migration aplicada com checksum alterado. '
+            . 'Manutenção permanece ATIVA.'
+            . PHP_EOL;
+        exit(1);
+    }
+
+    if ($pendente) {
+        echo '[ERRO] A nova release possui migration pendente e '
+            . '--migrate não foi informado.'
+            . PHP_EOL;
+        echo '[ATENÇÃO] Manutenção permanece ATIVA.'
+            . PHP_EOL;
+        echo 'Confirme o backup do banco antes de executar migrations.'
+            . PHP_EOL;
+        exit(1);
+    }
+
+    echo '[OK] Não há migrations pendentes.' . PHP_EOL;
 }
 
+echo '[INFO] Executando smoke test...' . PHP_EOL;
+
+$smoke = $rodarPhp(
+    $raiz . '/tools/smoke-test.php'
+);
+
+if ($smoke['codigo'] !== 0) {
+    echo '[ERRO] Smoke test falhou após o deploy. '
+        . 'Manutenção permanece ATIVA.'
+        . PHP_EOL;
+    exit(1);
+}
+
+echo '[OK] Smoke test concluído.' . PHP_EOL;
 /* MODO_MANUTENCAO_DESATIVAR_V1 */
 try {
     ModoManutencao::desativar($raiz);

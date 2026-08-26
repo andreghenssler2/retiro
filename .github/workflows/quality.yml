@@ -66,6 +66,9 @@ jobs:
       - name: Deploy e recuperação
         run: php tests/critical/deploy-recuperacao.php
 
+      - name: Prontidão para produção
+        run: php tests/critical/prontidao-producao.php
+
       - name: Validar Composer
         working-directory: lib
         run: composer validate --strict --no-check-publish
