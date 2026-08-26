@@ -63,6 +63,9 @@ jobs:
       - name: Auditar dados persistentes rastreados
         run: php tools/deploy/auditar-dados-persistentes.php
 
+      - name: Deploy e recuperação
+        run: php tests/critical/deploy-recuperacao.php
+
       - name: Validar Composer
         working-directory: lib
         run: composer validate --strict --no-check-publish
