@@ -15,13 +15,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     } else {
 
-        $auth = new Auth();
+        $emailLogin = Usuario::normalizarEmail(
+            (string) ($_POST['email'] ?? '')
+        );
+        $senhaLogin = (string) ($_POST['senha'] ?? '');
+        $ipLogin = AutenticacaoRateLimitService::ipCliente();
 
-        if ($auth->login($_POST['email'], $_POST['senha'])) {
+        $limitador = new AutenticacaoRateLimitService();
+        $limite = $limitador->verificarLogin(
+            $emailLogin,
+            $ipLogin
+        );
 
-            Auth::redirectDashboard();
-
+        if (!$limite['permitido']) {
+            $erro =
+                'Muitas tentativas de acesso. '
+                . 'Aguarde alguns minutos e tente novamente.';
         } else {
+            $auth = new Auth();
+
+            if (
+                $auth->login(
+                    $emailLogin,
+                    $senhaLogin
+                )
+            ) {
+                $limitador->limparLogin(
+                    $emailLogin,
+                    $ipLogin
+                );
+
+                Auth::redirectDashboard();
+            }
+
+            $limitador->registrarFalhaLogin(
+                $emailLogin,
+                $ipLogin
+            );
 
             $erro = 'E-mail ou senha inválidos.';
         }

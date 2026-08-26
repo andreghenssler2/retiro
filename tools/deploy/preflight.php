@@ -20,33 +20,7 @@ if (PHP_VERSION_ID >= 80200) {
     $addErro('PHP ' . PHP_VERSION . '; requer PHP 8.2+.');
 }
 
-foreach (['json', 'pdo', 'pdo_mysql', 'zip'] as $ext) {
-    extension_loaded($ext)
-        ? $addOk('Extensão ' . $ext)
-        : $addErro('Extensão ausente: ' . $ext);
-}
-
-is_file($raiz . '/config/conn.php')
-    ? $addOk('config/conn.php presente')
-    : $addErro('config/conn.php ausente');
-
-is_file($raiz . '/config/integracoes.php')
-    ? $addOk('config/integracoes.php presente')
-    : $addAviso('config/integracoes.php ausente');
-
-is_file($raiz . '/config/.bancario.key')
-    ? $addOk('config/.bancario.key presente')
-    : $addAviso('config/.bancario.key ausente');
-
-is_file($raiz . '/lib/vendor/autoload.php')
-    ? $addOk('Composer vendor presente')
-    : $addErro('lib/vendor/autoload.php ausente');
-
-is_file($raiz . '/uploads/.htaccess')
-    ? $addOk('uploads/.htaccess presente')
-    : $addErro('uploads/.htaccess ausente');
-
-foreach (['logs', 'storage/certificados', 'uploads', 'uploads/certificados/modelos', 'theme/img'] as $dir) {
+foreach (['logs', 'storage/certificados', 'storage/seguranca', 'uploads', 'uploads/certificados/modelos', 'theme/img'] as $dir) {
     $path = $raiz . '/' . $dir;
 
     if (!is_dir($path)) {

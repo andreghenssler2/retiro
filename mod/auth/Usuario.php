@@ -208,11 +208,26 @@ class Usuario
     /**
      * Salva token para recuperação
      */
+    /**
+     * Tokens de recuperação são armazenados por hash.
+     */
+    public static function hashTokenRecuperacao(
+        string $token
+    ): string {
+        return hash(
+            'sha256',
+            $token
+        );
+    }
     public function salvarTokenRecuperacao(
         string $email,
         string $token,
         string $expira
     ): bool {
+
+        $token = self::hashTokenRecuperacao(
+            $token
+        );
 
         $sql = "UPDATE usuarios
                    SET reset_token = ?,
@@ -233,6 +248,10 @@ class Usuario
      */
     public function buscarPorToken(string $token): array|false
     {
+
+        $token = self::hashTokenRecuperacao(
+            $token
+        );
         $sql = "SELECT *
             FROM usuarios
             WHERE reset_token = ?

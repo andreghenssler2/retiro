@@ -87,6 +87,13 @@ final class DeployUtil
             return !in_array($base, ['.gitkeep', '.htaccess'], true);
         }
 
+        if (str_starts_with($path, 'storage/seguranca/')) {
+            return !in_array(
+                $base,
+                ['.gitkeep', '.htaccess'],
+                true
+            );
+        }
         if (str_starts_with($path, 'storage/certificados/')) {
             return !in_array($base, ['.gitkeep', '.htaccess'], true);
         }

@@ -57,6 +57,9 @@ jobs:
       - name: Dados persistentes no deploy
         run: php tests/critical/dados-persistentes.php
 
+      - name: Segurança de autenticação
+        run: php tests/critical/autenticacao-seguranca.php
+
       - name: Auditar dados persistentes rastreados
         run: php tools/deploy/auditar-dados-persistentes.php
 

@@ -101,3 +101,9 @@ oculta.txt
 /theme/img/favicon.*
 /theme/img/site-imagem.*
 # END DADOS PERSISTENTES V1
+
+# BEGIN AUTENTICACAO SEGURA V1
+/storage/seguranca/*
+!/storage/seguranca/.htaccess
+!/storage/seguranca/.gitkeep
+# END AUTENTICACAO SEGURA V1

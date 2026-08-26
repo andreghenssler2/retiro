@@ -40,6 +40,7 @@ require_once __DIR__ . '/auth/Credenciamento.php';
 require_once __DIR__ . '/auth/Pagamento.php';
 require_once __DIR__ . '/auth/Certificado.php';
 require_once __DIR__ . '/auth/ConfiguracaoBancaria.php';
+require_once __DIR__ . '/services/AutenticacaoRateLimitService.php';
 require_once __DIR__ . '/services/HttpClientService.php';
 require_once __DIR__ . '/services/AsaasService.php';
 require_once __DIR__ . '/services/AsaasPagamentoService.php';

@@ -14,64 +14,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!Session::validateCsrf($_POST['_token'] ?? '')) {
         $erro = 'Token de segurança inválido.';
     } else {
+        $email = Usuario::normalizarEmail(
+            (string) ($_POST['email'] ?? '')
+        );
 
-        $email = trim($_POST['email']);
+        $ip = AutenticacaoRateLimitService::ipCliente();
+        $limitador = new AutenticacaoRateLimitService();
 
-        $usuario = new Usuario();
+        $limite = $limitador->verificarRecuperacao(
+            $email,
+            $ip
+        );
 
-        if (!$usuario->emailExiste($email)) {
-
-            $erro = 'Nenhum usuário encontrado com este e-mail.';
-
-        } else {
-
-            $token = bin2hex(random_bytes(32));
-
-            $expira = date('Y-m-d H:i:s', strtotime('+1 hour'));
-
-            $usuario->salvarTokenRecuperacao(
+        if ($limite['permitido']) {
+            $limitador->registrarRecuperacao(
                 $email,
-                $token,
-                $expira
+                $ip
             );
 
-            /*
-             * PHPMailer será implementado na Sprint 2
-             */
-            // echo BASE_URL;
-            $link = BASE_URL . "login/redefinir.php?token=" . $token;
+            try {
+                $usuario = new Usuario();
+                $registro = $usuario->buscarPorEmail($email);
 
-            $nome = $usuario->buscarPorEmail($email)['nome'];
+                if ($registro) {
+                    $token = bin2hex(
+                        random_bytes(32)
+                    );
 
-            ob_start();
+                    $expira = date(
+                        'Y-m-d H:i:s',
+                        strtotime('+1 hour')
+                    );
 
-            include "../mod/mail/templates/recuperar_senha.php";
+                    $usuario->salvarTokenRecuperacao(
+                        $email,
+                        $token,
+                        $expira
+                    );
 
-            $html = ob_get_clean();
+                    $link =
+                        BASE_URL
+                        . 'login/redefinir.php?token='
+                        . rawurlencode($token);
 
-            $mail = new Mail();
+                    $nome = (string) (
+                        $registro['nome']
+                        ?? ''
+                    );
 
-            if (
-                $mail->send(
-                    $email,
-                    $nome,
-                    "Recuperação de Senha",
-                    $html
-                )
-            ) {
-                $sucesso = "E-mail enviado com sucesso!";
-            } else {
-                $sucesso = "Falha ao enviar.";
+                    ob_start();
+
+                    include
+                        '../mod/mail/templates/recuperar_senha.php';
+
+                    $html = ob_get_clean();
+
+                    if (!is_string($html)) {
+                        $html = '';
+                    }
+
+                    $mail = new Mail();
+
+                    if (
+                        !$mail->send(
+                            $email,
+                            $nome,
+                            'Recuperação de Senha',
+                            $html
+                        )
+                    ) {
+                        error_log(
+                            'Falha ao enviar e-mail de recuperação.'
+                        );
+                    }
+                }
+            } catch (Throwable $exception) {
+                /*
+                 * A resposta ao usuário permanece genérica para não
+                 * revelar existência da conta nem detalhes internos.
+                 */
+                error_log(
+                    'Falha na recuperação de senha: '
+                    . $exception->getMessage()
+                );
             }
-
-            $sucesso .= "Caso o e-mail exista em nossa base, você receberá uma mensagem para redefinir sua senha.";
-
         }
 
+        $sucesso =
+            'Se o e-mail existir em nossa base, '
+            . 'você receberá uma mensagem '
+            . 'para redefinir sua senha.';
     }
-
 }
-
 ?>
 <!doctype html>
 
