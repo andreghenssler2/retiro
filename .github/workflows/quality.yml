@@ -48,6 +48,9 @@ jobs:
       - name: Data/hora do webhook Asaas
         run: php tests/critical/asaas-data-hora.php
 
+      - name: Segurança HTTP e sessão
+        run: php tests/critical/seguranca-http.php
+
       - name: Validar Composer
         working-directory: lib
         run: composer validate --strict --no-check-publish

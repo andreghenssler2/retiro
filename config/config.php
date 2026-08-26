@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/SegurancaHttp.php';
+
 /**
  * Classe de configuração geral do site
  * Detecta automaticamente se está em localhost ou produção
@@ -21,10 +23,11 @@ class Config
     public static function init()
     {
         // Inicia sessão segura
-        self::startSecureSession();
+        SegurancaHttp::iniciarSessao();
 
         // Define timezone e charset
         date_default_timezone_set(self::TIMEZONE);
+        SegurancaHttp::aplicarCabecalhos();
         // header('Content-Type: text/html; charset=UTF-8');
 
         // Detecta o host atual e define as URLs
