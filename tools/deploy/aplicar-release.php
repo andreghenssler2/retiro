@@ -13,6 +13,7 @@ $zipPath = (string) ($args['zip'] ?? '');
 $backupDir = (string) ($args['backup-dir'] ?? '');
 $confirm = (string) ($args['confirm'] ?? '');
 $migrar = isset($args['migrate']);
+$manterManutencao = isset($args['keep-maintenance']);
 $dbBackup = (string) ($args['db-backup'] ?? '');
 $dbBackupConfirm = strtoupper(
     trim(
@@ -30,7 +31,8 @@ if ($zipPath === '' || $backupDir === '' || $confirm !== 'DEPLOY') {
         . '--backup-dir=/caminho/fora/do/site '
         . '--confirm=DEPLOY [--migrate '
         . '--db-backup=/caminho/backup.sql.gz '
-        . '| --db-backup-confirm=CPANEL]'
+        . '| --db-backup-confirm=CPANEL] '
+        . '[--keep-maintenance]'
     );
 }
 
@@ -343,16 +345,23 @@ if ($smoke['codigo'] !== 0) {
 }
 
 echo '[OK] Smoke test concluído.' . PHP_EOL;
-/* MODO_MANUTENCAO_DESATIVAR_V1 */
-try {
-    ModoManutencao::desativar($raiz);
-} catch (Throwable $erro) {
-    DeployUtil::erro(
-        'Deploy aplicado, mas não foi possível desativar manutenção: '
-        . $erro->getMessage()
-    );
-}
-echo '[OK] Modo de manutenção desativado.' . PHP_EOL;
+/* KEEP_MAINTENANCE_FASE15 */
+if ($manterManutencao) {
+    echo '[OK] Validações internas concluídas. '
+        . 'Manutenção permanece ATIVA para validação final.'
+        . PHP_EOL;
+} else {
+    try {
+        ModoManutencao::desativar($raiz);
+    } catch (Throwable $erro) {
+        DeployUtil::erro(
+            'Deploy aplicado, mas não foi possível desativar manutenção: '
+            . $erro->getMessage()
+        );
+    }
 
+    echo '[OK] Modo de manutenção desativado.'
+        . PHP_EOL;
+}
 echo '[INFO] Rollback de código, se necessário:' . PHP_EOL;
 echo 'php tools/deploy/rollback-codigo.php --backup=' . escapeshellarg($backup['zip']) . ' --confirm=ROLLBACK' . PHP_EOL;

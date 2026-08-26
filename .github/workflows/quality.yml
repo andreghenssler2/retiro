@@ -69,6 +69,9 @@ jobs:
       - name: Prontidão para produção
         run: php tests/critical/prontidao-producao.php
 
+      - name: Deploy de produção controlado
+        run: php tests/critical/deploy-producao-controlado.php
+
       - name: Validar Composer
         working-directory: lib
         run: composer validate --strict --no-check-publish
