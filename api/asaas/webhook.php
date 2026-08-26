@@ -55,25 +55,14 @@ function cabecalhoWebhookAsaas(string $nome): string
     return "";
 }
 
-function statusLocalWebhookAsaas(string $evento, string $statusAsaas): ?string
-{
-    $evento = strtoupper(trim($evento));
-    $statusAsaas = strtoupper(trim($statusAsaas));
-
-    return match ($evento) {
-        "PAYMENT_RECEIVED", "PAYMENT_CONFIRMED" => "Pago",
-        "PAYMENT_OVERDUE", "PAYMENT_BANK_SLIP_CANCELLED" => "Vencido",
-        "PAYMENT_REFUNDED" => "Estornado",
-        "PAYMENT_DELETED" => "Cancelado",
-        default => match ($statusAsaas) {
-            "RECEIVED", "CONFIRMED", "RECEIVED_IN_CASH" => "Pago",
-            "REFUNDED" => "Estornado",
-            "DELETED" => "Cancelado",
-            "OVERDUE" => "Vencido",
-            "PENDING", "AWAITING_RISK_ANALYSIS" => "Pendente",
-            default => null
-        }
-    };
+function statusLocalWebhookAsaas(
+    string $evento,
+    string $statusAsaas
+): ?string {
+    return AsaasWebhookRegraService::statusLocal(
+        $evento,
+        $statusAsaas
+    );
 }
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
@@ -93,11 +82,10 @@ if (!$configuracaoBancaria->ativo()) {
     ]);
 }
 
-if (
-    $tokenConfigurado === ""
-    || $tokenRecebido === ""
-    || !hash_equals($tokenConfigurado, $tokenRecebido)
-) {
+if (!AsaasWebhookRegraService::tokenValido(
+    $tokenConfigurado,
+    $tokenRecebido
+)) {
     // Não registra os tokens. O log informa somente presença e tamanho para diagnóstico.
     error_log(
         "Webhook Asaas recusado: "

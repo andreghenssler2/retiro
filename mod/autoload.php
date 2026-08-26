@@ -43,6 +43,8 @@ require_once __DIR__ . '/auth/ConfiguracaoBancaria.php';
 require_once __DIR__ . '/services/HttpClientService.php';
 require_once __DIR__ . '/services/AsaasService.php';
 require_once __DIR__ . '/services/AsaasPagamentoService.php';
+require_once __DIR__ . '/services/PagamentoRegraService.php';
+require_once __DIR__ . '/services/AsaasWebhookRegraService.php';
 require_once __DIR__ . '/services/BoletoVencidoService.php';
 require_once __DIR__ . '/services/SaudeSistemaService.php';
 require_once __DIR__ . '/services/PagamentoWebhookService.php';

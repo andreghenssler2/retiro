@@ -1146,15 +1146,11 @@ if ($this->possuiColuna("pagamentos", "valorCobrancaAsaas")) {
          * A inscrição já está Cancelada e o histórico financeiro permanece
          * identificado como boleto vencido.
          */
-        $statusPersistido = $status;
-
-        if (
-            $status === "Cancelado"
-            && (string) ($pagamentoAtual["status"] ?? "") === "Vencido"
-            && (string) ($pagamentoAtual["formaPagamento"] ?? "") === "Boleto"
-        ) {
-            $statusPersistido = "Vencido";
-        }
+        $statusPersistido = PagamentoRegraService::statusPersistidoAsaas(
+            $status,
+            (string) ($pagamentoAtual["status"] ?? ""),
+            (string) ($pagamentoAtual["formaPagamento"] ?? "")
+        );
 
         $iniciouTransacao = !$this->db->inTransaction();
         if ($iniciouTransacao) {
@@ -1231,25 +1227,17 @@ if ($this->possuiColuna("pagamentos", "valorCobrancaAsaas")) {
         string $formaPagamento,
         string $codigo
     ): void {
-        $statusInscricao = match ($statusPagamento) {
-            "Pago" => "Confirmada",
-            "Cancelado", "Estornado" => "Cancelada",
-            "Vencido" => "Pendente",
-            default => "Pendente"
-        };
+        $statusInscricao = PagamentoRegraService::statusInscricao(
+            $statusPagamento
+        );
 
-        $valorPago = $statusPagamento === "Pago"
-            ? $valor
-            : 0;
-
-        /*
-         * Pagamento cancelado ou estornado cancela também
-         * a inscrição e remove qualquer presença já marcada.
-         */
-        $cancelarPresenca = in_array(
+        $valorPago = PagamentoRegraService::valorPago(
             $statusPagamento,
-            ["Cancelado", "Estornado"],
-            true
+            $valor
+        );
+
+        $cancelarPresenca = PagamentoRegraService::deveCancelarPresenca(
+            $statusPagamento
         );
 
         $stmt = $this->db->prepare("
@@ -1274,7 +1262,9 @@ if ($this->possuiColuna("pagamentos", "valorCobrancaAsaas")) {
 
         $stmt->execute([
             ":statusInscricao" => $statusInscricao,
-            ":preservarCancelada" => $statusPagamento === "Vencido" ? 1 : 0,
+            ":preservarCancelada" => PagamentoRegraService::preservarInscricaoCancelada(
+                $statusPagamento
+            ) ? 1 : 0,
             ":statusPagamento" => $statusPagamento,
             ":valor" => $valor,
             ":valorPago" => $valorPago,
@@ -1429,14 +1419,14 @@ if ($this->possuiColuna("pagamentos", "valorCobrancaAsaas")) {
 
     private function validarStatus(string $status): void
     {
-        if (!in_array($status, self::STATUS_PERMITIDOS, true)) {
+        if (!PagamentoRegraService::statusValido($status)) {
             throw new InvalidArgumentException("Status de pagamento inválido.");
         }
     }
 
     private function validarFormaPagamento(string $forma): void
     {
-        if (!in_array($forma, self::FORMAS_PERMITIDAS, true)) {
+        if (!PagamentoRegraService::formaValida($forma)) {
             throw new InvalidArgumentException("Forma de pagamento inválida.");
         }
     }
@@ -1455,24 +1445,7 @@ if ($this->possuiColuna("pagamentos", "valorCobrancaAsaas")) {
 
     private function normalizarValor(mixed $valor): float
     {
-        if (is_int($valor) || is_float($valor)) {
-            return round((float) $valor, 2);
-        }
-
-        $texto = str_replace(
-            ["R$", " ", "\xc2\xa0"],
-            "",
-            trim((string) $valor)
-        );
-
-        if (str_contains($texto, ",")) {
-            $texto = str_replace(".", "", $texto);
-            $texto = str_replace(",", ".", $texto);
-        }
-
-        return is_numeric($texto)
-            ? round((float) $texto, 2)
-            : 0.0;
+        return PagamentoRegraService::normalizarValor($valor);
     }
 
     private function normalizarData(mixed $data): ?string
