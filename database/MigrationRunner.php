@@ -51,8 +51,10 @@ final class MigrationRunner
      *   arquivo:string,
      *   descricao:string,
      *   checksum:string,
+     *   checksumCanonico:string,
      *   aplicada:bool,
      *   checksumBanco:?string,
+     *   checksumCompativel:bool,
      *   executadoEm:?string
      * }>
      */
@@ -64,50 +66,48 @@ final class MigrationRunner
         $resultado = [];
 
         foreach ($this->arquivos() as $arquivo) {
-            $migration =
-                $this->carregar(
-                    $arquivo
+            $migration = $this->carregar($arquivo);
+            $id = $this->idDoArquivo($arquivo);
+            $checksums = $this->checksumsDoArquivo($arquivo);
+            $checksumCanonico = $checksums["canonico"];
+            $registro = $aplicadas[$id] ?? null;
+            $checksumBanco = $registro["checksum"] ?? null;
+
+            $checksumCompativel =
+                $registro === null
+                || $checksumBanco === ""
+                || $this->checksumEhCompativel(
+                    (string) $checksumBanco,
+                    $checksums["aceitos"]
                 );
 
-            $id =
-                $this->idDoArquivo(
-                    $arquivo
-                );
-
-            $checksum =
-                hash_file(
-                    "sha256",
-                    $arquivo
-                );
-
-            if ($checksum === false) {
-                throw new RuntimeException(
-                    "Não foi possível calcular checksum: "
-                    . $arquivo
-                );
-            }
-
-            $registro =
-                $aplicadas[$id]
-                ?? null;
+            /*
+             * Compatibilidade com consumidores antigos de status():
+             * quando a única diferença é quebra de linha, devolvemos em
+             * "checksum" o valor já registrado no banco. Assim serviços
+             * existentes que comparam checksumBanco === checksum continuam
+             * corretos sem mascarar alterações reais de conteúdo.
+             */
+            $checksumExibido =
+                $registro !== null
+                && $checksumCompativel
+                && (string) $checksumBanco !== ""
+                    ? (string) $checksumBanco
+                    : $checksumCanonico;
 
             $resultado[] = [
                 "id" => $id,
                 "arquivo" => basename($arquivo),
-                "descricao" =>
-                    (string) (
-                        $migration["descricao"]
-                        ?? $id
-                    ),
-                "checksum" => $checksum,
-                "aplicada" =>
-                    $registro !== null,
-                "checksumBanco" =>
-                    $registro["checksum"]
-                    ?? null,
-                "executadoEm" =>
-                    $registro["executadoEm"]
-                    ?? null
+                "descricao" => (string) (
+                    $migration["descricao"]
+                    ?? $id
+                ),
+                "checksum" => $checksumExibido,
+                "checksumCanonico" => $checksumCanonico,
+                "aplicada" => $registro !== null,
+                "checksumBanco" => $checksumBanco,
+                "checksumCompativel" => $checksumCompativel,
+                "executadoEm" => $registro["executadoEm"] ?? null
             ];
         }
 
@@ -118,44 +118,25 @@ final class MigrationRunner
     {
         $this->preparar();
 
-        $aplicadas =
-            $this->aplicadas();
-
+        $aplicadas = $this->aplicadas();
         $executadas = 0;
 
         foreach ($this->arquivos() as $arquivo) {
-            $id =
-                $this->idDoArquivo(
-                    $arquivo
-                );
-
-            $checksum =
-                hash_file(
-                    "sha256",
-                    $arquivo
-                );
-
-            if ($checksum === false) {
-                throw new RuntimeException(
-                    "Não foi possível calcular checksum: "
-                    . $arquivo
-                );
-            }
+            $id = $this->idDoArquivo($arquivo);
+            $checksums = $this->checksumsDoArquivo($arquivo);
+            $checksum = $checksums["canonico"];
 
             if (isset($aplicadas[$id])) {
-                $checksumBanco =
-                    (string) (
-                        $aplicadas[$id][
-                            "checksum"
-                        ]
-                        ?? ""
-                    );
+                $checksumBanco = (string) (
+                    $aplicadas[$id]["checksum"]
+                    ?? ""
+                );
 
                 if (
                     $checksumBanco !== ""
-                    && !hash_equals(
+                    && !$this->checksumEhCompativel(
                         $checksumBanco,
-                        $checksum
+                        $checksums["aceitos"]
                     )
                 ) {
                     throw new RuntimeException(
@@ -169,14 +150,8 @@ final class MigrationRunner
                 continue;
             }
 
-            $migration =
-                $this->carregar(
-                    $arquivo
-                );
-
-            $up =
-                $migration["up"]
-                ?? null;
+            $migration = $this->carregar($arquivo);
+            $up = $migration["up"] ?? null;
 
             if (!is_callable($up)) {
                 throw new RuntimeException(
@@ -185,13 +160,12 @@ final class MigrationRunner
                 );
             }
 
-            $descricao =
-                trim(
-                    (string) (
-                        $migration["descricao"]
-                        ?? $id
-                    )
-                );
+            $descricao = trim(
+                (string) (
+                    $migration["descricao"]
+                    ?? $id
+                )
+            );
 
             if ($descricao === "") {
                 $descricao = $id;
@@ -204,18 +178,14 @@ final class MigrationRunner
                 . $descricao
                 . PHP_EOL;
 
-            $inicio =
-                microtime(true);
+            $inicio = microtime(true);
 
             /*
-             * MySQL/MariaDB pode fazer COMMIT implícito
-             * em comandos DDL. Ainda assim iniciamos
-             * transação para migrations compostas por
-             * DML e só registramos a migration depois
-             * que todo o callback termina com sucesso.
+             * MySQL/MariaDB pode fazer COMMIT implícito em DDL. Ainda assim,
+             * iniciamos transação para migrations compostas por DML e só
+             * registramos a migration quando o callback termina com sucesso.
              */
-            $iniciouTransacao =
-                !$this->db->inTransaction();
+            $iniciouTransacao = !$this->db->inTransaction();
 
             if ($iniciouTransacao) {
                 $this->db->beginTransaction();
@@ -224,34 +194,28 @@ final class MigrationRunner
             try {
                 $up($this->db);
 
-                $tempoMs =
-                    max(
-                        0,
-                        (int) round(
-                            (
-                                microtime(true)
-                                - $inicio
-                            )
-                            * 1000
-                        )
-                    );
+                $tempoMs = max(
+                    0,
+                    (int) round(
+                        (microtime(true) - $inicio) * 1000
+                    )
+                );
 
-                $stmt =
-                    $this->db->prepare("
-                        INSERT INTO schema_migrations (
-                            idMigration,
-                            descricao,
-                            checksum,
-                            executadoEm,
-                            tempoMs
-                        ) VALUES (
-                            :idMigration,
-                            :descricao,
-                            :checksum,
-                            NOW(),
-                            :tempoMs
-                        )
-                    ");
+                $stmt = $this->db->prepare("
+                    INSERT INTO schema_migrations (
+                        idMigration,
+                        descricao,
+                        checksum,
+                        executadoEm,
+                        tempoMs
+                    ) VALUES (
+                        :idMigration,
+                        :descricao,
+                        :checksum,
+                        NOW(),
+                        :tempoMs
+                    )
+                ");
 
                 $stmt->execute([
                     ":idMigration" => $id,
@@ -299,6 +263,66 @@ final class MigrationRunner
     }
 
     /**
+     * Calcula um checksum canônico LF para novas migrations e mantém
+     * compatibilidade com checksums históricos gravados em CRLF/CR/LF.
+     * Alterações reais de conteúdo continuam sendo detectadas.
+     *
+     * @return array{canonico:string,aceitos:array<int,string>}
+     */
+    private function checksumsDoArquivo(string $arquivo): array
+    {
+        $conteudo = file_get_contents($arquivo);
+
+        if ($conteudo === false) {
+            throw new RuntimeException(
+                "Não foi possível ler migration: "
+                . $arquivo
+            );
+        }
+
+        $lf = str_replace(
+            ["\r\n", "\r"],
+            "\n",
+            $conteudo
+        );
+
+        $crlf = str_replace("\n", "\r\n", $lf);
+        $cr = str_replace("\n", "\r", $lf);
+
+        $canonico = hash("sha256", $lf);
+
+        $aceitos = array_values(
+            array_unique([
+                hash("sha256", $conteudo),
+                $canonico,
+                hash("sha256", $crlf),
+                hash("sha256", $cr)
+            ])
+        );
+
+        return [
+            "canonico" => $canonico,
+            "aceitos" => $aceitos
+        ];
+    }
+
+    /**
+     * @param array<int,string> $checksumsAceitos
+     */
+    private function checksumEhCompativel(
+        string $checksumBanco,
+        array $checksumsAceitos
+    ): bool {
+        foreach ($checksumsAceitos as $checksum) {
+            if (hash_equals($checksumBanco, $checksum)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @return array<string,array{
      *   checksum:string,
      *   executadoEm:string
@@ -306,40 +330,36 @@ final class MigrationRunner
      */
     private function aplicadas(): array
     {
-        $stmt =
-            $this->db->query("
-                SELECT
-                    idMigration,
-                    checksum,
-                    executadoEm
-                FROM schema_migrations
-                ORDER BY idMigration
-            ");
+        $stmt = $this->db->query("
+            SELECT
+                idMigration,
+                checksum,
+                executadoEm
+            FROM schema_migrations
+            ORDER BY idMigration
+        ");
 
         $resultado = [];
 
         foreach ($stmt->fetchAll() as $linha) {
-            $id =
-                (string) (
-                    $linha["idMigration"]
-                    ?? ""
-                );
+            $id = (string) (
+                $linha["idMigration"]
+                ?? ""
+            );
 
             if ($id === "") {
                 continue;
             }
 
             $resultado[$id] = [
-                "checksum" =>
-                    (string) (
-                        $linha["checksum"]
-                        ?? ""
-                    ),
-                "executadoEm" =>
-                    (string) (
-                        $linha["executadoEm"]
-                        ?? ""
-                    )
+                "checksum" => (string) (
+                    $linha["checksum"]
+                    ?? ""
+                ),
+                "executadoEm" => (string) (
+                    $linha["executadoEm"]
+                    ?? ""
+                )
             ];
         }
 
@@ -355,21 +375,17 @@ final class MigrationRunner
             return [];
         }
 
-        $arquivos =
-            glob(
-                $this->diretorio
-                . DIRECTORY_SEPARATOR
-                . "[0-9]*_*.php"
-            );
+        $arquivos = glob(
+            $this->diretorio
+            . DIRECTORY_SEPARATOR
+            . "[0-9]*_*.php"
+        );
 
         if ($arquivos === false) {
             return [];
         }
 
-        sort(
-            $arquivos,
-            SORT_STRING
-        );
+        sort($arquivos, SORT_STRING);
 
         return array_values(
             array_filter(
@@ -382,11 +398,9 @@ final class MigrationRunner
     /**
      * @return array<string,mixed>
      */
-    private function carregar(
-        string $arquivo
-    ): array {
-        $migration =
-            require $arquivo;
+    private function carregar(string $arquivo): array
+    {
+        $migration = require $arquivo;
 
         if (!is_array($migration)) {
             throw new RuntimeException(
@@ -398,14 +412,12 @@ final class MigrationRunner
         return $migration;
     }
 
-    private function idDoArquivo(
-        string $arquivo
-    ): string {
-        $nome =
-            pathinfo(
-                $arquivo,
-                PATHINFO_FILENAME
-            );
+    private function idDoArquivo(string $arquivo): string
+    {
+        $nome = pathinfo(
+            $arquivo,
+            PATHINFO_FILENAME
+        );
 
         if (
             !preg_match(

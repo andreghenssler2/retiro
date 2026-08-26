@@ -28,13 +28,15 @@ jobs:
           tools: composer:v2
           coverage: none
 
-      - name: Gerar pacote
+      - name: Gerar pacote verificavel
         run: php tools/build-release.php
 
-      - name: Upload do pacote
+      - name: Upload do pacote e checksum
         uses: actions/upload-artifact@v4
         with:
           name: retiro-producao
-          path: dist/*.zip
+          path: |
+            dist/*.zip
+            dist/*.zip.sha256
           if-no-files-found: error
           retention-days: 14

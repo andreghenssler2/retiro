@@ -2,532 +2,292 @@
 
 declare(strict_types=1);
 
-/**
- * Gera um pacote ZIP limpo para produção.
- *
- * Requisitos:
- * - Git;
- * - Composer;
- * - extensão ZipArchive.
- *
- * Uso:
- *
- * php tools/build-release.php
- */
-
 $raiz = dirname(__DIR__);
 
 function brErro(string $mensagem): never
 {
-    fwrite(
-        STDERR,
-        "[ERRO] {$mensagem}" . PHP_EOL
-    );
-
+    fwrite(STDERR, '[ERRO] ' . $mensagem . PHP_EOL);
     exit(1);
 }
 
-function brExecutar(
-    string $comando,
-    ?string $cwd = null
-): array {
-    $comandoFinal = $comando;
-
+/** @return array{0:int,1:array<int,string>} */
+function brExec(string $comando, ?string $cwd = null): array
+{
     if ($cwd !== null) {
-        if (PHP_OS_FAMILY === "Windows") {
-            $comandoFinal =
-                "cd /d "
-                . escapeshellarg($cwd)
-                . " && "
-                . $comando;
+        if (PHP_OS_FAMILY === 'Windows') {
+            $comando = 'cd /d ' . escapeshellarg($cwd) . ' && ' . $comando;
         } else {
-            $comandoFinal =
-                "cd "
-                . escapeshellarg($cwd)
-                . " && "
-                . $comando;
+            $comando = 'cd ' . escapeshellarg($cwd) . ' && ' . $comando;
         }
     }
 
     $saida = [];
     $codigo = 0;
-
-    exec(
-        $comandoFinal . " 2>&1",
-        $saida,
-        $codigo
-    );
-
+    exec($comando . ' 2>&1', $saida, $codigo);
     return [$codigo, $saida];
 }
 
-function brRemoverDiretorio(string $diretorio): void
+function brRemoverDir(string $dir): void
 {
-    if (!is_dir($diretorio)) {
+    if (!is_dir($dir)) {
         return;
     }
 
-    $itens =
-        new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator(
-                $diretorio,
-                FilesystemIterator::SKIP_DOTS
-            ),
-            RecursiveIteratorIterator::CHILD_FIRST
-        );
+    $it = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::CHILD_FIRST
+    );
 
-    foreach ($itens as $item) {
-        if ($item->isDir()) {
-            @rmdir(
-                $item->getPathname()
-            );
+    foreach ($it as $item) {
+        if ($item->isDir() && !$item->isLink()) {
+            @rmdir($item->getPathname());
         } else {
-            @unlink(
-                $item->getPathname()
-            );
+            @unlink($item->getPathname());
         }
     }
 
-    @rmdir($diretorio);
+    @rmdir($dir);
 }
 
-function brRemoverCaminho(string $caminho): void
+function brRemover(string $path): void
 {
-    if (is_dir($caminho)) {
-        brRemoverDiretorio($caminho);
-        return;
-    }
-
-    if (is_file($caminho)) {
-        @unlink($caminho);
-    }
+    is_dir($path) ? brRemoverDir($path) : @unlink($path);
 }
 
-function brAdicionarZip(
-    ZipArchive $zip,
-    string $base,
-    string $diretorio
-): void {
-    $itens =
-        new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator(
-                $diretorio,
-                FilesystemIterator::SKIP_DOTS
-            ),
-            RecursiveIteratorIterator::SELF_FIRST
-        );
+/** @return array<int,array{path:string,size:int,sha256:string}> */
+function brManifestoArquivos(string $staging): array
+{
+    $files = [];
+    $it = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($staging, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::LEAVES_ONLY
+    );
 
-    foreach ($itens as $item) {
-        $caminho =
-            $item->getPathname();
+    foreach ($it as $item) {
+        if (!$item->isFile() || $item->isLink()) {
+            continue;
+        }
 
-        $relativo =
-            str_replace(
-                "\\",
-                "/",
-                substr(
-                    $caminho,
-                    strlen($base) + 1
-                )
-            );
+        $path = str_replace('\\', '/', substr($item->getPathname(), strlen($staging) + 1));
+
+        if ($path === 'RELEASE-MANIFEST.json') {
+            continue;
+        }
+
+        $files[] = [
+            'path' => $path,
+            'size' => (int) $item->getSize(),
+            'sha256' => hash_file('sha256', $item->getPathname()),
+        ];
+    }
+
+    usort($files, static fn (array $a, array $b): int => strnatcasecmp($a['path'], $b['path']));
+    return $files;
+}
+
+function brZipDir(ZipArchive $zip, string $base, string $dir): void
+{
+    $it = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::SELF_FIRST
+    );
+
+    foreach ($it as $item) {
+        $path = $item->getPathname();
+        $rel = str_replace('\\', '/', substr($path, strlen($base) + 1));
 
         if ($item->isDir()) {
-            $zip->addEmptyDir($relativo);
+            $zip->addEmptyDir($rel);
         } else {
-            $zip->addFile(
-                $caminho,
-                $relativo
-            );
+            $zip->addFile($path, $rel);
         }
     }
 }
 
-if (!class_exists("ZipArchive")) {
-    brErro(
-        "A extensão PHP ZipArchive não está disponível."
-    );
+if (!class_exists('ZipArchive')) {
+    brErro('Extensão ZipArchive não disponível.');
 }
 
-[$codigoGit] =
-    brExecutar(
-        "git --version"
-    );
+[$git] = brExec('git --version');
+[$composer] = brExec('composer --version');
 
-if ($codigoGit !== 0) {
-    brErro("Git não encontrado.");
+if ($git !== 0) {
+    brErro('Git não encontrado.');
+}
+if ($composer !== 0) {
+    brErro('Composer não encontrado no PATH.');
 }
 
-[$codigoComposer] =
-    brExecutar(
-        "composer --version"
-    );
+[$statusCode, $status] = brExec('git -C ' . escapeshellarg($raiz) . ' status --porcelain');
 
-if ($codigoComposer !== 0) {
-    brErro(
-        "Composer não encontrado no PATH."
-    );
+if ($statusCode !== 0) {
+    brErro('Não foi possível consultar git status.');
 }
-
-[$codigoStatus, $status] =
-    brExecutar(
-        "git -C "
-        . escapeshellarg($raiz)
-        . " status --porcelain"
-    );
-
-if ($codigoStatus !== 0) {
-    brErro(
-        "Não foi possível consultar git status."
-    );
-}
-
 if ($status !== []) {
-    brErro(
-        "O repositório possui alterações não commitadas. "
-        . "Faça commit antes de gerar uma release reproduzível."
-    );
+    brErro('Há alterações não commitadas. Faça commit antes de gerar a release.');
 }
 
-$versionArquivo =
-    $raiz
-    . "/mod/version.php";
+$versionFile = $raiz . '/mod/version.php';
 
-if (!is_file($versionArquivo)) {
-    brErro(
-        "mod/version.php não encontrado."
-    );
+if (!is_file($versionFile)) {
+    brErro('mod/version.php não encontrado.');
 }
 
-$version =
-    require $versionArquivo;
+$version = require $versionFile;
 
 if (!is_array($version)) {
-    brErro(
-        "mod/version.php inválido."
-    );
+    brErro('mod/version.php inválido.');
 }
 
-$versao =
-    preg_replace(
-        '/[^0-9A-Za-z._-]+/',
-        "-",
-        (string) (
-            $version["version"]
-            ?? "sem-versao"
-        )
-    );
+$versao = preg_replace('/[^0-9A-Za-z._-]+/', '-', (string) ($version['version'] ?? 'sem-versao'));
+$build = (int) ($version['build'] ?? 0);
 
-$build =
-    (int) (
-        $version["build"]
-        ?? 0
-    );
+[$commitCode, $commitOut] = brExec('git -C ' . escapeshellarg($raiz) . ' rev-parse HEAD');
 
-$dist =
-    $raiz
-    . "/dist";
-
-if (
-    !is_dir($dist)
-    && !mkdir(
-        $dist,
-        0755,
-        true
-    )
-    && !is_dir($dist)
-) {
-    brErro(
-        "Não foi possível criar /dist."
-    );
+if ($commitCode !== 0 || $commitOut === []) {
+    brErro('Não foi possível obter o commit atual.');
 }
 
-$temp =
-    sys_get_temp_dir()
-    . DIRECTORY_SEPARATOR
-    . "retiro-release-"
-    . bin2hex(
-        random_bytes(6)
-    );
+$commit = trim((string) $commitOut[0]);
+$dist = $raiz . '/dist';
 
-$staging =
-    $temp
-    . DIRECTORY_SEPARATOR
-    . "retiro";
-
-if (
-    !mkdir(
-        $staging,
-        0755,
-        true
-    )
-) {
-    brErro(
-        "Não foi possível criar staging."
-    );
+if (!is_dir($dist) && !mkdir($dist, 0755, true) && !is_dir($dist)) {
+    brErro('Não foi possível criar /dist.');
 }
 
-$archive =
-    $temp
-    . DIRECTORY_SEPARATOR
-    . "source.zip";
+$temp = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'retiro-release-' . bin2hex(random_bytes(6));
+$staging = $temp . DIRECTORY_SEPARATOR . 'retiro';
+$archive = $temp . DIRECTORY_SEPARATOR . 'source.zip';
+
+if (!mkdir($staging, 0755, true)) {
+    brErro('Não foi possível criar staging.');
+}
 
 try {
-    echo
-        "[1/5] Exportando HEAD do Git..."
-        . PHP_EOL;
+    echo '[1/6] Exportando HEAD...' . PHP_EOL;
+    [$archiveCode, $archiveOut] = brExec(
+        'git -C ' . escapeshellarg($raiz)
+        . ' archive --format=zip --output=' . escapeshellarg($archive) . ' HEAD'
+    );
 
-    [$codigoArchive, $saidaArchive] =
-        brExecutar(
-            "git -C "
-            . escapeshellarg($raiz)
-            . " archive --format=zip "
-            . "--output="
-            . escapeshellarg($archive)
-            . " HEAD"
-        );
-
-    if ($codigoArchive !== 0) {
-        brErro(
-            "git archive falhou:"
-            . PHP_EOL
-            . implode(
-                PHP_EOL,
-                $saidaArchive
-            )
-        );
+    if ($archiveCode !== 0) {
+        brErro('git archive falhou: ' . implode(PHP_EOL, $archiveOut));
     }
 
-    $zipFonte =
-        new ZipArchive();
+    $sourceZip = new ZipArchive();
+    if ($sourceZip->open($archive) !== true || !$sourceZip->extractTo($staging)) {
+        brErro('Falha ao extrair staging.');
+    }
+    $sourceZip->close();
 
-    if (
-        $zipFonte->open($archive)
-        !== true
-    ) {
-        brErro(
-            "Não foi possível abrir o archive temporário."
-        );
+    echo '[2/6] Limpando staging...' . PHP_EOL;
+    foreach ([
+        '.github',
+        'arquivos',
+        'dist',
+        'config/conn.php',
+        'config/integracoes.php',
+        'config/.bancario.key',
+        'lib/vendor',
+    ] as $rel) {
+        brRemover($staging . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $rel));
     }
 
-    if (
-        !$zipFonte->extractTo(
-            $staging
-        )
-    ) {
-        $zipFonte->close();
+    $it = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($staging, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::LEAVES_ONLY
+    );
 
-        brErro(
-            "Não foi possível extrair o archive."
-        );
-    }
+    foreach ($it as $item) {
+        if (!$item->isFile()) {
+            continue;
+        }
 
-    $zipFonte->close();
+        $base = $item->getFilename();
+        $lower = strtolower($base);
 
-    echo
-        "[2/5] Removendo arquivos que não pertencem "
-        . "ao pacote de produção..."
-        . PHP_EOL;
-
-    $remover = [
-        ".git",
-        ".github",
-        "arquivos",
-        "dist",
-        "logs",
-        "config/conn.php",
-        "config/integracoes.php",
-        "config/.bancario.key",
-        "lib/vendor"
-    ];
-
-    foreach ($remover as $relativo) {
-        brRemoverCaminho(
-            $staging
-            . DIRECTORY_SEPARATOR
-            . str_replace(
-                "/",
-                DIRECTORY_SEPARATOR,
-                $relativo
-            )
-        );
-    }
-
-    foreach (
-        glob(
-            $staging
-            . DIRECTORY_SEPARATOR
-            . "atualizar-*.php"
-        ) ?: []
-        as $instalador
-    ) {
-        @unlink($instalador);
-    }
-
-    foreach (
-        glob(
-            $staging
-            . DIRECTORY_SEPARATOR
-            . "*.log"
-        ) ?: []
-        as $log
-    ) {
-        @unlink($log);
-    }
-
-    echo
-        "[3/5] Instalando dependências Composer..."
-        . PHP_EOL;
-
-    $lib =
-        $staging
-        . DIRECTORY_SEPARATOR
-        . "lib";
-
-    if (
-        !is_file(
-            $lib
-            . DIRECTORY_SEPARATOR
-            . "composer.json"
-        )
-        || !is_file(
-            $lib
-            . DIRECTORY_SEPARATOR
-            . "composer.lock"
-        )
-    ) {
-        brErro(
-            "composer.json/composer.lock não encontrados em /lib."
-        );
-    }
-
-    [$codigoInstall, $saidaInstall] =
-        brExecutar(
-            "composer install "
-            . "--no-dev "
-            . "--prefer-dist "
-            . "--optimize-autoloader "
-            . "--no-interaction "
-            . "--no-progress",
-            $lib
-        );
-
-    foreach ($saidaInstall as $linha) {
-        echo $linha . PHP_EOL;
-    }
-
-    if ($codigoInstall !== 0) {
-        brErro(
-            "composer install falhou."
-        );
-    }
-
-    echo
-        "[4/5] Verificando segredos no staging..."
-        . PHP_EOL;
-
-    $proibidos = [
-        "config/conn.php",
-        "config/integracoes.php",
-        "config/.bancario.key"
-    ];
-
-    foreach ($proibidos as $relativo) {
-        $caminho =
-            $staging
-            . DIRECTORY_SEPARATOR
-            . str_replace(
-                "/",
-                DIRECTORY_SEPARATOR,
-                $relativo
-            );
-
-        if (file_exists($caminho)) {
-            brErro(
-                "Arquivo sensível entrou no staging: "
-                . $relativo
-            );
+        if (
+            str_ends_with($lower, '.log')
+            || preg_match('/\.bak(?:[-.].*)?$/i', $base)
+            || str_ends_with($lower, '.backup')
+            || (str_starts_with($lower, 'atualizar-') && str_ends_with($lower, '.php'))
+        ) {
+            @unlink($item->getPathname());
         }
     }
 
-    echo
-        "[5/5] Criando ZIP..."
-        . PHP_EOL;
+    echo '[3/6] Instalando Composer...' . PHP_EOL;
+    $lib = $staging . DIRECTORY_SEPARATOR . 'lib';
 
-    $nome =
-        "retiro-"
-        . $versao
-        . "-build"
-        . $build
-        . ".zip";
-
-    $destino =
-        $dist
-        . DIRECTORY_SEPARATOR
-        . $nome;
-
-    if (is_file($destino)) {
-        @unlink($destino);
+    if (!is_file($lib . '/composer.json') || !is_file($lib . '/composer.lock')) {
+        brErro('composer.json/composer.lock não encontrados em /lib.');
     }
 
-    $zip =
-        new ZipArchive();
-
-    if (
-        $zip->open(
-            $destino,
-            ZipArchive::CREATE
-            | ZipArchive::OVERWRITE
-        ) !== true
-    ) {
-        brErro(
-            "Não foi possível criar o ZIP final."
-        );
-    }
-
-    brAdicionarZip(
-        $zip,
-        $staging,
-        $staging
+    [$installCode, $installOut] = brExec(
+        'composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-progress',
+        $lib
     );
 
+    foreach ($installOut as $line) {
+        echo $line . PHP_EOL;
+    }
+    if ($installCode !== 0) {
+        brErro('composer install falhou.');
+    }
+
+    echo '[4/6] Verificando segredos...' . PHP_EOL;
+    foreach (['config/conn.php', 'config/integracoes.php', 'config/.bancario.key'] as $rel) {
+        if (file_exists($staging . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $rel))) {
+            brErro('Arquivo sensível entrou no staging: ' . $rel);
+        }
+    }
+
+    echo '[5/6] Gerando manifesto...' . PHP_EOL;
+    $files = brManifestoArquivos($staging);
+    $manifest = [
+        'schema' => 1,
+        'application' => 'retiro',
+        'version' => $versao,
+        'build' => $build,
+        'commit' => $commit,
+        'generatedAt' => gmdate('c'),
+        'files' => $files,
+    ];
+    $json = json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+    if (!is_string($json) || file_put_contents($staging . '/RELEASE-MANIFEST.json', $json . PHP_EOL) === false) {
+        brErro('Não foi possível gravar RELEASE-MANIFEST.json.');
+    }
+
+    echo '[6/6] Criando ZIP + SHA-256...' . PHP_EOL;
+    $name = 'retiro-' . $versao . '-build' . $build . '.zip';
+    $zipPath = $dist . DIRECTORY_SEPARATOR . $name;
+    @unlink($zipPath);
+
+    $zip = new ZipArchive();
+    if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+        brErro('Não foi possível criar ZIP final.');
+    }
+    brZipDir($zip, $staging, $staging);
     $zip->close();
 
-    if (
-        !is_file($destino)
-        || filesize($destino) === 0
-    ) {
-        brErro(
-            "ZIP final não foi criado corretamente."
-        );
+    if (!is_file($zipPath) || filesize($zipPath) === 0) {
+        brErro('ZIP final não foi criado corretamente.');
     }
+
+    $sha = hash_file('sha256', $zipPath);
+    file_put_contents($zipPath . '.sha256', $sha . '  ' . basename($zipPath) . PHP_EOL);
 
     echo PHP_EOL;
     echo "======================================" . PHP_EOL;
     echo "RELEASE GERADA" . PHP_EOL;
     echo "======================================" . PHP_EOL;
-    echo PHP_EOL;
-
-    echo
-        "[OK] "
-        . $destino
-        . PHP_EOL;
-
-    echo
-        "[OK] Versão "
-        . $versao
-        . " | Build "
-        . $build
-        . PHP_EOL;
-
-    echo
-        "[OK] config/conn.php não incluído"
-        . PHP_EOL;
-
-    echo
-        "[OK] lib/vendor gerado pelo Composer"
-        . PHP_EOL;
+    echo '[OK] ' . $zipPath . PHP_EOL;
+    echo '[OK] ' . $zipPath . '.sha256' . PHP_EOL;
+    echo '[OK] Versão ' . $versao . ' | Build ' . $build . PHP_EOL;
+    echo '[OK] Commit ' . $commit . PHP_EOL;
+    echo '[OK] Arquivos manifestados: ' . count($files) . PHP_EOL;
+    echo '[OK] SHA-256 ' . $sha . PHP_EOL;
 } finally {
-    brRemoverDiretorio(
-        $temp
-    );
+    brRemoverDir($temp);
 }
