@@ -1,0 +1,109 @@
+oculta.txt
+
+/ieclb-mail/*
+/ofertas/*
+
+# Página em construção do portal
+/portal_ieclb_parobe
+
+# Credenciais locais
+/config/conn.php
+/config/integracoes.php
+/config/.bancario.key
+
+.env
+.env.*
+!.env.example
+
+# Estado operacional de manutenção
+/storage/manutencao.json
+
+# Certificados gerados e imagens dos modelos
+/storage/certificados/*
+!/storage/certificados/.htaccess
+!/storage/certificados/.gitkeep
+
+/uploads/certificados/modelos/*
+!/uploads/certificados/modelos/.gitkeep
+
+# Logs principais
+/logs/*
+!/logs/.htaccess
+!/logs/.gitkeep
+
+# Logs internos
+/mod/logs/*
+!/mod/logs/.htaccess
+!/mod/logs/.gitkeep
+
+# Logs em qualquer outro local
+*.log
+
+# Backups e temporários
+*.bak
+*.bak-*
+*.backup
+*.tmp
+*.temp
+
+# Dumps de banco gerados na raiz
+/*.sql
+/*.sql.gz
+
+# Pacotes
+*.zip
+
+# Instaladores locais
+/atualizar-*.php
+
+# BEGIN ARQUIVOS LOCAIS V2.1
+
+# Conteúdo extraído de pacotes de atualização.
+# Mantido apenas localmente e fora do repositório.
+/arquivos/
+
+# END ARQUIVOS LOCAIS V2.1
+
+# BEGIN COMPOSER RELEASE V1
+
+# Dependências são restauradas por composer install.
+/lib/vendor/
+
+# Pacotes de produção gerados localmente.
+/dist/
+
+# END COMPOSER RELEASE V1
+
+# Dumps locais/legados de banco
+/mod/database/banco.sql
+/mod/database/ieclbp28_retiro.sql
+/mod/database/migrations/sistema_completo_v03082026.sql
+
+# Controle operacional antigo de logs
+/mod/logs/.limpeza.lock
+/mod/logs/.ultima-limpeza
+
+# BEGIN DADOS PERSISTENTES V1
+# Arquivos criados/modificados em tempo de execução.
+/uploads/usuarios/*
+!/uploads/usuarios/user.png
+!/uploads/usuarios/.gitkeep
+!/uploads/usuarios/.htaccess
+/uploads/eventos/*
+!/uploads/eventos/.gitkeep
+!/uploads/eventos/.htaccess
+/uploads/comunidades/*
+!/uploads/comunidades/.gitkeep
+!/uploads/comunidades/.htaccess
+/uploads/comprovantes/*
+!/uploads/comprovantes/.gitkeep
+!/uploads/comprovantes/.htaccess
+/theme/img/favicon.*
+/theme/img/site-imagem.*
+# END DADOS PERSISTENTES V1
+
+# BEGIN AUTENTICACAO SEGURA V1
+/storage/seguranca/*
+!/storage/seguranca/.htaccess
+!/storage/seguranca/.gitkeep
+# END AUTENTICACAO SEGURA V1

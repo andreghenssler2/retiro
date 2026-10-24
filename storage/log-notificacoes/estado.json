@@ -1,0 +1,61 @@
+{
+    "arquivos": {
+        "C:/xampp/htdocs/mod/logs/2026-08-04.log": {
+            "offset": 2539,
+            "tamanho": 2539,
+            "modificado_em": "2026-08-04 20:57:52"
+        },
+        "C:/xampp/htdocs/mod/logs/2026-08-03 08 39 26.log": {
+            "offset": 467,
+            "tamanho": 467,
+            "modificado_em": "2026-08-03 20:39:26"
+        },
+        "C:/xampp/htdocs/mod/logs/2026-08-03.log": {
+            "offset": 3798,
+            "tamanho": 3798,
+            "modificado_em": "2026-08-03 21:18:16"
+        },
+        "C:/xampp/htdocs/mod/logs/2026-08-08.log": {
+            "offset": 258,
+            "tamanho": 258,
+            "modificado_em": "2026-08-08 10:18:50"
+        },
+        "/home1/ieclbp28/retiro/mod/logs/2026-08-03 08 39 261.log": {
+            "offset": 467,
+            "tamanho": 467,
+            "modificado_em": "2026-08-08 10:09:03"
+        },
+        "/home1/ieclbp28/retiro/mod/logs/2026-08-03.log": {
+            "offset": 3798,
+            "tamanho": 3798,
+            "modificado_em": "2026-08-08 10:09:03"
+        },
+        "/home1/ieclbp28/retiro/mod/logs/2026-08-04.log": {
+            "offset": 2539,
+            "tamanho": 2539,
+            "modificado_em": "2026-08-08 10:09:03"
+        },
+        "/home1/ieclbp28/retiro/mod/logs/2026-08-08.log": {
+            "offset": 836427,
+            "tamanho": 836427,
+            "modificado_em": "2026-08-08 17:35:22"
+        },
+        "/home1/ieclbp28/retiro/mod/logs/2026-09-12.log": {
+            "offset": 789,
+            "tamanho": 789,
+            "modificado_em": "2026-09-12 11:34:53"
+        },
+        "/home1/ieclbp28/retiro/mod/logs/2026-10-23.log": {
+            "offset": 1263,
+            "tamanho": 1263,
+            "modificado_em": "2026-10-23 16:09:09"
+        },
+        "/home1/ieclbp28/retiro/mod/logs/2026-10-24.log": {
+            "offset": 517,
+            "tamanho": 517,
+            "modificado_em": "2026-10-24 14:40:23"
+        }
+    },
+    "ultima_execucao_com_sucesso": "2026-10-24 15:00:02",
+    "ultimo_email": "secretaria@ieclbparobe.com.br"
+}

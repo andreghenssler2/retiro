@@ -1,0 +1,37 @@
+.user-profile-page .card {
+    border-radius: 14px;
+}
+
+.profile-config-card {
+    color: inherit;
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.profile-config-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.75rem 1.5rem rgba(15, 23, 42, 0.10) !important;
+}
+
+.profile-config-icon {
+    width: 54px;
+    height: 54px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    font-size: 1.35rem;
+}
+
+.profile-config-link {
+    font-weight: 600;
+}
+
+.profile-config-link i {
+    transition: transform 0.18s ease;
+}
+
+.profile-config-card:hover .profile-config-link i {
+    transform: translateX(3px);
+}

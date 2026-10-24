@@ -1,0 +1,2 @@
+No syntax errors detected in /mnt/data/retiro-menu-admin-organizado-v1/arquivos/admin/includes/sidebar.php
+No syntax errors detected in /mnt/data/retiro-menu-admin-organizado-v1/atualizar-menu-admin-organizado-v1.php

@@ -1,0 +1,136 @@
+.financeiro-relatorio {
+    padding-bottom: 40px;
+}
+
+.financeiro-card,
+.financeiro-painel {
+    border: 1px solid rgba(15, 23, 42, .08);
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
+}
+
+.financeiro-card .card-body {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+}
+
+.financeiro-card-icon {
+    width: 52px;
+    min-width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+}
+
+.financeiro-card-label {
+    display: block;
+    color: #64748b;
+    font-size: .8rem;
+    font-weight: 700;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+}
+
+.financeiro-card-value {
+    display: block;
+    color: #0f172a;
+    font-size: 1.35rem;
+    line-height: 1.2;
+    margin-bottom: 3px;
+}
+
+.financeiro-painel {
+    overflow: hidden;
+}
+
+.financeiro-painel .card-header {
+    min-height: 68px;
+    padding: 14px 18px;
+    border-bottom-color: rgba(15, 23, 42, .08);
+}
+
+.financeiro-painel .card-header h5 {
+    font-weight: 700;
+}
+
+.financeiro-grafico {
+    position: relative;
+    min-height: 390px;
+}
+
+.financeiro-grafico canvas {
+    min-height: 340px;
+}
+
+.financeiro-loader {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    background: rgba(255, 255, 255, .86);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #64748b;
+}
+
+.financeiro-legenda {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    color: #64748b;
+    font-size: .85rem;
+}
+
+.financeiro-legenda span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.legenda-cor {
+    width: 11px;
+    height: 11px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.legenda-cor.recebido {
+    background: rgba(25, 135, 84, .78);
+}
+
+.legenda-cor.pendente {
+    background: rgba(255, 193, 7, .78);
+}
+
+.financeiro-painel table th {
+    color: #64748b;
+    font-size: .78rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.financeiro-painel table td {
+    font-size: .86rem;
+}
+
+@media (max-width: 767.98px) {
+    .financeiro-grafico {
+        min-height: 310px;
+    }
+
+    .financeiro-grafico canvas {
+        min-height: 270px;
+    }
+
+    .financeiro-legenda {
+        flex-wrap: wrap;
+    }
+}

@@ -1,0 +1,37 @@
+.atividades-page .card {
+    border-radius: 14px;
+}
+
+.atividades-tabs {
+    gap: 0.25rem;
+}
+
+.atividades-tabs .nav-link {
+    color: #475569;
+    font-weight: 600;
+}
+
+.atividades-tabs .nav-link.active {
+    color: var(--bs-primary);
+}
+
+.atividades-table th {
+    white-space: nowrap;
+}
+
+.atividades-table td {
+    vertical-align: top;
+}
+
+.atividade-rota {
+    max-width: 320px;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    font-size: 0.75rem;
+}
+
+@media (max-width: 767.98px) {
+    .atividades-table {
+        min-width: 960px;
+    }
+}

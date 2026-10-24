@@ -1,0 +1,15 @@
+$nome = $inscricao['nome'];
+$email = $inscricao['email'];
+
+$evento = $evento['titulo'];
+$dataEvento = date('d/m/Y', strtotime($evento['data']));
+$horaEvento = $evento['hora'];
+$localEvento = $evento['local'];
+
+$codigoInscricao = $inscricao['codigo']; // opcional
+
+$link = BASE_URL . 'inscricao/' . $codigoInscricao; // opcional
+
+ob_start();
+include '../mod/mail/templates/inscricao_realizada.php';
+$html = ob_get_clean();

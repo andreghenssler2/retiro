@@ -1,0 +1,75 @@
+.ambiente-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    min-height: 132px;
+    padding: 1.25rem;
+    border: 2px solid var(--bs-border-color);
+    border-radius: .75rem;
+    cursor: pointer;
+    transition: border-color .2s ease, background-color .2s ease, box-shadow .2s ease;
+}
+
+.ambiente-card:hover {
+    border-color: var(--bs-primary);
+    background: rgba(var(--bs-primary-rgb), .035);
+}
+
+.ambiente-card.selecionado {
+    border-color: var(--bs-primary);
+    background: rgba(var(--bs-primary-rgb), .07);
+    box-shadow: 0 0 0 .2rem rgba(var(--bs-primary-rgb), .08);
+}
+
+.ambiente-card .form-check-input {
+    margin-top: .3rem;
+    flex: 0 0 auto;
+}
+
+.ambiente-icon,
+.status-ambiente {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    font-size: 1.25rem;
+    flex: 0 0 auto;
+}
+
+.ambiente-icon {
+    background: var(--bs-light);
+}
+
+.status-ambiente.sandbox {
+    color: var(--bs-warning-text-emphasis);
+    background: var(--bs-warning-bg-subtle);
+}
+
+.status-ambiente.producao {
+    color: var(--bs-success-text-emphasis);
+    background: var(--bs-success-bg-subtle);
+}
+
+.config-exemplo {
+    padding: 1rem;
+    border-radius: .5rem;
+    background: #101827;
+    color: #e2e8f0;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.credenciais-card {
+    border-left: 4px solid var(--bs-warning);
+}
+
+.credenciais-card.credenciais-producao {
+    border-left-color: var(--bs-success);
+}
+
+.campo-credencial:disabled {
+    background-color: var(--bs-secondary-bg);
+    opacity: .7;
+}

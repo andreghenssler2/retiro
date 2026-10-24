@@ -1,0 +1,173 @@
+#############################################
+# CONFIGURAÇÕES GERAIS
+#############################################
+
+Options -Indexes
+ServerSignature Off
+
+RewriteEngine On
+
+# BEGIN SEGURANCA ARQUIVOS SENSIVEIS V1
+
+<FilesMatch "(?i)(^\.env|\.log$|\.bak(?:[-.].*)?$|\.backup$|\.sql(?:\.gz)?$|\.key$|\.ini$)">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+
+    <IfModule !mod_authz_core.c>
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+<FilesMatch "(?i)^atualizar-.*\.php$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+
+    <IfModule !mod_authz_core.c>
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# END SEGURANCA ARQUIVOS SENSIVEIS V1
+
+
+# BEGIN EVENTOS URL AMIGAVEL
+#############################################
+# URL AMIGÁVEL DOS EVENTOS
+#############################################
+
+# URL antiga:
+# /eventos/detalhe.php?slug=meu-evento
+#
+# URL nova:
+# /eventos/meu-evento
+#
+# THE_REQUEST evita redirecionar a reescrita
+# interna feita pela regra seguinte.
+RewriteCond %{THE_REQUEST} \s/+eventos/detalhe\.php\?slug=([a-z0-9-]+)(?:[&\s]) [NC]
+RewriteRule ^eventos/detalhe\.php$ /eventos/%1 [R=301,L,NE,QSD]
+
+# Faz a URL limpa carregar detalhe.php internamente.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^eventos/([a-z0-9-]+)/?$ /eventos/detalhe.php?slug=$1 [L,QSA,NC]
+
+# END EVENTOS URL AMIGAVEL
+
+RewriteBase /login/
+
+#############################################
+# REDIRECIONAMENTO PARA PUBLIC
+#############################################
+
+RewriteCond %{REQUEST_URI} !^/login/public/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ public/$1 [L]
+
+#############################################
+# PROTEÇÃO DE ARQUIVOS
+#############################################
+
+<FilesMatch "^(\.env|composer\.(json|lock)|package\.json|README\.md|phpunit\.xml)$">
+    Require all denied
+</FilesMatch>
+
+RewriteRule ^(app|auth|config|storage|vendor|logs)/ - [F,L]
+
+#############################################
+# PÁGINAS DE ERRO
+#############################################
+
+ErrorDocument 400 /mod/errors/302php
+ErrorDocument 400 /mod/errors/400.php
+ErrorDocument 401 /mod/errors/401.php
+ErrorDocument 403 /mod/errors/403.php
+ErrorDocument 404 /mod/errors/404.php
+ErrorDocument 405 /mod/errors/405.php
+ErrorDocument 408 /mod/errors/408.php
+ErrorDocument 408 /mod/errors/429.php
+ErrorDocument 500 /mod/errors/500.php
+ErrorDocument 500 /mod/errors/501.php
+ErrorDocument 502 /mod/errors/502.php
+ErrorDocument 503 /mod/errors/503.php
+
+#############################################
+# SEGURANÇA
+#############################################
+
+<IfModule mod_headers.c>
+    Header always unset X-Powered-By
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+#############################################
+# COMPRESSÃO
+#############################################
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/json
+</IfModule>
+
+#############################################
+# CACHE
+#############################################
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png  "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+
+    ExpiresByType text/css "access plus 30 days"
+    ExpiresByType application/javascript "access plus 30 days"
+
+    ExpiresDefault "access plus 1 day"
+</IfModule>
+
+# BEGIN cPanel-generated php ini directives, do not edit
+# Manual editing of this file may result in unexpected behavior.
+# To make changes to this file, use the cPanel MultiPHP INI Editor (Home >> Software >> MultiPHP INI Editor)
+# For more information, read our documentation (https://go.cpanel.net/EA4ModifyINI)
+<IfModule php8_module>
+   php_flag display_errors Off
+   php_value max_execution_time 60
+   php_value max_input_time 60
+   php_value max_input_vars 1000
+   php_value memory_limit 512M
+   php_value post_max_size 350M
+   php_value session.gc_maxlifetime 1440
+   php_value session.save_path "/var/cpanel/php/sessions/ea-php85"
+   php_value upload_max_filesize 350M
+   php_flag zlib.output_compression Off
+</IfModule>
+<IfModule lsapi_module>
+   php_flag display_errors Off
+   php_value max_execution_time 60
+   php_value max_input_time 60
+   php_value max_input_vars 1000
+   php_value memory_limit 512M
+   php_value post_max_size 350M
+   php_value session.gc_maxlifetime 1440
+   php_value session.save_path "/var/cpanel/php/sessions/ea-php85"
+   php_value upload_max_filesize 350M
+   php_flag zlib.output_compression Off
+</IfModule>
+# END cPanel-generated php ini directives, do not edit
+
+# php -- BEGIN cPanel-generated handler, do not edit
+# Set the “ea-php85” package as the default “PHP” programming language.
+<IfModule mime_module>
+  AddHandler application/x-httpd-ea-php85___lsphp .php .php8 .phtml
+</IfModule>
+# php -- END cPanel-generated handler, do not edit
