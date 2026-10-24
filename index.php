@@ -586,12 +586,6 @@ if (Auth::check()) {
             </div>
 
         <?php endif; ?>
-        <input type="radio" name="1" id=""> Comunidade de Parobé <br>
-        <input type="radio" name="1" id=""> Comunidade de Entrepeladp <br>
-        <input type="radio" name="1" id=""> Comunidade de Fazenda Fialho <br>
-        <input type="radio" name="1" id=""> Comunidade de Santa Cruz <br>
-        <input type="radio" name="1" id=""> Comunidade de Passo dos Ferreiros <br>
-        <input type="radio" name="1" id=""> Amigo/Visitante <br>
 
     </section>
 </main>
