@@ -63,10 +63,6 @@
             "cpfStatus"
         );
 
-    const comunidade =
-        document.getElementById(
-            "idComunidade"
-        );
 
     const comunidadeArea =
         document.getElementById(
@@ -257,18 +253,8 @@
 
     const opcaoComunidadeSelecionada =
         () => {
-            const campo =
-                document.getElementById(
-                    "idComunidade"
-                );
-
-            if (!campo) {
-                return null;
-            }
-
-            return (
-                campo.selectedOptions?.[0]
-                || null
+            return form.querySelector(
+                'input[name="idComunidade"]:checked'
             );
         };
 
@@ -288,7 +274,7 @@
         }
 
         return normalizarTexto(
-            opcao.textContent
+            opcao.closest("label")?.textContent
         ) === "visitante";
     };
 
@@ -444,30 +430,15 @@
         }
     };
 
-    comunidade?.addEventListener(
-        "change",
-        atualizarVisitante
-    );
-
-    comunidade?.addEventListener(
-        "input",
-        atualizarVisitante
-    );
-
-    /*
-     * Listener delegado como garantia adicional.
-     */
     document.addEventListener(
         "change",
         (event) => {
-            const target =
-                event.target;
+            const target = event.target;
 
             if (
-                target instanceof
-                    HTMLSelectElement
-                && target.id
-                    === "idComunidade"
+                target instanceof HTMLInputElement
+                && target.type === "radio"
+                && target.name === "idComunidade"
             ) {
                 atualizarVisitante();
             }
@@ -1116,14 +1087,12 @@
                     "nacionalidade",
                     "data_nascimento",
                     "genero",
-                    "pais",
                     "logradouro",
                     "numero",
                     "complemento",
                     "bairro",
                     "cidade",
                     "estado",
-                    "idComunidade",
                     "medicacao_detalhes",
                     "deficiencia",
                     "deficiencia_detalhes",
@@ -1159,13 +1128,12 @@
                 }
 
                 if (d.cep) {
-                    form.elements
-                        .cep.value =
-                        formatCep(
-                            String(
-                                d.cep
-                            )
-                        );
+                    // Prioriza o endereço já cadastrado do participante.
+                    consultaCepAtiva?.abort();
+                    consultaCepAtiva = null;
+                    ultimoCepConsultado = String(d.cep).replace(/\D/g, "");
+                    form.elements.cep.value = formatCep(String(d.cep));
+                    atualizarStatusCep("Endereço recuperado do cadastro. Confira os dados.");
                 }
 
                 const setRadio = (
@@ -1210,10 +1178,13 @@
                     ?? "0"
                 );
 
-                /*
-                 * idComunidade pode ter sido
-                 * preenchido automaticamente.
-                 */
+                if (d.idComunidade != null) {
+                    setRadio(
+                        "idComunidade",
+                        d.idComunidade
+                    );
+                }
+
                 atualizarVisitante();
 
                 cpf.dataset
@@ -1262,18 +1233,111 @@
             }
         );
 
-    form.elements
-        .cep
-        ?.addEventListener(
-            "input",
-            (event) => {
-                event.target.value =
-                    formatCep(
-                        event.target
-                            .value
-                    );
-            }
+    /*
+     * Busca automática por CEP (ViaCEP).
+     * Mantém os campos editáveis caso o serviço não localize o CEP.
+     */
+    const cepInput = form.elements.cep;
+    const cepStatus = document.getElementById("cepStatus");
+    let consultaCepAtiva = null;
+    let ultimoCepConsultado = "";
+
+    const atualizarStatusCep = (mensagem, classe = "text-muted") => {
+        if (!cepStatus) return;
+        cepStatus.textContent = mensagem;
+        cepStatus.className = `form-text ${classe}`;
+    };
+
+    const consultarCep = async () => {
+        if (!cepInput) return;
+
+        const cep = cepInput.value.replace(/\D/g, "");
+        if (cep.length !== 8 || cep === ultimoCepConsultado) return;
+
+        consultaCepAtiva?.abort();
+        const controller = new AbortController();
+        consultaCepAtiva = controller;
+        ultimoCepConsultado = cep;
+
+        // Não substitui informações que o usuário editar durante a consulta.
+        const nomes = ["logradouro", "bairro", "cidade", "estado"];
+        const valoresAntes = Object.fromEntries(
+            nomes.map((nome) => [nome, form.elements[nome]?.value ?? ""])
         );
+
+        atualizarStatusCep("Consultando CEP...");
+
+        try {
+            const resposta = await fetch(
+                `https://viacep.com.br/ws/${cep}/json/`,
+                { signal: controller.signal, headers: { Accept: "application/json" } }
+            );
+
+            if (!resposta.ok) throw new Error("Falha ao consultar CEP");
+            const dados = await resposta.json();
+            if (controller.signal.aborted || cepInput.value.replace(/\D/g, "") !== cep) return;
+
+            if (dados.erro) {
+                atualizarStatusCep(
+                    "CEP não encontrado. Confira o número ou preencha o endereço manualmente.",
+                    "text-danger"
+                );
+                return;
+            }
+
+            const encontrados = {
+                logradouro: dados.logradouro,
+                bairro: dados.bairro,
+                cidade: dados.localidade,
+                estado: dados.uf
+            };
+
+            for (const [nome, valor] of Object.entries(encontrados)) {
+                const campo = form.elements[nome];
+                if (
+                    campo && typeof valor === "string" && valor.trim()
+                    && campo.value === valoresAntes[nome]
+                ) {
+                    campo.value = valor;
+                }
+            }
+
+            atualizarStatusCep(
+                "CEP encontrado! Confira o endereço e informe o número.",
+                "text-success"
+            );
+        } catch (erro) {
+            if (erro.name === "AbortError") return;
+            if (cepInput.value.replace(/\D/g, "") !== cep) return;
+
+            ultimoCepConsultado = ""; // Permite tentar novamente no próximo blur.
+            atualizarStatusCep(
+                "Não foi possível consultar o CEP. Preencha o endereço manualmente.",
+                "text-danger"
+            );
+        } finally {
+            if (consultaCepAtiva === controller) consultaCepAtiva = null;
+        }
+    };
+
+    cepInput?.addEventListener("input", () => {
+        cepInput.value = formatCep(cepInput.value);
+        consultaCepAtiva?.abort();
+        consultaCepAtiva = null;
+        ultimoCepConsultado = "";
+
+        if (cepInput.value.replace(/\D/g, "").length === 8) {
+            void consultarCep();
+        } else {
+            atualizarStatusCep("Informe os 8 números do CEP.");
+        }
+    });
+
+    cepInput?.addEventListener("blur", () => {
+        if (cepInput.value.replace(/\D/g, "").length === 8) {
+            void consultarCep();
+        }
+    });
 
     const bindDetails = (
         radioName,

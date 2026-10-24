@@ -600,3 +600,77 @@ input:checked + span i {
             20px !important;
     }
 }
+
+
+/* ============================================================
+   INSCRIÇÃO - COMUNIDADES EM CARDS (RADIO INVISÍVEL)
+   O radio continua operante e acessível por teclado.
+   ============================================================ */
+
+#comunidadeArea label.form-check {
+    display: flex !important;
+    align-items: center !important;
+    position: relative;
+    width: 100%;
+    min-height: 56px;
+    padding: 16px 20px !important;
+    margin: 0 0 10px !important;
+    border: 1px solid #d9e0ea !important;
+    border-radius: 10px !important;
+    background: #fff;
+    color: #172b4d;
+    cursor: pointer;
+    transition: background-color .2s ease, border-color .2s ease,
+                box-shadow .2s ease, color .2s ease;
+}
+
+/* Remove a aparência do controle sem tirá-lo do formulário. */
+#comunidadeArea label.form-check input.form-check-input[type="radio"] {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    opacity: 0 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    float: none !important;
+    pointer-events: none;
+}
+
+#comunidadeArea label.form-check > span {
+    display: block;
+    color: inherit;
+    font-weight: 500;
+    line-height: 1.45;
+}
+
+#comunidadeArea label.form-check:hover {
+    background: #eef5ff;
+    border-color: #0d6efd !important;
+}
+
+/* A área inteira recebe destaque quando o input é selecionado. */
+#comunidadeArea label.form-check:has(input[type="radio"]:checked) {
+    background: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: #fff !important;
+    box-shadow: 0 3px 10px rgba(13, 110, 253, .18);
+}
+
+#comunidadeArea label.form-check:has(input[type="radio"]:checked) > span {
+    color: #fff !important;
+    font-weight: 600;
+}
+
+#comunidadeArea label.form-check:focus-within {
+    outline: 3px solid #86b7fe;
+    outline-offset: 2px;
+}
+
+@media (max-width: 576px) {
+    #comunidadeArea label.form-check {
+        min-height: 52px;
+        padding: 14px 16px !important;
+    }
+}

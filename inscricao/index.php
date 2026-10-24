@@ -239,7 +239,7 @@ $temSaude =
 
     <link
         rel="stylesheet"
-        href="<?= THEME_CSS ?>inscricao/publica.css?v=<?= VERSION ?>"
+        href="<?= THEME_CSS ?>inscricao/publica.css?v=<?= VERSION ?>&cv=26"
     >
 </head>
 
@@ -828,13 +828,14 @@ $temSaude =
                 <div class="card-body p-4">
 
                     <h2 class="h5 fw-bold mb-4">
-                        Endereço e Comunidade
+                        Meu Endereço
                     </h2>
 
                     <div class="row g-3">
 
+                        <!-- 1ª linha: País fixo e CEP -->
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">
+                            <label class="form-label fw-semibold" for="pais">
                                 País
                             </label>
                             <input
@@ -843,12 +844,14 @@ $temSaude =
                                 id="pais"
                                 name="pais"
                                 value="Brasil"
+                                readonly
+                                aria-readonly="true"
                                 required
                             >
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">
+                            <label class="form-label fw-semibold" for="cep">
                                 CEP
                             </label>
                             <input
@@ -857,13 +860,21 @@ $temSaude =
                                 id="cep"
                                 name="cep"
                                 inputmode="numeric"
+                                autocomplete="postal-code"
+                                placeholder="00000-000"
                                 maxlength="9"
+                                minlength="9"
                                 required
+                                aria-describedby="cepStatus"
                             >
+                            <div id="cepStatus" class="form-text" aria-live="polite">
+                                Informe o CEP para localizar o endereço.
+                            </div>
                         </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">
+                        <!-- 2ª linha: Rua e Número -->
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold" for="logradouro">
                                 Rua
                             </label>
                             <input
@@ -871,12 +882,13 @@ $temSaude =
                                 class="form-control"
                                 id="logradouro"
                                 name="logradouro"
+                                autocomplete="address-line1"
                                 required
                             >
                         </div>
 
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" for="numero">
                                 Número
                             </label>
                             <input
@@ -888,8 +900,9 @@ $temSaude =
                             >
                         </div>
 
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold">
+                        <!-- 3ª linha: Complemento e Bairro -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="complemento">
                                 Complemento
                             </label>
                             <input
@@ -897,39 +910,12 @@ $temSaude =
                                 class="form-control"
                                 id="complemento"
                                 name="complemento"
+                                autocomplete="address-line2"
                             >
                         </div>
 
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">
-                                Estado
-                            </label>
-                            <input
-                                type="text"
-                                class="form-control"
-                                id="estado"
-                                name="estado"
-                                maxlength="2"
-                                value="RS"
-                                required
-                            >
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">
-                                Cidade
-                            </label>
-                            <input
-                                type="text"
-                                class="form-control"
-                                id="cidade"
-                                name="cidade"
-                                required
-                            >
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="bairro">
                                 Bairro
                             </label>
                             <input
@@ -941,17 +927,48 @@ $temSaude =
                             >
                         </div>
 
+                        <!-- 4ª linha: Cidade e Estado -->
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold" for="cidade">
+                                Cidade
+                            </label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="cidade"
+                                name="cidade"
+                                autocomplete="address-level2"
+                                required
+                            >
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" for="estado">
+                                Estado (UF)
+                            </label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="estado"
+                                name="estado"
+                                maxlength="2"
+                                value="RS"
+                                autocomplete="address-level1"
+                                required
+                            >
+                        </div>
+
                         <div
                             class="col-md-7"
                             id="comunidadeArea"
                         >
-                            <label
+                            <div
                                 class="form-label fw-semibold"
-                                for="idComunidade"
+                                id="rotuloComunidade"
                             >
                                 Comunidade/Paróquia
                                 que faz parte
-                            </label>
+                            </div>
 
                             <?php if (
                                 $temValorVisitante
@@ -980,16 +997,10 @@ $temSaude =
                                 </div>
                             <?php endif; ?>
 
-                            <select
-                                class="form-select"
-                                id="idComunidade"
-                                name="idComunidade"
-                                required
+                            <div
+                                role="radiogroup"
+                                aria-labelledby="rotuloComunidade"
                             >
-                                <option value="">
-                                    Selecione
-                                </option>
-
                                 <?php foreach (
                                     $comunidades
                                     as $comunidade
@@ -1026,29 +1037,34 @@ $temSaude =
                                             : (float)
                                                 $valor;
                                     ?>
-                                    <option
-                                        value="<?= (int) $comunidade[
-                                            "id"
-                                        ]; ?>"
-                                        data-visitante="<?= $comunidadeEhVisitante
-                                            ? "1"
-                                            : "0"; ?>"
-                                        data-valor="<?= number_format(
-                                            $valorOpcaoComunidade,
-                                            2,
-                                            ".",
-                                            ""
-                                        ); ?>"
-                                        data-tipo="<?= $comunidadeEhVisitante
-                                            ? "Visitante"
-                                            : "Comunidade/Paróquia"; ?>"
+                                    <label
+                                        class="form-check d-flex align-items-center gap-2 border rounded-3 p-3 mb-2"
                                     >
-                                        <?= inscricaoPubEscapar(
-                                            $nomeComunidadeOpcao
-                                        ); ?>
-                                    </option>
+                                        <input
+                                            type="radio"
+                                            class="form-check-input mt-0"
+                                            name="idComunidade"
+                                            value="<?= (int) $comunidade["id"]; ?>"
+                                            data-visitante="<?= $comunidadeEhVisitante ? "1" : "0"; ?>"
+                                            data-valor="<?= number_format(
+                                                $valorOpcaoComunidade,
+                                                2,
+                                                ".",
+                                                ""
+                                            ); ?>"
+                                            data-tipo="<?= $comunidadeEhVisitante
+                                                ? "Visitante"
+                                                : "Comunidade/Paróquia"; ?>"
+                                            required
+                                        >
+                                        <span>
+                                            <?= inscricaoPubEscapar(
+                                                $nomeComunidadeOpcao
+                                            ); ?>
+                                        </span>
+                                    </label>
                                 <?php endforeach; ?>
-                            </select>
+                            </div>
                         </div>
 
                     </div>
@@ -1415,7 +1431,7 @@ $temSaude =
                 <div class="card-body p-4">
 
                     <h2 class="h5 fw-bold mb-4">
-                        Dados do comprador
+                        Dados do Participante
                     </h2>
 
                     <div class="row g-3 mb-4">
@@ -1470,7 +1486,7 @@ $temSaude =
                     </div>
 
                     <h3 class="h6 fw-bold">
-                        Resumo da compra
+                        Resumo da Inscrição
                     </h3>
 
                     <div
@@ -1799,7 +1815,7 @@ $temSaude =
     ></script>
 
     <script
-        src="<?= THEME_JS ?>inscricao/publica.js?v=<?= VERSION ?>&cv=24"
+        src="<?= THEME_JS ?>inscricao/publica.js?v=<?= VERSION ?>&cv=27"
     ></script>
 
 </body>
