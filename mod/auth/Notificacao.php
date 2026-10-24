@@ -648,6 +648,11 @@ class Notificacao
                     p.valor,
                     p.formaPagamento,
                     p.dataPagamento,
+                    p.recebidoEm,
+                    COALESCE(
+                        p.recebidoEm,
+                        p.dataPagamento
+                    ) AS horarioNotificacao,
                     e.titulo AS evento
                 FROM pagamentos p
 
@@ -660,24 +665,30 @@ class Notificacao
                         p.idEvento
 
                 WHERE p.status = 'Pago'
-                  AND p.dataPagamento
-                        IS NOT NULL
-                  AND p.dataPagamento
-                        >= :inicio
-                  AND p.dataPagamento
-                        <= :fim
+                  AND (
+                      (
+                          p.recebidoEm IS NOT NULL
+                          AND p.recebidoEm >= :inicioRecebido
+                          AND p.recebidoEm <= :fimRecebido
+                      )
+                      OR (
+                          p.recebidoEm IS NULL
+                          AND p.dataPagamento IS NOT NULL
+                          AND p.dataPagamento >= :inicioPagamento
+                          AND p.dataPagamento <= :fimPagamento
+                      )
+                  )
 
                 ORDER BY
-                    p.dataPagamento,
+                    horarioNotificacao,
                     p.idPagamento
             ");
 
         $stmt->execute([
-            ":inicio" =>
-                $inicioBusca,
-
-            ":fim" =>
-                $fim
+            ":inicioRecebido" => $inicioBusca,
+            ":fimRecebido" => $fim,
+            ":inicioPagamento" => $inicioBusca,
+            ":fimPagamento" => $fim
         ]);
 
         foreach (
@@ -803,7 +814,7 @@ class Notificacao
 
                 "criadoEm" =>
                     (string) $registro[
-                        "dataPagamento"
+                        "horarioNotificacao"
                     ]
             ]);
         }
