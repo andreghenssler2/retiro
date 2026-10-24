@@ -1,0 +1,61 @@
+name: Versionamento automatico - Retiro
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Impede que duas execucoes tentem atualizar mod/version.php ao mesmo tempo.
+concurrency:
+  group: retiro-versionamento-main
+  cancel-in-progress: false
+
+jobs:
+  versionamento:
+    name: Atualizar versao e build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Obter arquivos do projeto
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Atualizar e publicar o numero da versao
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C main
+
+          for tentativa in 1 2 3; do
+            # Somente o repositorio temporario do runner e atualizado aqui.
+            git fetch origin main
+            git reset --hard origin/main
+
+            # Preserva a regra existente: +1 no PATCH e +1 no BUILD.
+            php mod/scripts/build.php
+            git add mod/version.php
+
+            if git diff --cached --quiet; then
+              echo "Nenhuma alteracao para registrar."
+              exit 0
+            fi
+
+            git commit -m "chore: atualiza versao e build [skip ci]"
+            if git push origin HEAD:main; then
+              echo "Versao atualizada e publicada."
+              exit 0
+            fi
+
+            echo "A branch mudou durante o envio; tentativa ${tentativa}/3."
+            sleep 2
+          done
+
+          echo "ERRO: nao foi possivel publicar o versionamento apos 3 tentativas." >&2
+          exit 1

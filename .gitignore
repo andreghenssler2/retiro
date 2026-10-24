@@ -14,6 +14,7 @@ oculta.txt
 .env
 .env.*
 !.env.example
+.user.ini
 
 # Estado operacional de manutenção
 /storage/manutencao.json
