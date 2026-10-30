@@ -100,6 +100,41 @@ final class RelatorioEventoExportacao
             "1"
         );
 
+        $responsavelNomeSql = $this->possuiColuna(
+            "inscricao_dados_adicionais",
+            "responsavel_nome"
+        )
+            ? "ida.responsavel_nome"
+            : "NULL";
+
+        $responsavelTelefone1Sql = $this->possuiColuna(
+            "inscricao_dados_adicionais",
+            "responsavel_telefone_1"
+        )
+            ? "ida.responsavel_telefone_1"
+            : "NULL";
+
+        $responsavelTelefone2Sql = $this->possuiColuna(
+            "inscricao_dados_adicionais",
+            "responsavel_telefone_2"
+        )
+            ? "ida.responsavel_telefone_2"
+            : "NULL";
+
+        $responsavelAutorizacaoTextoSql = $this->possuiColuna(
+            "inscricao_dados_adicionais",
+            "responsavel_autorizacao_texto"
+        )
+            ? "ida.responsavel_autorizacao_texto"
+            : "NULL";
+
+        $responsavelAutorizacaoAceitaEmSql = $this->possuiColuna(
+            "inscricao_dados_adicionais",
+            "responsavel_autorizacao_aceita_em"
+        )
+            ? "ida.responsavel_autorizacao_aceita_em"
+            : "NULL";
+
         $sql = "
             SELECT
                 i.idInscricao,
@@ -180,6 +215,11 @@ final class RelatorioEventoExportacao
                 ida.acessibilidade_detalhes,
                 ida.restricao_alimentar,
                 ida.alimentar_detalhes,
+                {$responsavelNomeSql} AS responsavel_nome,
+                {$responsavelTelefone1Sql} AS responsavel_telefone_1,
+                {$responsavelTelefone2Sql} AS responsavel_telefone_2,
+                {$responsavelAutorizacaoTextoSql} AS responsavel_autorizacao_texto,
+                {$responsavelAutorizacaoAceitaEmSql} AS responsavel_autorizacao_aceita_em,
 
                 COALESCE(
                     mc_inscricao.nome_comunidade,
@@ -499,6 +539,11 @@ final class RelatorioEventoExportacao
             "acessibilidade_detalhes" => "Detalhes acessibilidade",
             "restricao_alimentar" => "Restrição alimentar",
             "alimentar_detalhes" => "Detalhes alimentação",
+            "responsavel_nome" => "Responsável legal",
+            "responsavel_telefone_1" => "Telefone responsável 1",
+            "responsavel_telefone_2" => "Telefone responsável 2",
+            "responsavel_autorizacao_texto" => "Texto autorização responsável",
+            "responsavel_autorizacao_aceita_em" => "Autorização aceita em",
             "observacoes" => "Observações",
             "status_inscricao" => "Status inscrição",
             "situacao_relatorio" => "Situação no relatório",
@@ -593,7 +638,8 @@ final class RelatorioEventoExportacao
                 $campo,
                 [
                     "dataPagamento",
-                    "inscricao_criada_em"
+                    "inscricao_criada_em",
+                    "responsavel_autorizacao_aceita_em"
                 ],
                 true
             )

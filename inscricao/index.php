@@ -209,6 +209,9 @@ $temSaude =
     || $perguntaDeficiencia
     || $perguntaAcessibilidade
     || $perguntaRestricaoAlimentar;
+
+$textoAutorizacaoMenor = InscricaoPublicaService::textoAutorizacaoMenor($evento);
+$dataInicioEvento = substr((string) ($evento['data_inicio'] ?? ''), 0, 10);
 ?>
 <!doctype html>
 <html lang="pt-BR">
@@ -698,6 +701,56 @@ $temSaude =
                             >
                         </div>
 
+                    </div>
+
+                    <!-- Seção exclusiva para participantes menores de 18 anos -->
+                    <div id="responsavelArea" class="border rounded-3 p-3 p-md-4 mt-4 bg-light" hidden>
+                        <h3 class="h6 fw-bold mb-2">
+                            <i class="fa-solid fa-user-shield me-2"></i>
+                            Autorização do responsável legal
+                        </h3>
+                        <p class="small text-muted mb-3">
+                            Participantes menores de 18 anos precisam da autorização
+                            de seu responsável legal. O responsável deve preencher
+                            os dados abaixo e marcar a autorização.
+                        </p>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label fw-semibold" for="responsavel_nome">
+                                    Nome completo do responsável <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control"
+                                    id="responsavel_nome" name="responsavel_nome" maxlength="160"
+                                    autocomplete="name" disabled>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="responsavel_telefone_1">
+                                    Telefone / WhatsApp 1 <span class="text-danger">*</span>
+                                </label>
+                                <input type="tel" class="form-control"
+                                    id="responsavel_telefone_1" name="responsavel_telefone_1"
+                                    inputmode="tel" maxlength="16" placeholder="(51) 99999-9999" disabled>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="responsavel_telefone_2">
+                                    Telefone / WhatsApp 2 <span class="text-muted small">(opcional)</span>
+                                </label>
+                                <input type="tel" class="form-control"
+                                    id="responsavel_telefone_2" name="responsavel_telefone_2"
+                                    inputmode="tel" maxlength="16" placeholder="(51) 99999-9999" disabled>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-check border rounded p-3 ps-5 bg-white">
+                                    <input class="form-check-input" type="checkbox"
+                                        id="responsavel_autorizacao" name="responsavel_autorizacao"
+                                        value="1" disabled>
+                                    <label class="form-check-label" for="responsavel_autorizacao">
+                                        <?= inscricaoPubEscapar($textoAutorizacaoMenor); ?>
+                                        <strong class="text-danger">*</strong>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <?php if ($termos !== []): ?>
@@ -1471,6 +1524,12 @@ $temSaude =
                             <strong id="resumoTelefone">-</strong>
                         </div>
 
+                        <div id="resumoResponsavel" class="col-12" hidden>
+                            <small class="text-muted d-block">Responsável legal</small>
+                            <strong id="resumoResponsavelNome">-</strong>
+                            <div class="small" id="resumoResponsavelTelefone">-</div>
+                        </div>
+
                         <div class="col-md-6">
                             <small
                                 class="text-muted d-block"
@@ -1834,7 +1893,8 @@ $temSaude =
             "valorVisitante" =>
                 $valorVisitante,
             "idComunidadeVisitante" =>
-                $idComunidadeVisitante
+                $idComunidadeVisitante,
+            "dataInicioEvento" => $dataInicioEvento
         ],
         JSON_UNESCAPED_UNICODE
         | JSON_UNESCAPED_SLASHES
@@ -1850,7 +1910,7 @@ $temSaude =
     ></script>
 
     <script
-        src="<?= THEME_JS ?>inscricao/publica.js?v=<?= VERSION ?>&cv=29"
+        src="<?= THEME_JS ?>inscricao/publica.js?v=<?= VERSION ?>&cv=30"
     ></script>
 
 </body>

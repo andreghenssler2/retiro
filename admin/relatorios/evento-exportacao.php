@@ -62,6 +62,7 @@ require_once __DIR__
 
                 <p class="text-muted mb-0">
                     Gere listas, fichas individuais,
+                    termos de autorização presencial,
                     planilha Excel e relatório de
                     Saúde e Acessibilidade.
                 </p>
@@ -223,6 +224,33 @@ require_once __DIR__
                             <button
                                 type="submit"
                                 name="modo"
+                                value="autorizacao_pdf"
+                                class="btn
+                                    btn-outline-warning
+                                    w-100 h-100
+                                    p-4 text-start"
+                            >
+                                <i
+                                    class="fa-solid
+                                        fa-file-signature
+                                        fs-3 d-block mb-3"
+                                ></i>
+
+                                <strong class="d-block">
+                                    PDF — Autorização presencial
+                                </strong>
+
+                                <small>
+                                    Dois termos por folha,
+                                    para assinatura do responsável.
+                                </small>
+                            </button>
+                        </div>
+
+                        <div class="col-md-6 col-xl-3">
+                            <button
+                                type="submit"
+                                name="modo"
                                 value="xlsx"
                                 class="btn
                                     btn-outline-success
@@ -351,6 +379,9 @@ require_once __DIR__
                             as perguntas habilitadas na
                             configuração daquele evento e
                             as respostas de cada inscrito.
+                            O termo de autorização presencial
+                            gera 2 inscrições por folha,
+                            priorizando participantes menores de 18 anos.
                         </p>
                     </div>
                 </div>

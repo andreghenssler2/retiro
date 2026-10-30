@@ -163,6 +163,10 @@
     word-break: break-word;
 }
 
+.evento-publico-detalhe .evento-detalhe-icone{
+    display: flex;
+}
+
 @media (max-width: 767.98px) {
     .checkout-formas {
         grid-template-columns: 1fr;

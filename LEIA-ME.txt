@@ -1,0 +1,31 @@
+RETIRO - AUTORIZAÇÃO PRESENCIAL - LINHA PONTILHADA DE CORTE
+
+Atualização do PDF de autorização para menores no menu:
+Administração > Relatórios > Exportação de Evento > PDF - Autorização presencial.
+
+NOVIDADES
+- Duas autorizações por folha A4 (retrato).
+- Linha pontilhada horizontal com o texto CORTE AQUI entre as duas autorizações.
+- Cada autorização continua com nome do responsável, jovem, evento, cidade,
+  datas, espaço para assinatura presencial e data do aceite eletrônico, quando disponível.
+- Folhas com apenas uma inscrição não têm linha de corte.
+- Ajuste da paginação para evitar uma terceira página causada pelo cabeçalho inicial.
+
+INSTALAÇÃO
+1. Faça backup dos três arquivos atuais.
+2. Extraia este ZIP na pasta ~/retiro/ com a estrutura de diretórios preservada,
+   substituindo os arquivos homônimos.
+3. Não é necessário executar migrações do banco nesta atualização.
+4. Abra Administração > Relatórios > Exportação de Evento, selecione o evento
+   e clique no botão "PDF - Autorização presencial".
+5. Confira o resultado na pré-visualização de impressão em A4, escala 100%.
+
+ARQUIVOS
+admin/relatorios/evento-exportacao.php
+admin/relatorios/evento-exportar.php
+mod/auth/RelatorioEventoExportacao.php
+
+PRÉ-REQUISITO
+A atualização anterior de autorização para menores de 18 anos deve estar
+instalada para que o nome do responsável e os telefones cadastrados apareçam
+no PDF. Caso não estejam, o relatório mantém espaço para preenchimento manual.

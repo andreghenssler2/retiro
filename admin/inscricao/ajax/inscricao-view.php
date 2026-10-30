@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 require_once "../../../config/settings.php";
 
-Middleware::auth();
+Middleware::moderador();
 
 header("Content-Type: text/html; charset=utf-8");
 
@@ -97,6 +97,19 @@ try {
     $status = (string) ($dados["status"] ?? "Pendente");
     $pagamento = (string) ($dados["pagamento"] ?? "Pendente");
     $camisetaAtiva = (int) ($dados["camiseta_ativa"] ?? 0) === 1;
+
+    $dadosResponsavel = null;
+    $consultaResponsavel = $db->prepare(
+        'SELECT responsavel_nome, responsavel_telefone_1, responsavel_telefone_2, '
+        . 'responsavel_autorizacao_texto, responsavel_autorizacao_aceita_em '
+        . 'FROM inscricao_dados_adicionais WHERE idInscricao = :id LIMIT 1'
+    );
+    $consultaResponsavel->execute([':id' => $id]);
+    $registroResponsavel = $consultaResponsavel->fetch(PDO::FETCH_ASSOC);
+    if (is_array($registroResponsavel)
+        && trim((string) ($registroResponsavel['responsavel_nome'] ?? '')) !== '') {
+        $dadosResponsavel = $registroResponsavel;
+    }
     ?>
 
     <div class="container-fluid px-0">
@@ -209,6 +222,40 @@ try {
                 </div>
             </div>
         </div>
+
+        <?php if ($dadosResponsavel !== null): ?>
+        <div class="card mb-3">
+            <div class="card-header bg-white fw-semibold">
+                <i class="fa fa-user-shield me-1"></i> Responsável legal e autorização
+            </div>
+            <div class="card-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Nome do responsável</small>
+                        <strong><?= mostrarViewInscricao($dadosResponsavel['responsavel_nome']) ?></strong>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">Telefone / WhatsApp 1</small>
+                        <?= mostrarViewInscricao($dadosResponsavel['responsavel_telefone_1']) ?>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted d-block">Telefone / WhatsApp 2</small>
+                        <?= mostrarViewInscricao($dadosResponsavel['responsavel_telefone_2']) ?>
+                    </div>
+                    <div class="col-12">
+                        <small class="text-muted d-block">Autorização aceita</small>
+                        <div class="border rounded p-2 bg-light">
+                            <?= mostrarViewInscricao($dadosResponsavel['responsavel_autorizacao_texto']) ?>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <small class="text-muted d-block">Data e hora do aceite</small>
+                        <?= dataViewInscricao($dadosResponsavel['responsavel_autorizacao_aceita_em'], true) ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
 
         <div class="card mb-3">
             <div class="card-header bg-white fw-semibold">

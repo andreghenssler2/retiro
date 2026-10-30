@@ -69,8 +69,13 @@
             "offset": 1763,
             "tamanho": 1763,
             "modificado_em": "2026-10-29 21:23:06"
+        },
+        "/home1/ieclbp28/retiro/mod/logs/2026-10-30.log": {
+            "offset": 3960,
+            "tamanho": 3960,
+            "modificado_em": "2026-10-30 20:12:04"
         }
     },
-    "ultima_execucao_com_sucesso": "2026-10-29 21:25:02",
+    "ultima_execucao_com_sucesso": "2026-10-30 20:15:03",
     "ultimo_email": "secretaria@ieclbparobe.com.br"
 }

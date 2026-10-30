@@ -65,6 +65,54 @@ class InscricaoPublicaService
         return $evento;
     }
 
+    /**
+     * A maioridade é verificada no primeiro dia do evento, não na data
+     * da inscrição. A data informada passa por validação antes do uso.
+     */
+    public static function ehMenorNoEvento(
+        string $dataNascimento,
+        array $evento
+    ): bool {
+        $nascimento = DateTimeImmutable::createFromFormat(
+            '!Y-m-d',
+            $dataNascimento
+        );
+        $inicioTexto = substr((string) ($evento['data_inicio'] ?? ''), 0, 10);
+        $inicio = DateTimeImmutable::createFromFormat('!Y-m-d', $inicioTexto);
+        if (!$nascimento || !$inicio || $nascimento > $inicio) {
+            throw new InvalidArgumentException(
+                'A data de nascimento ou de início do evento é inválida.'
+            );
+        }
+        return $nascimento->diff($inicio)->y < 18;
+    }
+
+    /** O texto assinado é produzido no servidor, a partir do evento. */
+    public static function textoAutorizacaoMenor(array $evento): string
+    {
+        $nome = trim((string) ($evento['titulo'] ?? ''));
+        $cidade = trim((string) ($evento['cidade'] ?? ''));
+        if ($cidade === '') {
+            $cidade = 'cidade não informada';
+        }
+        $inicio = substr((string) ($evento['data_inicio'] ?? ''), 0, 10);
+        $fim = substr((string) ($evento['data_fim'] ?? ''), 0, 10);
+        if ($fim === '' || $fim === '0000-00-00') {
+            $fim = $inicio;
+        }
+        $inicioFormatado = DateTimeImmutable::createFromFormat('!Y-m-d', $inicio);
+        $fimFormatado = DateTimeImmutable::createFromFormat('!Y-m-d', $fim);
+        if (!$inicioFormatado || !$fimFormatado) {
+            throw new InvalidArgumentException('As datas do evento são inválidas.');
+        }
+        $periodo = $inicio === $fim
+            ? 'no dia ' . $inicioFormatado->format('d/m/Y')
+            : 'nos dias ' . $inicioFormatado->format('d/m/Y')
+                . ' e ' . $fimFormatado->format('d/m/Y');
+        return 'Eu autorizo o meu filho a participar do ' . $nome
+            . ', que acontecerá em ' . $cidade . ' ' . $periodo . '.';
+    }
+
     public function comunidades(): array
     {
         $stmt = $this->db->query("
@@ -867,6 +915,49 @@ class InscricaoPublicaService
             $evento
         );
 
+        // O cliente nunca determina se o participante é menor de idade.
+        $ehMenor = self::ehMenorNoEvento($dataNascimento, $evento);
+        $responsavelNome = null;
+        $responsavelTelefone1 = null;
+        $responsavelTelefone2 = null;
+        $responsavelAutorizacaoTexto = null;
+        $responsavelAutorizacaoAceitaEm = null;
+
+        if ($ehMenor) {
+            $responsavelNome = trim((string) ($dados['responsavel_nome'] ?? ''));
+            $responsavelTelefone1 = preg_replace(
+                '/\D+/', '', (string) ($dados['responsavel_telefone_1'] ?? '')
+            ) ?? '';
+            $responsavelTelefone2 = preg_replace(
+                '/\D+/', '', (string) ($dados['responsavel_telefone_2'] ?? '')
+            ) ?? '';
+            $aceiteResponsavel = (string) ($dados['responsavel_autorizacao'] ?? '') === '1';
+
+            if ($responsavelNome === '' || mb_strlen($responsavelNome, 'UTF-8') > 160) {
+                throw new InvalidArgumentException('Informe o nome completo do responsável.');
+            }
+            if (!in_array(strlen($responsavelTelefone1), [10, 11], true)) {
+                throw new InvalidArgumentException(
+                    'Informe o primeiro telefone válido do responsável, com DDD.'
+                );
+            }
+            if ($responsavelTelefone2 !== ''
+                && !in_array(strlen($responsavelTelefone2), [10, 11], true)) {
+                throw new InvalidArgumentException(
+                    'O segundo telefone do responsável é inválido.'
+                );
+            }
+            if (!$aceiteResponsavel) {
+                throw new InvalidArgumentException(
+                    'O responsável deve marcar a autorização de participação.'
+                );
+            }
+            $responsavelTelefone2 = $responsavelTelefone2 !== ''
+                ? $responsavelTelefone2 : null;
+            $responsavelAutorizacaoTexto = self::textoAutorizacaoMenor($evento);
+            $responsavelAutorizacaoAceitaEm = date('Y-m-d H:i:s');
+        }
+
         $termos = $this->termos(
             (int) $evento["idEvento"]
         );
@@ -1391,7 +1482,12 @@ class InscricaoPublicaService
                     "restricao_alimentar" =>
                         $restricaoAlimentar,
                     "alimentar_detalhes" =>
-                        $alimentarDetalhes
+                        $alimentarDetalhes,
+                    "responsavel_nome" => $responsavelNome,
+                    "responsavel_telefone_1" => $responsavelTelefone1,
+                    "responsavel_telefone_2" => $responsavelTelefone2,
+                    "responsavel_autorizacao_texto" => $responsavelAutorizacaoTexto,
+                    "responsavel_autorizacao_aceita_em" => $responsavelAutorizacaoAceitaEm
                 ]
             );
 
@@ -2184,7 +2280,12 @@ class InscricaoPublicaService
                     precisa_acessibilidade,
                     acessibilidade_detalhes,
                     restricao_alimentar,
-                    alimentar_detalhes
+                    alimentar_detalhes,
+                    responsavel_nome,
+                    responsavel_telefone_1,
+                    responsavel_telefone_2,
+                    responsavel_autorizacao_texto,
+                    responsavel_autorizacao_aceita_em
                 )
             VALUES (
                 :idInscricao,
@@ -2207,7 +2308,12 @@ class InscricaoPublicaService
                 :precisa_acessibilidade,
                 :acessibilidade_detalhes,
                 :restricao_alimentar,
-                :alimentar_detalhes
+                :alimentar_detalhes,
+                :responsavel_nome,
+                :responsavel_telefone_1,
+                :responsavel_telefone_2,
+                :responsavel_autorizacao_texto,
+                :responsavel_autorizacao_aceita_em
             )
             ON DUPLICATE KEY UPDATE
                 nacionalidade =
@@ -2246,7 +2352,12 @@ class InscricaoPublicaService
                 restricao_alimentar =
                     VALUES(restricao_alimentar),
                 alimentar_detalhes =
-                    VALUES(alimentar_detalhes)
+                    VALUES(alimentar_detalhes),
+                responsavel_nome = VALUES(responsavel_nome),
+                responsavel_telefone_1 = VALUES(responsavel_telefone_1),
+                responsavel_telefone_2 = VALUES(responsavel_telefone_2),
+                responsavel_autorizacao_texto = VALUES(responsavel_autorizacao_texto),
+                responsavel_autorizacao_aceita_em = VALUES(responsavel_autorizacao_aceita_em)
         ");
 
         $params = [
@@ -2364,7 +2475,12 @@ class InscricaoPublicaService
                     ? $dados[
                         "alimentar_detalhes"
                     ]
-                    : null
+                    : null,
+            ':responsavel_nome' => $dados['responsavel_nome'] ?? null,
+            ':responsavel_telefone_1' => $dados['responsavel_telefone_1'] ?? null,
+            ':responsavel_telefone_2' => $dados['responsavel_telefone_2'] ?? null,
+            ':responsavel_autorizacao_texto' => $dados['responsavel_autorizacao_texto'] ?? null,
+            ':responsavel_autorizacao_aceita_em' => $dados['responsavel_autorizacao_aceita_em'] ?? null
         ];
 
         $stmt->execute($params);

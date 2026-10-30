@@ -508,6 +508,66 @@
         });
     };
 
+    // Maioridade calculada no primeiro dia do evento, igual ao PHP.
+    const dataNascimentoInput = form.elements.data_nascimento;
+    const responsavelArea = document.getElementById('responsavelArea');
+    const responsavelCampos = [
+        form.elements.responsavel_nome,
+        form.elements.responsavel_telefone_1,
+        form.elements.responsavel_telefone_2,
+        form.elements.responsavel_autorizacao
+    ].filter(Boolean);
+
+    const participanteMenor = () => {
+        const nascimento = String(dataNascimentoInput?.value || '').split('-').map(Number);
+        const inicio = String(cfg.dataInicioEvento || '').split('-').map(Number);
+        if (nascimento.length !== 3 || inicio.length !== 3 ||
+            nascimento.some(n => !Number.isInteger(n) || n < 1) ||
+            inicio.some(n => !Number.isInteger(n) || n < 1)) return false;
+        const [anoN, mesN, diaN] = nascimento;
+        const [anoE, mesE, diaE] = inicio;
+        const idade = anoE - anoN - (
+            mesE < mesN || (mesE === mesN && diaE < diaN) ? 1 : 0
+        );
+        return idade >= 0 && idade < 18;
+    };
+
+    const atualizarResponsavel = () => {
+        if (!responsavelArea) return;
+        const menor = participanteMenor();
+        responsavelArea.hidden = !menor;
+        for (const campo of responsavelCampos) {
+            campo.disabled = !menor;
+            campo.required = menor && (
+                campo.name === 'responsavel_nome' ||
+                campo.name === 'responsavel_telefone_1' ||
+                campo.name === 'responsavel_autorizacao'
+            );
+            if (!menor) {
+                if (campo.type === 'checkbox') campo.checked = false;
+                else campo.value = '';
+                campo.setCustomValidity?.('');
+            }
+        }
+    };
+
+    dataNascimentoInput?.addEventListener('input', atualizarResponsavel);
+    dataNascimentoInput?.addEventListener('change', atualizarResponsavel);
+
+    for (const nome of ['responsavel_telefone_1', 'responsavel_telefone_2']) {
+        form.elements[nome]?.addEventListener('input', (event) => {
+            const campo = event.target;
+            campo.value = formatPhone(campo.value);
+            const quantidade = campo.value.replace(/\D/g, '').length;
+            campo.setCustomValidity(
+                quantidade > 0 && ![10, 11].includes(quantidade)
+                    ? 'Informe um número com DDD (10 ou 11 dígitos).'
+                    : ''
+            );
+        });
+    }
+    atualizarResponsavel();
+
     const camposDaEtapa = (
         nome
     ) => {
@@ -793,6 +853,20 @@
                                 .telefone
                                 .value
                             || "-";
+
+                        const resumoResponsavel = document.getElementById('resumoResponsavel');
+                        if (resumoResponsavel) {
+                            const menor = participanteMenor();
+                            resumoResponsavel.hidden = !menor;
+                            if (menor) {
+                                document.getElementById('resumoResponsavelNome').textContent =
+                                    form.elements.responsavel_nome.value || '-';
+                                const fone1 = form.elements.responsavel_telefone_1.value;
+                                const fone2 = form.elements.responsavel_telefone_2.value;
+                                document.getElementById('resumoResponsavelTelefone').textContent =
+                                    [fone1, fone2].filter(Boolean).join(' · ');
+                            }
+                        }
                     }
 
                     const proximaEtapa =
@@ -1228,6 +1302,7 @@
                 }
 
                 atualizarVisitante();
+                atualizarResponsavel();
 
                 cpf.dataset
                     .validado =
