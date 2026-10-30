@@ -430,6 +430,41 @@ ob_start();
             page-break-after: auto;
         }
 
+        /* Compactar apenas a ficha individual, mantendo 1 pessoa por A4. */
+        .ficha {
+            font-size: 8pt;
+            line-height: 1.25;
+        }
+
+        .ficha .secao {
+            margin-bottom: 2.5mm;
+            page-break-inside: avoid;
+        }
+
+        .ficha .grade td {
+            padding: 1mm 1.5mm;
+        }
+
+        .ficha .grade td[colspan="2"] {
+            width: 100%;
+        }
+
+        .ficha .ficha-header {
+            padding-bottom: 2mm;
+            margin-bottom: 2.5mm;
+        }
+
+        .ficha .ficha-nome {
+            font-size: 15pt;
+        }
+
+        .ficha .responsavel-texto {
+            font-size: 7.5pt;
+            line-height: 1.25;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+        }
+
         .ficha-header {
             border-bottom: 2px solid #0d6efd;
             margin-bottom: 4mm;
@@ -855,6 +890,55 @@ ob_start();
                     </tr>
                 </table>
             </div>
+
+            <?php if (reeEhMenorParaAutorizacao($registro, $evento)): ?>
+                <?php
+                $nomeResponsavelFicha = trim((string) ($registro["responsavel_nome"] ?? ""));
+                $telefone1ResponsavelFicha = trim((string) ($registro["responsavel_telefone_1"] ?? ""));
+                $telefone2ResponsavelFicha = trim((string) ($registro["responsavel_telefone_2"] ?? ""));
+                $textoAutorizacaoFicha = trim((string) ($registro["responsavel_autorizacao_texto"] ?? ""));
+                $aceiteAutorizacaoFicha = trim((string) ($registro["responsavel_autorizacao_aceita_em"] ?? ""));
+                ?>
+                <div class="secao">
+                    <div class="secao-titulo">
+                        Responsável legal e autorização
+                    </div>
+                    <table class="grade">
+                        <tr>
+                            <td>
+                                <span class="rotulo">Nome do responsável</span>
+                                <strong><?= reeEscapar($nomeResponsavelFicha !== "" ? $nomeResponsavelFicha : "Não informado"); ?></strong>
+                            </td>
+                            <td>
+                                <span class="rotulo">Telefone / WhatsApp 1</span>
+                                <?= reeEscapar($telefone1ResponsavelFicha !== "" ? $telefone1ResponsavelFicha : "Não informado"); ?>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="rotulo">Telefone / WhatsApp 2</span>
+                                <?= reeEscapar($telefone2ResponsavelFicha !== "" ? $telefone2ResponsavelFicha : "Não informado"); ?>
+                            </td>
+                            <td>
+                                <span class="rotulo">Autorização eletrônica</span>
+                                <?php if ($aceiteAutorizacaoFicha !== ""): ?>
+                                    Aceita em <?= reeData($aceiteAutorizacaoFicha, true); ?>
+                                <?php else: ?>
+                                    Não registrada
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php if ($textoAutorizacaoFicha !== ""): ?>
+                            <tr>
+                                <td colspan="2">
+                                    <span class="rotulo">Declaração autorizada pelo responsável</span>
+                                    <div class="responsavel-texto"><?= reeEscapar($textoAutorizacaoFicha); ?></div>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+                    </table>
+                </div>
+            <?php endif; ?>
 
             <div class="secao">
                 <div class="secao-titulo">
