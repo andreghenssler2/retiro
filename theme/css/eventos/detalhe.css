@@ -58,7 +58,7 @@
 
 .evento-detalhe-info small,
 .evento-detalhe-info strong,
-.evento-detalhe-info span {
+.evento-detalhe-info span > i {
     display: block;
 }
 

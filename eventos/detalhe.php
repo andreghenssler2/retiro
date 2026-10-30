@@ -561,9 +561,7 @@ if (Auth::check()) {
                             && $inscricaoUsuario
                         ): ?>
                             <?php
-                            $statusPagamento = (
-                                string
-                            ) (
+                            $statusPagamento = (string) (
                                 $pagamentoUsuario["status"]
                                 ?? $inscricaoUsuario["pagamento"]
                                 ?? ""
