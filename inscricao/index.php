@@ -239,7 +239,7 @@ $temSaude =
 
     <link
         rel="stylesheet"
-        href="<?= THEME_CSS ?>inscricao/publica.css?v=<?= VERSION ?>&cv=26"
+        href="<?= THEME_CSS ?>inscricao/publica.css?v=<?= VERSION ?>&cv=28&cv=26"
     >
 </head>
 
@@ -1548,6 +1548,41 @@ $temSaude =
                             <?php endforeach; ?>
                         </div>
 
+                        <!-- Informacao transparente sobre o favorecido das cobrancas online. -->
+                        <div
+                            id="avisoFavorecidoPagamento"
+                            class="alert alert-primary aviso-favorecido-pagamento mb-4"
+                            role="note"
+                            aria-live="polite"
+                            hidden
+                        >
+                            <div class="d-flex align-items-start gap-3">
+                                <i
+                                    class="fa-solid fa-circle-info mt-1"
+                                    aria-hidden="true"
+                                ></i>
+                                <div>
+                                    <strong class="d-block mb-2">
+                                        Informação sobre o favorecido
+                                    </strong>
+                                    <p class="mb-2">
+                                        Para pagamentos por
+                                        <strong id="formaFavorecidoPagamento">PIX</strong>,
+                                        o favorecido da cobrança será
+                                        <strong>André Gustavo Henssler</strong>,
+                                        responsável pelo desenvolvimento do
+                                        sistema Retiro.
+                                    </p>
+                                    <p class="mb-0">
+                                        Todo o valor arrecadado será repassado
+                                        posteriormente à Paróquia,
+                                        <strong>sem nenhum desconto para a
+                                        Paróquia</strong>.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div
                             id="cartaoCampos"
                             class="border rounded p-3 mb-4"
@@ -1815,7 +1850,7 @@ $temSaude =
     ></script>
 
     <script
-        src="<?= THEME_JS ?>inscricao/publica.js?v=<?= VERSION ?>&cv=27"
+        src="<?= THEME_JS ?>inscricao/publica.js?v=<?= VERSION ?>&cv=29"
     ></script>
 
 </body>

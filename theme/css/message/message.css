@@ -430,3 +430,54 @@ body.message-page {
         height: 38px;
     }
 }
+
+/* Novo pagamento: aviso temporário no painel, sem recarregar a página. */
+.retiro-avisos-pagamento {
+    position: fixed;
+    z-index: 1100;
+    top: 85px;
+    right: 20px;
+    width: min(400px, calc(100vw - 32px));
+    display: grid;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.retiro-aviso-pagamento {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: #fff;
+    color: #17324d;
+    border: 1px solid #b7e7c8;
+    border-left: 4px solid #198754;
+    box-shadow: 0 6px 22px rgba(15, 23, 42, .13);
+    pointer-events: auto;
+}
+
+.retiro-aviso-pagamento strong,
+.retiro-aviso-pagamento small {
+    display: block;
+}
+.retiro-aviso-pagamento small {
+    margin-top: 4px;
+    color: #526477;
+    line-height: 1.4;
+}
+.retiro-aviso-fechar {
+    border: 0;
+    background: transparent;
+    color: #526477;
+    font-size: 24px;
+    line-height: 1;
+    padding: 0 2px;
+    cursor: pointer;
+}
+.retiro-aviso-fechar:hover { color: #0f172a; }
+
+@media (max-width: 575.98px) {
+    .retiro-avisos-pagamento { top: 72px; right: 12px; }
+}

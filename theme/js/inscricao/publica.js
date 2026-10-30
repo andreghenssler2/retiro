@@ -330,6 +330,46 @@
         );
     };
 
+    /*
+     * Mostra a identificação do favorecido somente em cobranças
+     * online. Pagamento em dinheiro e inscrições gratuitas não
+     * apresentam este aviso.
+     */
+    const atualizarAvisoFavorecido = () => {
+        const aviso = document.getElementById(
+            "avisoFavorecidoPagamento"
+        );
+
+        if (!aviso) {
+            return;
+        }
+
+        const formaSelecionada = form.querySelector(
+            'input[name="forma_pagamento"]:checked'
+        )?.value || "";
+
+        const pagamentoVisivel = Boolean(
+            pagamentoOpcoes && !pagamentoOpcoes.hidden
+        );
+
+        const nomesFormas = {
+            PIX: "PIX",
+            Boleto: "boleto bancário",
+            Cartao: "Cartão de Crédito"
+        };
+
+        const nomeForma = nomesFormas[formaSelecionada];
+        aviso.hidden = !pagamentoVisivel || !nomeForma;
+
+        const textoForma = document.getElementById(
+            "formaFavorecidoPagamento"
+        );
+
+        if (textoForma && nomeForma) {
+            textoForma.textContent = nomeForma;
+        }
+    };
+
     const atualizarVisitante = () => {
         const isVisitante =
             comunidadeEhVisitante();
@@ -428,6 +468,8 @@
                     ? "Concluir inscrição"
                     : "Confirmar inscrição";
         }
+
+        atualizarAvisoFavorecido();
     };
 
     document.addEventListener(
@@ -1413,6 +1455,8 @@
             radio.addEventListener(
                 "change",
                 () => {
+                    atualizarAvisoFavorecido();
+
                     const card =
                         document
                             .getElementById(

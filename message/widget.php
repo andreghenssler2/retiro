@@ -11,7 +11,7 @@ $idMessageWidget = "messageWidget" . bin2hex(random_bytes(3));
 
 <link
     rel="stylesheet"
-    href="<?= THEME_CSS ?>message/message.css?v=<?= VERSION; ?>"
+    href="<?= THEME_CSS ?>message/message.css?v=<?= VERSION; ?>&cv=auto2"
 >
 
 <div
@@ -96,6 +96,6 @@ window.RETIRO_MESSAGE = window.RETIRO_MESSAGE || <?= json_encode(
 </script>
 
 <script
-    src="<?= THEME_JS ?>message/message.js?v=<?= VERSION; ?>"
+    src="<?= THEME_JS ?>message/message.js?v=<?= VERSION; ?>&cv=auto2"
     defer
 ></script>

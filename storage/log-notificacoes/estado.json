@@ -46,16 +46,31 @@
             "modificado_em": "2026-09-12 11:34:53"
         },
         "/home1/ieclbp28/retiro/mod/logs/2026-10-23.log": {
-            "offset": 1263,
-            "tamanho": 1263,
-            "modificado_em": "2026-10-23 16:09:09"
+            "offset": 2730,
+            "tamanho": 2730,
+            "modificado_em": "2026-10-24 16:25:39"
         },
         "/home1/ieclbp28/retiro/mod/logs/2026-10-24.log": {
-            "offset": 517,
-            "tamanho": 517,
-            "modificado_em": "2026-10-24 14:40:23"
+            "offset": 5728,
+            "tamanho": 5728,
+            "modificado_em": "2026-10-24 17:49:26"
+        },
+        "/home1/ieclbp28/retiro/mod/logs/2026-10-25.log": {
+            "offset": 505,
+            "tamanho": 505,
+            "modificado_em": "2026-10-25 14:57:35"
+        },
+        "/home1/ieclbp28/retiro/mod/logs/2026-10-28.log": {
+            "offset": 275,
+            "tamanho": 275,
+            "modificado_em": "2026-10-28 15:56:08"
+        },
+        "/home1/ieclbp28/retiro/mod/logs/2026-10-29.log": {
+            "offset": 1763,
+            "tamanho": 1763,
+            "modificado_em": "2026-10-29 21:23:06"
         }
     },
-    "ultima_execucao_com_sucesso": "2026-10-24 15:00:02",
+    "ultima_execucao_com_sucesso": "2026-10-29 21:25:02",
     "ultimo_email": "secretaria@ieclbparobe.com.br"
 }

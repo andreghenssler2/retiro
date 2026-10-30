@@ -21,6 +21,12 @@ try {
         );
     }
 
+    // Libera a trava da sessão durante a consulta recorrente.
+    // Assim outras requisições do mesmo administrador não ficam bloqueadas.
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_write_close();
+    }
+
     $notificacao = new Notificacao($db);
     $notificacao->sincronizar();
 
