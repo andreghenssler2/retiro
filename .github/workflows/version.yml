@@ -1,43 +1,43 @@
-name: Atualizar Build
+# name: Atualizar Build
 
-on:
-  push:
-    branches:
-      - main
+# on:
+#   push:
+#     branches:
+#       - main
 
-permissions:
-  contents: write
+# permissions:
+#   contents: write
 
-jobs:
+# jobs:
 
-  version:
+#   version:
 
-    runs-on: ubuntu-latest
+#     runs-on: ubuntu-latest
 
-    steps:
+#     steps:
 
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+#       - name: Checkout
+#         uses: actions/checkout@v4
+#         with:
+#           fetch-depth: 0
+#           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Configurar PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: 8.4
+#       - name: Configurar PHP
+#         uses: shivammathur/setup-php@v2
+#         with:
+#           php-version: 8.4
 
-      - name: Atualizar Build
-        run: php mod/scripts/build.php
+#       - name: Atualizar Build
+#         run: php mod/scripts/build.php
 
-      - name: Commit
-        run: |
-          git config user.name "GitHub Action"
-          git config user.email "action@github.com"
+#       - name: Commit
+#         run: |
+#           git config user.name "GitHub Action"
+#           git config user.email "action@github.com"
 
-          git add mod/version.php
+#           git add mod/version.php
 
-          git diff --cached --quiet || git commit -m "Versao atualizada automaticamente"
+#           git diff --cached --quiet || git commit -m "Versao atualizada automaticamente"
 
-      - name: Push
-        run: git push
+#       - name: Push
+#         run: git push
