@@ -108,3 +108,9 @@ oculta.txt
 !/storage/seguranca/.htaccess
 !/storage/seguranca/.gitkeep
 # END AUTENTICACAO SEGURA V1
+
+
+
+# pasta nao importante para o git, mas que pode ser usada para testes locais
+/testes/*
+/refugio/*

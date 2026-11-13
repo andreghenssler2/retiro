@@ -317,9 +317,36 @@ final class EmailSistemaNotificacaoService
                 . '</td></tr>';
         }
 
-        $link = defined('BASE_URL')
-            ? rtrim((string) BASE_URL, '/') . '/' . ltrim($destino, '/')
+        // No CRON (PHP CLI), HTTP_HOST não existe. A BASE_URL global pode
+        // ser http://localhost, mesmo no servidor de produção.
+        // Use uma URL canônica independente do host da requisição.
+        // Opcional: definir 'url_site' em config/notificacoes_sistema.php.
+        $baseUrlEmail = trim((string) ($this->configuracao()['url_site'] ?? ''));
+        if ($baseUrlEmail === '') {
+            $baseUrlEmail = 'https://retiro.ieclbparobe.com.br/';
+        }
+
+        $partesUrl = parse_url($baseUrlEmail);
+        $protocolo = is_array($partesUrl)
+            ? strtolower((string) ($partesUrl['scheme'] ?? ''))
             : '';
+        $dominio = is_array($partesUrl)
+            ? strtolower((string) ($partesUrl['host'] ?? ''))
+            : '';
+        $ehLocal = in_array($dominio, ['localhost', '127.0.0.1', '::1'], true);
+        if (
+            $dominio === ''
+            || !in_array($protocolo, ['https', 'http'], true)
+            || ($protocolo !== 'https' && !$ehLocal)
+            || isset($partesUrl['user'])
+            || isset($partesUrl['pass'])
+            || isset($partesUrl['query'])
+            || isset($partesUrl['fragment'])
+        ) {
+            throw new RuntimeException('URL pública inválida para os e-mails administrativos.');
+        }
+
+        $link = rtrim($baseUrlEmail, '/') . '/' . ltrim($destino, '/');
         $botao = $link !== ''
             ? '<p style="padding-top:18px"><a href="' . $this->esc($link)
                 . '" style="background:#0d6efd;color:white;text-decoration:none;padding:12px 18px;border-radius:6px">Abrir no Retiro</a></p>'
