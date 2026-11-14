@@ -421,7 +421,7 @@ $(function () {
                         timer: 1800,
                         showConfirmButton: false
                     }).then(function () {
-                        window.location.href = "usuarios.php";
+                        window.location.href = $form.data("redirecionar-url") || "usuarios.php";
                     });
                 })
                 .fail(function (xhr) {

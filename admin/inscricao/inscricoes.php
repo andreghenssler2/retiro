@@ -173,6 +173,7 @@ require_once "../includes/sidebar.php";
             </h5>
 
             <div class="d-flex gap-2">
+                <?php if (Auth::isAdmin()): ?>
                 <a
                     href="cancelamentos.php"
                     class="btn btn-outline-danger"
@@ -191,6 +192,7 @@ require_once "../includes/sidebar.php";
                         </span>
                     <?php endif; ?>
                 </a>
+                <?php endif; ?>
                 <a href="../financeiro/pagamentos.php" class="btn btn-outline-success">
                     <i class="fa fa-hand-holding-dollar me-1"></i>
                     Confirmar pagamentos

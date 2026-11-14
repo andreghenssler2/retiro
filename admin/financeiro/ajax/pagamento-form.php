@@ -67,6 +67,17 @@ try {
         <?php exit; ?>
     <?php endif;
 
+    // Moderadores apenas confirmam recebimentos manuais.
+    // Cobranças do Asaas devem ser sincronizadas; não recebem baixa manual.
+    $somenteManualModerador = Auth::isModerador();
+    if ($somenteManualModerador) {
+        $formaAtualModerador = trim((string) ($pagamento["formaPagamento"] ?? ""));
+        if (!in_array($formaAtualModerador, ["NaoDefinido", "Dinheiro", "Transferencia", ""], true)) {
+            echo '<div class="alert alert-info m-3">Pagamentos do Asaas são confirmados pela integração. Utilize a opção de sincronizar o pagamento.</div>';
+            exit;
+        }
+    }
+
     $formas = [
         "NaoDefinido" => "Selecione o meio de pagamento",
         "PIX" => "PIX — gerar QR Code pelo Asaas",
@@ -76,7 +87,12 @@ try {
         "Transferencia" => "Transferência — lançamento manual"
     ];
 
-    $statusPermitidos = ["Pendente", "Vencido", "Pago", "Cancelado", "Estornado"];
+    if ($somenteManualModerador) {
+        $formas = array_intersect_key($formas, array_flip(["NaoDefinido", "Dinheiro", "Transferencia"]));
+    }
+    $statusPermitidos = $somenteManualModerador
+        ? ["Pago"]
+        : ["Pendente", "Vencido", "Pago", "Cancelado", "Estornado"];
     $formasAsaas = ["PIX", "Boleto", "Cartao"];
     $formasManuais = ["Dinheiro", "Transferencia"];
     $formaAtual = trim((string) ($pagamento["formaPagamento"] ?? "NaoDefinido"));
@@ -179,7 +195,9 @@ try {
         <div class="container-fluid py-3">
             <div class="alert alert-info">
                 <i class="fa fa-circle-info me-1"></i>
-                O pagamento nasceu da inscrição. Escolha o meio de pagamento para gerar a cobrança no Asaas ou registrar o recebimento manualmente.
+                <?= $somenteManualModerador
+                    ? "Como Moderador, você pode confirmar recebimentos manuais. PIX, boleto e cartão são confirmados pela sincronização com o Asaas."
+                    : "O pagamento nasceu da inscrição. Escolha o meio de pagamento para gerar a cobrança no Asaas ou registrar o recebimento manualmente." ?>
             </div>
 
             <div class="row g-3 mb-4">

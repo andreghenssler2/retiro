@@ -37,6 +37,14 @@ if (!Session::validateCsrf($_POST["_token"] ?? "")) {
 $usuario = new Usuario();
 $geral = new Geral();
 
+// Defesa em profundidade: impede edição e elevação de perfil via POST.
+if (Auth::isModerador() && (
+    (int) ($_POST["id"] ?? 0) !== 0
+    || (int) ($_POST["tipo"] ?? 3) !== 3
+)) {
+    responderUsuario(false, "Moderadores podem apenas cadastrar participantes.", 403);
+}
+
 $id = (int) ($_POST["id"] ?? 0);
 $registroAtual = $id > 0
     ? $usuario->buscar($id)

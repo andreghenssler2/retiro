@@ -191,6 +191,7 @@ $cores = [
                         </td>
 
                         <td class="text-center">
+                            <?php if (Auth::isAdmin()): ?>
                             <button class="btn btn-sm btn-outline-primary btn-editar" data-id="<?= $e["idEvento"] ?>"
                                 title="Editar">
 
@@ -200,6 +201,7 @@ $cores = [
                             <!-- <a href="evento.php?id=<?= $e["idEvento"] ?>" class="btn btn-sm btn-outline-primary" title="Editar">
                             </a> -->
 
+                            <?php endif; ?>
                             <button class="btn btn-sm btn-outline-info btn-visualizar" data-id="<?= $e["idEvento"] ?>"
                                 title="Visualizar">
 
@@ -207,6 +209,7 @@ $cores = [
 
                             </button>
 
+                            <?php if (Auth::isAdmin()): ?>
                             <button class="btn btn-sm btn-outline-warning btn-status" data-token="<?= Session::csrf() ?>"
                                 data-id="<?= $e["idEvento"] ?>" data-status="<?= $e["ativo"] ?>" title="Ativar/Inativar">
 
@@ -220,6 +223,7 @@ $cores = [
                                 <i class="fa fa-trash"></i>
 
                             </button>
+                            <?php endif; ?>
 
                         </td>
 

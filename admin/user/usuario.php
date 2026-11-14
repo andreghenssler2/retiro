@@ -119,7 +119,7 @@ require_once "../includes/sidebar.php";
                 </p>
             </div>
 
-            <a href="usuarios.php" class="btn btn-outline-secondary">
+            <a href="<?= Auth::isModerador() ? BASE_URL . 'admin/event/eventos.php' : 'usuarios.php' ?>" class="btn btn-outline-secondary">
                 <i class="fa fa-arrow-left"></i>
                 Voltar
             </a>
@@ -131,6 +131,7 @@ require_once "../includes/sidebar.php";
             enctype="multipart/form-data"
             autocomplete="on"
             novalidate
+            data-redirecionar-url="<?= Auth::isModerador() ? BASE_URL . 'admin/user/usuario.php' : 'usuarios.php' ?>"
             data-salvar-url="<?= BASE_URL; ?>admin/user/ajax/usuario-new.php"
             data-verificar-cpf-url="<?= BASE_URL; ?>mod/ajax/verificar-cpf.php"
             data-verificar-email-url="<?= BASE_URL; ?>mod/ajax/verificar-email.php"
@@ -482,9 +483,11 @@ require_once "../includes/sidebar.php";
                                         class="form-select"
                                         required
                                     >
+                                        <?php if (Auth::isAdmin()): ?>
                                         <option value="1" <?= (int) $dados["tipo"] === 1 ? "selected" : ""; ?>>Administrador</option>
                                         <option value="2" <?= (int) $dados["tipo"] === 2 ? "selected" : ""; ?>>Moderador</option>
-                                        <option value="3" <?= (int) $dados["tipo"] === 3 ? "selected" : ""; ?>>Usuário normal</option>
+                                        <?php endif; ?>
+                                        <option value="3" <?= (int) $dados["tipo"] === 3 ? "selected" : ""; ?>>Participante</option>
                                     </select>
                                 </div>
 

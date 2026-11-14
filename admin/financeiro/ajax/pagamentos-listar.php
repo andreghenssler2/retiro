@@ -240,7 +240,8 @@ try {
                                     data-id="<?= $idPagamento ?>" title="Visualizar pagamento">
                                     <i class="fa fa-eye"></i>
                                 </button>
-                                <?php if ($statusPagamento === "Pendente"): ?>
+                                <?php if ($statusPagamento === "Pendente"
+                                    && (!Auth::isModerador() || in_array($formaPagamento, ["NaoDefinido", "Dinheiro", "Transferencia", ""], true))): ?>
                                     <button type="button" class="btn btn-outline-success btn-editar"
                                         data-id="<?= $idPagamento ?>" title="Atualizar recebimento">
                                         <i class="fa fa-hand-holding-dollar"></i>

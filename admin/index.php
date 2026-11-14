@@ -6,5 +6,5 @@ require_once "../config/settings.php";
 
 Middleware::auth();
 
-header("Location: " . BASE_URL . "admin/dashboard/");
+header("Location: " . BASE_URL . (Auth::isModerador() ? "admin/event/eventos.php" : "admin/dashboard/"));
 exit;

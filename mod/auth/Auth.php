@@ -275,7 +275,7 @@ class Auth
                 break;
 
             case 2:
-                header('Location: /my/index.php?acess=2&id=' . self::id());
+                header('Location: ' . (defined('BASE_URL') ? BASE_URL : '/') . 'admin/event/eventos.php');
                 break;
             case 3:
                 header('Location: /my/index.php?id=' . self::id());

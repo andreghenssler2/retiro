@@ -15,6 +15,9 @@ class Middleware
             header('Location: ../login');
             exit;
         }
+
+        require_once __DIR__ . '/RotaModerador.php';
+        RotaModerador::validar();
     }
 
     /**

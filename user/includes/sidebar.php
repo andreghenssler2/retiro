@@ -70,6 +70,15 @@ $perfilAtivo = $userSidebarAtivo([
 
     <ul class="sidebar-menu">
 
+        <?php if (Auth::isModerador()): ?>
+            <li>
+                <a href="<?= BASE_URL ?>admin/event/eventos.php">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span>Área do Moderador</span>
+                </a>
+            </li>
+        <?php endif; ?>
+
         <li>
             <a class="<?= $userSidebarAtivo("/my/"); ?>" href="<?= BASE_URL ?>my/">
                 <i class="fa-solid fa-house"></i>

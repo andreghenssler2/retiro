@@ -232,12 +232,15 @@ function classePagamentoInscricao(string $status): string
                                     <span class="acao-texto">Visualizar</span>
                                 </button>
 
+                                <?php if (Auth::isAdmin()): ?>
                                 <a href="inscricao.php?id=<?= $idInscricao ?>"
                                     class="btn btn-outline-primary" title="Editar vínculo e camiseta" aria-label="Editar inscrição">
                                     <i class="fa fa-pencil"></i>
                                     <span class="acao-texto">Editar</span>
                                 </a>
 
+                                <?php endif; ?>
+                                <?php if (Auth::isAdmin()): ?>
                                 <?php if ($presencaPermitida): ?>
                                     <button type="button" class="btn btn-outline-secondary btn-presenca"
                                         data-id="<?= $idInscricao ?>"
@@ -284,6 +287,7 @@ function classePagamentoInscricao(string $status): string
                                     <i class="fa fa-trash"></i>
                                     <span class="acao-texto">Excluir</span>
                                 </button>
+                                <?php endif; ?>
                             </div>
                         </td>
                     </tr>

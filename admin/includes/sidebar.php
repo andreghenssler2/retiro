@@ -181,6 +181,17 @@ $perfilAtivo =
         <?php endif; ?>
 
 
+        <!-- CADASTRO DE PARTICIPANTES -->
+        <?php if (Permissao::pode("usuarios.criar") && !$ehAdmin): ?>
+            <li>
+                <a class="<?= sidebarAtivoCaminho("/admin/user/usuario.php"); ?>"
+                   href="<?= BASE_URL ?>admin/user/usuario.php">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Cadastrar usuário</span>
+                </a>
+            </li>
+        <?php endif; ?>
+
         <!-- USUÁRIOS -->
         <?php if ($ehAdmin): ?>
             <li>

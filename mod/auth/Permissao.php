@@ -24,32 +24,17 @@ final class Permissao
      */
     private const PERMISSOES = [
         self::MODERADOR => [
-            "dashboard.visualizar",
-
             "eventos.visualizar",
-            "eventos.criar",
-            "eventos.editar",
-
+            "usuarios.criar",
             "inscricoes.visualizar",
-            "inscricoes.editar",
-            "inscricoes.confirmar",
-
+            "inscricoes.criar",
             "credenciamento.visualizar",
             "credenciamento.registrar",
-
-            "pagamentos.visualizar",
             "financeiro.visualizar",
-
-            "certificados.visualizar",
-            "certificados.modelo",
-            "certificados.emitir",
-            "certificados.reenviar",
-            "certificados.revogar",
-
+            "pagamentos.visualizar",
+            "pagamentos.confirmar",
             "relatorios.visualizar",
             "relatorios.exportar",
-
-            "notificacoes.visualizar",
             "perfil.proprio",
         ],
 

@@ -179,6 +179,23 @@ try {
         );
     }
 
+    if (Auth::isModerador()) {
+        $formaExistente = trim((string) ($atual["formaPagamento"] ?? "NaoDefinido"));
+        $formaSolicitada = trim((string) ($_POST["formaPagamento"] ?? ""));
+        $formaConfirmada = $formaSolicitada !== "" ? $formaSolicitada : $formaExistente;
+        $statusExistente = trim((string) ($atual["status"] ?? "Pendente"));
+
+        if (!in_array($formaExistente, ["NaoDefinido", "Dinheiro", "Transferencia", ""], true)
+            || !in_array($formaConfirmada, ["Dinheiro", "Transferencia"], true)
+            || trim((string) ($_POST["status"] ?? "")) !== "Pago"
+            || $statusExistente !== "Pendente"
+            || trim((string) ($atual["asaasPaymentId"] ?? "")) !== "") {
+            responderRecebimento(false,
+                "O Moderador pode confirmar como Pago apenas recebimentos manuais pendentes. Use sincronização para PIX, boleto ou cartão.",
+                [], 403);
+        }
+    }
+
     $formaAtual = trim((string) ($atual["formaPagamento"] ?? "NaoDefinido"));
 
     if ($formaAtual === "") {

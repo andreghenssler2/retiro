@@ -75,6 +75,7 @@ require_once "../includes/sidebar.php";
 
         <div class="col-md-6 text-end">
 
+            <?php if (Auth::isAdmin()): ?>
             <a href="evento.php" class="btn btn-success">
 
                 <i class="fa fa-plus"></i>
@@ -82,6 +83,7 @@ require_once "../includes/sidebar.php";
                 Novo Evento
 
             </a>
+            <?php endif; ?>
 
         </div>
 
@@ -505,6 +507,7 @@ require_once "../includes/sidebar.php";
 
                                     <td class="text-center">
 
+                                        <?php if (Auth::isAdmin()): ?>
                                         <a href="evento.php?id=<?= $e["idEvento"] ?>" class="btn btn-sm btn-outline-primary"
                                             title="Editar">
 
@@ -512,12 +515,14 @@ require_once "../includes/sidebar.php";
 
                                         </a>
 
+                                        <?php endif; ?>
                                         <button class="btn btn-sm btn-outline-info btn-visualizar"
                                             data-id="<?= $e["idEvento"] ?>" title="Visualizar">
 
                                             <i class="fa fa-eye"></i>
 
                                         </button>
+                                        <?php if (Auth::isAdmin()): ?>
                                         <!-- <input type="hidden" id="_token" name="_token" value="<?= Session::csrf() ?>"> -->
                                         <button class="btn btn-sm btn-outline-warning btn-status"  data-token="<?= Session::csrf() ?>" data-id="<?= $e["idEvento"] ?>" data-status="<?= $e["ativo"] ?>"
                                             title="Ativar/Inativar">
@@ -533,6 +538,7 @@ require_once "../includes/sidebar.php";
                                             <i class="fa fa-trash"></i>
 
                                         </button>
+                                        <?php endif; ?>
 
                                     </td>
 
