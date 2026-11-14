@@ -50,8 +50,7 @@
                             </table>
 
                             <p style="font-size:15px;color:#555;line-height:1.7;">
-                                   Regularize o pagamento assim que possível. Caso exista período de tolerância,
-                                   a inscrição seguirá as regras definidas para o evento.
+                                   Regularize o pagamento assim que possível. Caso exista período de tolerância, a inscrição seguirá as regras definidas para o evento.
                             </p>
                             <?php $urlPagamento = $bankSlipUrl !== "" ? $bankSlipUrl : $invoiceUrl; ?>
                             <?php if ($urlPagamento !== ""): ?>

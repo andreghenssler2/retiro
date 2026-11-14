@@ -55,4 +55,17 @@ try {
     $falhou = true;
     fwrite(STDERR, '[Retiro] Falha ao processar lembretes de vencimento: ' . $erro->getMessage() . PHP_EOL);
 }
+// RESUMO_PENDENCIAS_ADMIN_V1
+try {
+    require_once dirname(__DIR__) . '/mod/services/ResumoPendenciasAdminService.php';
+    $resumoPendenciasAdmin = (new ResumoPendenciasAdminService($db))->processar();
+    if (($resumoPendenciasAdmin['enviados'] ?? 0) > 0 || ($resumoPendenciasAdmin['falhas'] ?? 0) > 0) {
+        echo '[' . date('d/m/Y H:i:s') . '] Resumo administrativo de pendencias: '
+            . json_encode($resumoPendenciasAdmin, JSON_UNESCAPED_UNICODE) . PHP_EOL;
+    }
+    if (($resumoPendenciasAdmin['falhas'] ?? 0) > 0) { $falhou = true; }
+} catch (Throwable $erro) {
+    $falhou = true;
+    fwrite(STDERR, '[Retiro] Falha no resumo administrativo de pendencias: ' . $erro->getMessage() . PHP_EOL);
+}
 exit($falhou ? 1 : 0);
