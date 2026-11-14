@@ -30,7 +30,8 @@ $modos = [
     "fichas_pdf",
     "autorizacao_pdf",
     "xlsx",
-    "saude_pdf"
+    "saude_pdf",
+    "passageiros_pdf"
 ];
 
 if (!in_array($modo, $modos, true)) {
@@ -650,7 +651,14 @@ ob_start();
 </head>
 <body>
 
-<?php if ($modo === "lista_pdf"): ?>
+<?php if ($modo === "passageiros_pdf"): ?>
+    <?php
+    // RETIRO_PASSAGEIROS_PDF_V1
+    require_once __DIR__ . "/../../mod/auth/RelatorioPassageirosEvento.php";
+    echo RelatorioPassageirosEvento::html($inscricoes, $evento);
+    ?>
+
+<?php elseif ($modo === "lista_pdf"): ?>
 
     <div class="cabecalho-relatorio">
         <div class="titulo">
@@ -1509,7 +1517,7 @@ $options->set("defaultFont", "DejaVu Sans");
 $dompdf = new \Dompdf\Dompdf($options);
 $dompdf->loadHtml($html, "UTF-8");
 
-$orientacao = $modo === "lista_pdf"
+$orientacao = in_array($modo, ["lista_pdf", "passageiros_pdf"], true)
     ? "landscape"
     : "portrait";
 
@@ -1529,6 +1537,7 @@ $sufixo = match ($modo) {
     "fichas_pdf" => "fichas-inscritos",
     "autorizacao_pdf" => "autorizacao-presencial",
     "saude_pdf" => "saude-acessibilidade",
+    "passageiros_pdf" => "lista-passageiros",
     default => "relatorio",
 };
 

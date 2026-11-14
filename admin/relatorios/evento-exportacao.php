@@ -8,6 +8,9 @@ require_once __DIR__
 Session::start();
 Middleware::moderador();
 
+// RETIRO_PASSAGEIROS_ANO_V1
+require_once __DIR__ . "/../../mod/auth/RelatorioPassageirosEvento.php";
+
 $eventos = [];
 $erro = "";
 
@@ -16,6 +19,15 @@ try {
 } catch (Throwable $exception) {
     $erro = "Não foi possível carregar os eventos.";
 }
+
+$filtroAnual = RelatorioPassageirosEvento::filtrarAno(
+    $eventos,
+    $_GET["ano"] ?? null,
+    (int) (new DateTimeImmutable("now", new DateTimeZone("America/Sao_Paulo")))->format("Y")
+);
+$eventos = $filtroAnual["eventos"];
+$anoSelecionado = $filtroAnual["ano"];
+$anosDisponiveis = $filtroAnual["anos"];
 
 function relEventoEscapar(
     mixed $valor
@@ -91,12 +103,30 @@ require_once __DIR__
                 shadow-sm mb-4"
         >
             <div class="card-body p-4">
+                <form method="get" class="row g-2 align-items-end mb-4" id="formFiltroAnoEvento">
+                    <div class="col-12 col-sm-5 col-lg-3">
+                        <label for="anoEvento" class="form-label fw-semibold">Ano do evento</label>
+                        <select name="ano" id="anoEvento" class="form-select" onchange="this.form.submit()">
+                            <?php foreach ($anosDisponiveis as $ano): ?>
+                                <option value="<?= (int) $ano; ?>" <?= $ano === $anoSelecionado ? "selected" : ""; ?>><?= (int) $ano; ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-outline-primary">Filtrar</button>
+                    </div>
+                    <div class="col-12 text-muted small"><?= count($eventos); ?> evento(s) em <?= (int) $anoSelecionado; ?>, considerando a data de início.</div>
+                </form>
+                <?php if (!$eventos && $erro === ""): ?>
+                    <div class="alert alert-warning">Nenhum evento encontrado nesse ano.</div>
+                <?php endif; ?>
                 <form
                     method="get"
                     action="<?= BASE_URL ?>admin/relatorios/evento-exportar.php"
                     target="_blank"
                     id="formRelatorioEvento"
                 >
+                    <input type="hidden" name="ano" value="<?= (int) $anoSelecionado; ?>">
                     <div class="row g-3">
 
                         <div class="col-12">
@@ -190,6 +220,14 @@ require_once __DIR__
                                     Lista de todos os inscritos,
                                     pagamento e confirmação.
                                 </small>
+                            </button>
+                        </div>
+
+                        <div class="col-md-6 col-xl-3">
+                            <button type="submit" name="modo" value="passageiros_pdf" class="btn btn-outline-danger w-100 h-100 p-4 text-start">
+                                <i class="fa-solid fa-bus fs-3 d-block mb-3"></i>
+                                <strong class="d-block">PDF — Lista de passageiros</strong>
+                                <small>Nome, CPF, contato, idade e situação da inscrição. Sem canceladas.</small>
                             </button>
                         </div>
 
