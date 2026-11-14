@@ -18,6 +18,7 @@ try {
     require_once dirname(__DIR__) . '/config/settings.php';
     require_once dirname(__DIR__) . '/mod/auth/Notificacao.php';
     require_once dirname(__DIR__) . '/mod/services/EmailSistemaNotificacaoService.php';
+require_once dirname(__DIR__) . '/mod/services/LembreteVencimentoEmailService.php';
 } catch (Throwable $erro) {
     fwrite(STDERR, '[Retiro] Inicializacao falhou: ' . $erro->getMessage() . PHP_EOL);
     exit(1);
@@ -43,4 +44,15 @@ try {
     fwrite(STDERR, '[Retiro] Falha nas notificacoes por e-mail: ' . $erro->getMessage() . PHP_EOL);
 }
 
+// LEMBRETES_VENCIMENTO_AUTOMATICOS_V1
+try {
+    $lembretes = (new LembreteVencimentoEmailService($db))->processar();
+    if (($lembretes['candidatos'] ?? 0) > 0 || ($lembretes['falhas'] ?? 0) > 0) {
+        echo '[' . date('d/m/Y H:i:s') . '] Lembretes PIX/Boleto: '
+            . json_encode($lembretes, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . PHP_EOL;
+    }
+} catch (Throwable $erro) {
+    $falhou = true;
+    fwrite(STDERR, '[Retiro] Falha ao processar lembretes de vencimento: ' . $erro->getMessage() . PHP_EOL);
+}
 exit($falhou ? 1 : 0);
