@@ -1,9 +1,9 @@
 <?php
 
 return array (
-  'version' => '0.1.133',
-  'build' => 133,
-  'commit' => '6122ecf',
+  'version' => '0.1.134',
+  'build' => 134,
+  'commit' => '1de7334',
   'branch' => 'main',
-  'date' => '2026-11-14 19:55:59',
+  'date' => '2026-11-15 11:29:16',
 );
