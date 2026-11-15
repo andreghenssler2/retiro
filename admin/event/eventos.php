@@ -16,7 +16,14 @@ $pesquisa = trim($_GET["pesquisa"] ?? "");
 
 $tipo = trim($_GET["tipo"] ?? "");
 
-$status = trim($_GET["status"] ?? "");
+$status = trim($_GET["status"] ?? "1");
+// RETIRO_FILTRO_ANO_EVENTOS_V1
+$ano = Evento::normalizarAnoFiltro($_GET['ano'] ?? null);
+$anosFiltro = $evento->listarAnosFiltro();
+if ($ano !== null && !in_array($ano, $anosFiltro, true)) {
+    $anosFiltro[] = $ano;
+    rsort($anosFiltro, SORT_NUMERIC);
+}
 
 $paginaA = max(1, (int) ($_GET["pagina"] ?? 1));
 
@@ -36,7 +43,9 @@ $lista = $evento->listarPaginado(
 
     $paginaA,
 
-    $limite
+    $limite,
+
+    $ano
 
 );
 
@@ -44,7 +53,14 @@ $eventos = $lista["dados"];
 
 $total = $lista["total"];
 
-$totalPaginas = max(1, ceil($total / $limite));
+$totalPaginas = max(1, (int) ceil($total / $limite));
+if ($paginaA > $totalPaginas) {
+    $paginaA = $totalPaginas;
+    $lista = $evento->listarPaginado($pesquisa, $tipo, $status, 'data_inicio', 'DESC', $paginaA, $limite, $ano);
+    $eventos = $lista['dados'];
+    $total = $lista['total'];
+    $totalPaginas = max(1, (int) ceil($total / $limite));
+}
 
 require_once "../includes/header.php";
 require_once "../includes/navbar.php";
@@ -107,7 +123,7 @@ require_once "../includes/sidebar.php";
 
             <form method="GET" id="formFiltroEventos">
 
-                <div class="row">
+                <div class="row g-3">
 
                     <div class="col-md-4">
 
@@ -120,6 +136,16 @@ require_once "../includes/sidebar.php";
                         <input type="text" id="pesquisa" name="pesquisa" class="form-control"
                             value="<?= htmlspecialchars($pesquisa) ?>" placeholder="Título, cidade, local...">
 
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label" for="ano">Ano</label>
+                        <select name="ano" id="ano" class="form-select">
+                            <option value="" <?= $ano === null ? 'selected' : '' ?>>Todos os anos</option>
+                            <?php foreach ($anosFiltro as $anoOpcao): ?>
+                                <option value="<?= (int) $anoOpcao ?>" <?= $ano === $anoOpcao ? 'selected' : '' ?>><?= (int) $anoOpcao ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
 
                     <div class="col-md-3">
@@ -230,7 +256,7 @@ require_once "../includes/sidebar.php";
 
                     </h6>
 
-                    <h2>
+                    <h2 id="eventosTotalFiltro">
 
                         <?= $total ?>
 
@@ -254,7 +280,7 @@ require_once "../includes/sidebar.php";
 
                     </h6>
 
-                    <h2>
+                    <h2 id="eventosPaginaFiltro">
 
                         <?= $paginaA ?>
 
@@ -278,7 +304,7 @@ require_once "../includes/sidebar.php";
 
                     </h6>
 
-                    <h2>
+                    <h2 id="eventosRegistrosFiltro">
 
                         <?= count($eventos) ?>
 
@@ -302,7 +328,7 @@ require_once "../includes/sidebar.php";
 
                     </h6>
 
-                    <h2>
+                    <h2 id="eventosPaginasFiltro">
 
                         <?= $totalPaginas ?>
 
@@ -564,7 +590,7 @@ require_once "../includes/sidebar.php";
 
     <?php if ($totalPaginas > 1): ?>
 
-        <div class="mt-4">
+        <div class="mt-4" id="paginacaoInicialEventos">
 
             <nav>
 
@@ -580,7 +606,7 @@ require_once "../includes/sidebar.php";
 
                                &tipo=<?= urlencode($tipo) ?>
 
-                               &status=<?= urlencode($status) ?>">
+                               &status=<?= urlencode($status) ?>&amp;ano=<?= urlencode((string) $ano) ?>">
 
                                 <?= $i ?>
 

@@ -211,6 +211,27 @@ class Evento
     |--------------------------------------------------------------------------
     */
 
+    // RETIRO_FILTRO_ANO_EVENTOS_V1
+    public static function normalizarAnoFiltro(mixed $entrada): ?int
+    {
+        if ($entrada === '') return null; // todos os anos
+        $atual = (int) date('Y');
+        if (!is_string($entrada) && !is_int($entrada)) return $atual;
+        $texto = (string) $entrada;
+        return preg_match('/^[0-9]{4}$/D', $texto) && (int) $texto >= 1000 && (int) $texto <= 9998
+            ? (int) $texto : $atual;
+    }
+
+    public function listarAnosFiltro(): array
+    {
+        $anos = $this->db->query("SELECT DISTINCT YEAR(data_inicio) AS ano FROM eventos WHERE data_inicio IS NOT NULL AND YEAR(data_inicio) BETWEEN 1000 AND 9998 ORDER BY ano DESC")->fetchAll(PDO::FETCH_COLUMN);
+        $anos = array_map('intval', $anos);
+        $anos[] = (int) date('Y');
+        $anos = array_values(array_unique($anos));
+        rsort($anos, SORT_NUMERIC);
+        return $anos;
+    }
+
     public function listarPaginado(
 
         string $pesquisa = '',
@@ -225,7 +246,9 @@ class Evento
 
         int $pagina = 1,
 
-        int $limite = 10
+        int $limite = 10,
+
+        ?int $ano = null
 
     ): array {
 
@@ -292,6 +315,14 @@ class Evento
 
             $params[] = $status;
 
+        }
+
+        // Intervalo de datas: mantém a consulta compatível com índices.
+        if ($ano !== null) {
+            if ($ano < 1000 || $ano > 9998) throw new InvalidArgumentException('Ano inválido.');
+            $where[] = 'data_inicio >= ? AND data_inicio < ?';
+            $params[] = sprintf('%04d-01-01', $ano);
+            $params[] = sprintf('%04d-01-01', $ano + 1);
         }
 
         $sqlWhere = '';

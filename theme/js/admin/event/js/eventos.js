@@ -300,12 +300,15 @@ $(function () {
 
     });
     let tempo;
-
-    carregarEventos();
+    // RETIRO_FILTRO_ANO_EVENTOS_V1
+    let requisicaoEventos = null;
+    let sequenciaEventos = 0;
+    carregarEventos(Number($('#eventosPaginaFiltro').text()) || 1);
 
     function carregarEventos(pagina = 1) {
-
-        $.ajax({
+        const sequencia = ++sequenciaEventos;
+        if (requisicaoEventos) requisicaoEventos.abort();
+        requisicaoEventos = $.ajax({
 
             url: "ajax/eventos-lista.php",
 
@@ -319,7 +322,8 @@ $(function () {
 
                 tipo: $("#tipo").val(),
 
-                status: $("#status").val()
+                status: $("#status").val(),
+                ano: $("#ano").val()
 
             },
 
@@ -338,8 +342,23 @@ $(function () {
             },
 
             success: function (html) {
-                $("#listatabela").html('');
+                if (sequencia !== sequenciaEventos) return;
+                $("#listatabela").empty().hide();
+                $("#paginacaoInicialEventos").hide();
                 $("#listaEventos").html(html);
+                const meta = $("#metaFiltroAnoEventos");
+                if (meta.length) {
+                    $("#eventosTotalFiltro").text(meta.attr('data-total'));
+                    $("#eventosPaginaFiltro").text(meta.attr('data-pagina'));
+                    $("#eventosRegistrosFiltro").text(meta.attr('data-registros'));
+                    $("#eventosPaginasFiltro").text(meta.attr('data-paginas'));
+                    if (window.history && window.history.replaceState) {
+                        const url = new URL(window.location.href);
+                        for (const campo of ['pesquisa', 'tipo', 'status', 'ano']) url.searchParams.set(campo, $('#' + campo).val() || '');
+                        url.searchParams.set('pagina', meta.attr('data-pagina'));
+                        window.history.replaceState(null, '', url.toString());
+                    }
+                }
 
             }
 
@@ -359,7 +378,8 @@ $(function () {
 
     });
 
-    $("#tipo,#status").on("change", function () {
+    $("#tipo,#status,#ano").on("change", function () {
+        clearTimeout(tempo);
 
         carregarEventos();
 

@@ -9,7 +9,9 @@ $evento = new Evento();
 
 $pesquisa = trim($_GET["pesquisa"] ?? "");
 $tipo = trim($_GET["tipo"] ?? "");
-$status = trim($_GET["status"] ?? "");
+$status = trim($_GET["status"] ?? "1");
+// RETIRO_FILTRO_ANO_EVENTOS_V1
+$ano = Evento::normalizarAnoFiltro($_GET['ano'] ?? null);
 
 $paginaAtual = max(1, (int) ($_GET["pagina"] ?? 1));
 $limite = 15;
@@ -21,12 +23,20 @@ $lista = $evento->listarPaginado(
     "data_inicio",
     "DESC",
     $paginaAtual,
-    $limite
+    $limite,
+    $ano
 );
 
 $eventos = $lista["dados"];
 $total = $lista["total"];
-$totalPaginas = max(1, ceil($total / $limite));
+$totalPaginas = max(1, (int) ceil($total / $limite));
+if ($paginaAtual > $totalPaginas) {
+    $paginaAtual = $totalPaginas;
+    $lista = $evento->listarPaginado($pesquisa, $tipo, $status, 'data_inicio', 'DESC', $paginaAtual, $limite, $ano);
+    $eventos = $lista['dados'];
+    $total = $lista['total'];
+    $totalPaginas = max(1, (int) ceil($total / $limite));
+}
 
 $cores = [
     "Retiro" => "primary",
@@ -40,6 +50,7 @@ $cores = [
 
 ?>
 
+<div id="metaFiltroAnoEventos" hidden data-total="<?= (int) $total ?>" data-pagina="<?= (int) $paginaAtual ?>" data-registros="<?= count($eventos) ?>" data-paginas="<?= (int) $totalPaginas ?>"></div>
 <div class="table-responsive">
 
     <table class="table table-hover align-middle mb-0">
