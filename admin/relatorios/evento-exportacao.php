@@ -285,6 +285,17 @@ require_once __DIR__
                             </button>
                         </div>
 
+                        <!-- RETIRO_AUT_COMP2_CARD_V1 -->
+                        <div class="col-md-6 col-xl-3">
+                            <button type="submit" name="modo" value="autorizacao_completa2_pdf"
+                                class="btn btn-outline-warning w-100 h-100 p-4 text-start">
+                                <i class="fa-solid fa-file-signature fs-3 d-block mb-3"></i>
+                                <strong class="d-block">PDF — Autorização completa 2</strong>
+                                <small>Texto completo com CPF dos responsáveis e participantes,
+                                    piscina e Wi-Fi. Duas autorizações por folha A4.</small>
+                            </button>
+                        </div>
+
                         <div class="col-md-6 col-xl-3">
                             <button
                                 type="submit"

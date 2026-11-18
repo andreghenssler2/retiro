@@ -68,4 +68,17 @@ try {
     $falhou = true;
     fwrite(STDERR, '[Retiro] Falha no resumo administrativo de pendencias: ' . $erro->getMessage() . PHP_EOL);
 }
+// RETIRO_PRAZO_MANUAL_ADMIN_V1
+try {
+    require_once dirname(__DIR__) . '/mod/services/PagamentosManuaisPrazoService.php';
+    $prazoManual = (new PagamentosManuaisPrazoService($db))->processar();
+    if (($prazoManual['enviados'] ?? 0) > 0 || ($prazoManual['falhas'] ?? 0) > 0) {
+        echo '[' . date('d/m/Y H:i:s') . '] Prazo de registro manual: '
+            . json_encode($prazoManual, JSON_UNESCAPED_UNICODE) . PHP_EOL;
+    }
+    if (($prazoManual['falhas'] ?? 0) > 0) { $falhou = true; }
+} catch (Throwable $erro) {
+    $falhou = true;
+    fwrite(STDERR, '[Retiro] Falha no aviso de prazo manual: ' . $erro->getMessage() . PHP_EOL);
+}
 exit($falhou ? 1 : 0);

@@ -107,6 +107,12 @@ final class RelatorioEventoExportacao
             ? "ida.responsavel_nome"
             : "NULL";
 
+        // RETIRO_AUT_COMP2_SELECT_V1
+        $responsavelCpfSql = $this->possuiColuna(
+            "inscricao_dados_adicionais",
+            "responsavel_cpf"
+        ) ? "ida.responsavel_cpf" : "NULL";
+
         $responsavelTelefone1Sql = $this->possuiColuna(
             "inscricao_dados_adicionais",
             "responsavel_telefone_1"
@@ -216,6 +222,7 @@ final class RelatorioEventoExportacao
                 ida.restricao_alimentar,
                 ida.alimentar_detalhes,
                 {$responsavelNomeSql} AS responsavel_nome,
+                {$responsavelCpfSql} AS responsavel_cpf, /* RETIRO_AUT_COMP2_SELECT_CAMPO_V1 */
                 {$responsavelTelefone1Sql} AS responsavel_telefone_1,
                 {$responsavelTelefone2Sql} AS responsavel_telefone_2,
                 {$responsavelAutorizacaoTextoSql} AS responsavel_autorizacao_texto,

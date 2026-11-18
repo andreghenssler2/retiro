@@ -723,6 +723,15 @@ $dataInicioEvento = substr((string) ($evento['data_inicio'] ?? ''), 0, 10);
                                     id="responsavel_nome" name="responsavel_nome" maxlength="160"
                                     autocomplete="name" disabled>
                             </div>
+                            <!-- RETIRO_AUT_COMP2_FORM_V1 -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="responsavel_cpf">
+                                    CPF do pai, mãe ou responsável <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="responsavel_cpf"
+                                    name="responsavel_cpf" inputmode="numeric" maxlength="14"
+                                    autocomplete="off" placeholder="000.000.000-00" disabled>
+                            </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold" for="responsavel_telefone_1">
                                     Telefone / WhatsApp 1 <span class="text-danger">*</span>

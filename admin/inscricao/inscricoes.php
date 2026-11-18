@@ -31,6 +31,9 @@ $pagamento = trim($_GET["pagamento"] ?? "");
 $paginaAtual = max(1, (int) ($_GET["pagina"] ?? 1));
 
 $limite = 15;
+// RETIRO_FILTRO_ANO_INSCRICOES_V1
+$ano = Inscricao::normalizarAnoInscricoes($_GET['ano'] ?? null);
+$anoAtual = Inscricao::normalizarAnoInscricoes(null);
 
 /*
 |--------------------------------------------------------------------------
@@ -38,19 +41,23 @@ $limite = 15;
 |--------------------------------------------------------------------------
 */
 
-$totalInscricoes = count($inscricao->listar());
-
-$totalConfirmadas = count($inscricao->listarConfirmadas());
-
-$totalPendentes = count($inscricao->listarPendentes());
-
-$totalPagas = count($inscricao->listarPagas());
+// Os indicadores são carregados pelo mesmo AJAX da listagem.
+$totalInscricoes = $totalConfirmadas = $totalPendentes = $totalPagas = '—';
 
 $cancelamentoService = new SolicitacaoCancelamentoInscricao($db);
 
 $totalCancelamentosPendentes = $cancelamentoService->contarPendentes();
 
-$listaEventos = $evento->listar();
+$listaEventos = $evento->listarAtivos();
+$anosFiltro = [$anoAtual];
+if ($ano !== null) $anosFiltro[] = $ano;
+foreach ($listaEventos as $e) {
+    $data = (string) ($e['data_inicio'] ?? '');
+    $anoEvento = (int) substr($data, 0, 4);
+    if (preg_match('/^\d{4}-\d{2}-\d{2}/', $data) && $anoEvento >= 1000 && $anoEvento <= 9998) $anosFiltro[] = $anoEvento;
+}
+$anosFiltro = array_values(array_unique($anosFiltro));
+rsort($anosFiltro, SORT_NUMERIC);
 
 
 require_once "../includes/header.php";
@@ -78,7 +85,7 @@ require_once "../includes/sidebar.php";
 
                     <h2 class="mb-0">
 
-                        <?= $totalInscricoes ?>
+                        <span id="inscricoesTotalFiltro"><?= $totalInscricoes ?></span>
 
                     </h2>
 
@@ -102,7 +109,7 @@ require_once "../includes/sidebar.php";
 
                     <h2 class="text-success mb-0">
 
-                        <?= $totalConfirmadas ?>
+                        <span id="inscricoesConfirmadasFiltro"><?= $totalConfirmadas ?></span>
 
                     </h2>
 
@@ -126,7 +133,7 @@ require_once "../includes/sidebar.php";
 
                     <h2 class="text-warning mb-0">
 
-                        <?= $totalPendentes ?>
+                        <span id="inscricoesPendentesFiltro"><?= $totalPendentes ?></span>
 
                     </h2>
 
@@ -150,7 +157,7 @@ require_once "../includes/sidebar.php";
 
                     <h2 class="text-primary mb-0">
 
-                        <?= $totalPagas ?>
+                        <span id="inscricoesPagasFiltro"><?= $totalPagas ?></span>
 
                     </h2>
 
@@ -213,11 +220,12 @@ require_once "../includes/sidebar.php";
                 A inscrição relaciona um usuário a um evento. Quando o evento exige pagamento, ela permanece pendente até a confirmação do recebimento no módulo financeiro. O certificado fica disponível depois da confirmação da presença.
             </div>
 
+            <p class="text-muted small mb-2">Somente inscrições de eventos ativos. O ano corresponde à data de início do evento.</p>
             <form id="formFiltroInscricoes">
 
                 <div class="row">
 
-                    <div class="col-md-4 mb-3">
+                    <div class="col-lg-3 col-md-6 mb-3">
 
                         <label>
 
@@ -230,7 +238,17 @@ require_once "../includes/sidebar.php";
 
                     </div>
 
-                    <div class="col-md-3 mb-3">
+                    <div class="col-lg-2 col-md-6 mb-3">
+                        <label for="ano">Ano</label>
+                        <select id="ano" name="ano" class="form-select">
+                            <option value="" <?= $ano === null ? 'selected' : '' ?>>Todos os anos</option>
+                            <?php foreach ($anosFiltro as $anoOpcao): ?>
+                                <option value="<?= (int) $anoOpcao ?>" <?= $ano === $anoOpcao ? 'selected' : '' ?>><?= (int) $anoOpcao ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6 mb-3">
 
                         <label>
 
@@ -248,7 +266,7 @@ require_once "../includes/sidebar.php";
 
                             <?php foreach ($listaEventos as $e): ?>
 
-                                <option value="<?= $e["idEvento"] ?>" <?= $idEvento == $e["idEvento"] ? 'selected' : '' ?>>
+                                <option value="<?= (int) $e["idEvento"] ?>" data-ano="<?= (int) substr((string) ($e["data_inicio"] ?? ""), 0, 4) ?>" <?= $idEvento == $e["idEvento"] ? 'selected' : '' ?>>
 
                                     <?= htmlspecialchars((string) $e["titulo"], ENT_QUOTES, "UTF-8") ?>
 
@@ -260,7 +278,7 @@ require_once "../includes/sidebar.php";
 
                     </div>
 
-                    <div class="col-md-2 mb-3">
+                    <div class="col-lg-2 col-md-6 mb-3">
 
                         <label>
 
@@ -272,17 +290,17 @@ require_once "../includes/sidebar.php";
 
                             <option value="">Todos</option>
 
-                            <option value="Pendente">Pendente</option>
+                            <option value="Pendente" <?= $status === "Pendente" ? "selected" : "" ?>>Pendente</option>
 
-                            <option value="Confirmada">Confirmada</option>
+                            <option value="Confirmada" <?= $status === "Confirmada" ? "selected" : "" ?>>Confirmada</option>
 
-                            <option value="Cancelada">Cancelada</option>
+                            <option value="Cancelada" <?= $status === "Cancelada" ? "selected" : "" ?>>Cancelada</option>
 
                         </select>
 
                     </div>
 
-                    <div class="col-md-3 mb-3">
+                    <div class="col-lg-2 col-md-6 mb-3">
 
                         <label>
 
@@ -294,12 +312,12 @@ require_once "../includes/sidebar.php";
 
                             <option value="">Todos</option>
 
-                            <option value="Pendente">Pendente</option>
+                            <option value="Pendente" <?= $pagamento === "Pendente" ? "selected" : "" ?>>Pendente</option>
 
-                            <option value="Pago">Pago</option>
+                            <option value="Pago" <?= $pagamento === "Pago" ? "selected" : "" ?>>Pago</option>
 
-                            <option value="Cancelado">Cancelado</option>
-                            <option value="Estornado">Estornado</option>
+                            <option value="Cancelado" <?= $pagamento === "Cancelado" ? "selected" : "" ?>>Cancelado</option>
+                            <option value="Estornado" <?= $pagamento === "Estornado" ? "selected" : "" ?>>Estornado</option>
 
                         </select>
 
@@ -351,7 +369,7 @@ require_once "../includes/sidebar.php";
 </div>
 <?php
 $pageScripts = [
-    THEME_JS . "admin/inscricao/inscricoes.js?v=" . VERSION
+    THEME_JS . "admin/inscricao/inscricoes.js?v=" . VERSION . "-filtro-ano1"
 ];
 require_once "../includes/footer.php";
 ?>

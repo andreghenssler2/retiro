@@ -32,6 +32,14 @@ class AsaasPagamentoService
 
     public function gerarOuRecuperarCobranca(int $idPagamento, string $forma): array
     {
+        // RETIRO_MEIO_SEGURO_GERAR_V1
+        require_once __DIR__ . '/PagamentoMeioSeguro.php';
+        return PagamentoMeioSeguro::comLock($this->db, $idPagamento,
+            fn(): array => $this->gerarOuRecuperarCobrancaMeioSeguro($idPagamento, $forma));
+    }
+
+    private function gerarOuRecuperarCobrancaMeioSeguro(int $idPagamento, string $forma): array
+    {
         if (!in_array($forma, self::FORMAS_INTEGRADAS, true)) {
             throw new InvalidArgumentException("A forma escolhida não utiliza a integração com o Asaas.");
         }
@@ -41,6 +49,9 @@ class AsaasPagamentoService
         if (!$pagamento) {
             throw new RuntimeException("Pagamento não encontrado.");
         }
+
+        // RETIRO_MEIO_SEGURO_GUARDA_GERAR_V1
+        PagamentoMeioSeguro::validarOnline($pagamento);
 
         if ((int) ($pagamento["idInscricao"] ?? 0) <= 0) {
             throw new RuntimeException("O pagamento não está relacionado a uma inscrição.");
@@ -475,11 +486,22 @@ class AsaasPagamentoService
 
     public function sincronizarCobranca(int $idPagamento): array
     {
+        // RETIRO_MEIO_SEGURO_SINCRONIZAR_V1
+        require_once __DIR__ . '/PagamentoMeioSeguro.php';
+        return PagamentoMeioSeguro::comLock($this->db, $idPagamento,
+            fn(): array => $this->sincronizarCobrancaMeioSeguro($idPagamento));
+    }
+
+    private function sincronizarCobrancaMeioSeguro(int $idPagamento): array
+    {
         $pagamento = $this->pagamentos->buscar($idPagamento);
 
         if (!$pagamento) {
             throw new RuntimeException("Pagamento não encontrado.");
         }
+
+        // RETIRO_MEIO_SEGURO_GUARDA_SINCRONIZAR_V1
+        PagamentoMeioSeguro::validarOnline($pagamento);
 
         $idAsaas = trim((string) ($pagamento["asaasPaymentId"] ?? ""));
 

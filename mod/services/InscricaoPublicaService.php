@@ -918,6 +918,7 @@ class InscricaoPublicaService
         // O cliente nunca determina se o participante é menor de idade.
         $ehMenor = self::ehMenorNoEvento($dataNascimento, $evento);
         $responsavelNome = null;
+        $responsavelCpf = null; // RETIRO_AUT_COMP2_SERVICE_DEF_V1
         $responsavelTelefone1 = null;
         $responsavelTelefone2 = null;
         $responsavelAutorizacaoTexto = null;
@@ -925,6 +926,7 @@ class InscricaoPublicaService
 
         if ($ehMenor) {
             $responsavelNome = trim((string) ($dados['responsavel_nome'] ?? ''));
+            $responsavelCpf = Usuario::normalizarCpf((string) ($dados['responsavel_cpf'] ?? '')); // RETIRO_AUT_COMP2_SERVICE_LER_V1
             $responsavelTelefone1 = preg_replace(
                 '/\D+/', '', (string) ($dados['responsavel_telefone_1'] ?? '')
             ) ?? '';
@@ -935,6 +937,10 @@ class InscricaoPublicaService
 
             if ($responsavelNome === '' || mb_strlen($responsavelNome, 'UTF-8') > 160) {
                 throw new InvalidArgumentException('Informe o nome completo do responsável.');
+            }
+            // RETIRO_AUT_COMP2_SERVICE_VAL_V1
+            if (!Usuario::cpfValido((string) $responsavelCpf)) {
+                throw new InvalidArgumentException('Informe um CPF válido do pai, mãe ou responsável.');
             }
             if (!in_array(strlen($responsavelTelefone1), [10, 11], true)) {
                 throw new InvalidArgumentException(
@@ -1484,6 +1490,7 @@ class InscricaoPublicaService
                     "alimentar_detalhes" =>
                         $alimentarDetalhes,
                     "responsavel_nome" => $responsavelNome,
+                    "responsavel_cpf" => $responsavelCpf, // RETIRO_AUT_COMP2_SERVICE_MAP_V1
                     "responsavel_telefone_1" => $responsavelTelefone1,
                     "responsavel_telefone_2" => $responsavelTelefone2,
                     "responsavel_autorizacao_texto" => $responsavelAutorizacaoTexto,
@@ -1595,6 +1602,12 @@ class InscricaoPublicaService
             $pagamentoAtual = $pagamentoModel->buscar($idPagamento);
             if (!$pagamentoAtual) {
                 throw new RuntimeException("Pagamento da inscrição não encontrado.");
+            }
+            // RETIRO_MEIO_SEGURO_PUBLICO_V1
+            require_once __DIR__ . '/PagamentoMeioSeguro.php';
+            PagamentoMeioSeguro::validarManual($pagamentoAtual, 'Dinheiro');
+            if (!in_array((string) ($pagamentoAtual['status'] ?? ''), ['Pendente', 'Pago'], true)) {
+                throw new RuntimeException('O pagamento não está pendente. Consulte o financeiro.');
             }
             if ((string) $pagamentoAtual["status"] !== "Pago") {
                 $pagamentoModel->atualizarRecebimento($idPagamento, [
@@ -2282,6 +2295,7 @@ class InscricaoPublicaService
                     restricao_alimentar,
                     alimentar_detalhes,
                     responsavel_nome,
+                    responsavel_cpf, /* RETIRO_AUT_COMP2_SERVICE_INSERT_COL_V1 */
                     responsavel_telefone_1,
                     responsavel_telefone_2,
                     responsavel_autorizacao_texto,
@@ -2310,6 +2324,7 @@ class InscricaoPublicaService
                 :restricao_alimentar,
                 :alimentar_detalhes,
                 :responsavel_nome,
+                :responsavel_cpf, /* RETIRO_AUT_COMP2_SERVICE_INSERT_BIND_V1 */
                 :responsavel_telefone_1,
                 :responsavel_telefone_2,
                 :responsavel_autorizacao_texto,
@@ -2354,6 +2369,7 @@ class InscricaoPublicaService
                 alimentar_detalhes =
                     VALUES(alimentar_detalhes),
                 responsavel_nome = VALUES(responsavel_nome),
+                responsavel_cpf = VALUES(responsavel_cpf), /* RETIRO_AUT_COMP2_SERVICE_UPDATE_V1 */
                 responsavel_telefone_1 = VALUES(responsavel_telefone_1),
                 responsavel_telefone_2 = VALUES(responsavel_telefone_2),
                 responsavel_autorizacao_texto = VALUES(responsavel_autorizacao_texto),
@@ -2477,6 +2493,7 @@ class InscricaoPublicaService
                     ]
                     : null,
             ':responsavel_nome' => $dados['responsavel_nome'] ?? null,
+            ':responsavel_cpf' => $dados['responsavel_cpf'] ?? null, // RETIRO_AUT_COMP2_SERVICE_PARAM_V1
             ':responsavel_telefone_1' => $dados['responsavel_telefone_1'] ?? null,
             ':responsavel_telefone_2' => $dados['responsavel_telefone_2'] ?? null,
             ':responsavel_autorizacao_texto' => $dados['responsavel_autorizacao_texto'] ?? null,

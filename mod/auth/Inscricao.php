@@ -72,6 +72,16 @@ class Inscricao
         )["dados"];
     }
 
+    // RETIRO_FILTRO_ANO_INSCRICOES_V1
+    public static function normalizarAnoInscricoes(mixed $entrada): ?int
+    {
+        if ($entrada === '') return null; // todos os anos, sempre eventos ativos nesta tela
+        $atual = (int) (new DateTimeImmutable('now', new DateTimeZone('America/Sao_Paulo')))->format('Y');
+        if (!is_string($entrada) && !is_int($entrada)) return $atual;
+        $ano = (string) $entrada;
+        return preg_match('/^[0-9]{4}$/D', $ano) && (int) $ano >= 1000 && (int) $ano <= 9998 ? (int) $ano : $atual;
+    }
+
     public function listarPaginado(
         string $pesquisa = "",
         int $evento = 0,
@@ -80,7 +90,9 @@ class Inscricao
         string $ordem = "criado_em",
         string $direcao = "DESC",
         int $pagina = 1,
-        int $limite = 20
+        int $limite = 20,
+        ?int $anoEvento = null,
+        bool $somenteEventosAtivos = false
     ): array {
         $pagina = max(1, $pagina);
         $limite = max(1, min(100000, $limite));
@@ -142,6 +154,16 @@ class Inscricao
             $params[":pagamento"] = $pagamento;
         }
 
+        if ($somenteEventosAtivos) {
+            $where[] = "e.ativo = 1";
+        }
+        if ($anoEvento !== null) {
+            if ($anoEvento < 1000 || $anoEvento > 9998) throw new InvalidArgumentException('Ano inválido.');
+            $where[] = "e.data_inicio >= :inicioAnoEvento AND e.data_inicio < :fimAnoEvento";
+            $params[":inicioAnoEvento"] = sprintf('%04d-01-01', $anoEvento);
+            $params[":fimAnoEvento"] = sprintf('%04d-01-01', $anoEvento + 1);
+        }
+
         $sqlWhere = $where
             ? " WHERE " . implode(" AND ", $where)
             : "";
@@ -159,6 +181,18 @@ class Inscricao
         );
         $stmtTotal->execute($params);
         $total = (int) $stmtTotal->fetchColumn();
+        $resumoFiltro = null;
+        if ($somenteEventosAtivos) {
+            $stmtResumo = $this->db->prepare("
+                SELECT
+                    COALESCE(SUM(CASE WHEN i.status = 'Confirmada' THEN 1 ELSE 0 END), 0) AS confirmadas,
+                    COALESCE(SUM(CASE WHEN i.status = 'Pendente' THEN 1 ELSE 0 END), 0) AS pendentes,
+                    COALESCE(SUM(CASE WHEN i.pagamento = 'Pago' THEN 1 ELSE 0 END), 0) AS pagas
+                {$sqlBase} {$sqlWhere}
+            ");
+            $stmtResumo->execute($params);
+            $resumoFiltro = $stmtResumo->fetch(PDO::FETCH_ASSOC) ?: [];
+        }
 
         $sql = "
             SELECT
@@ -195,7 +229,7 @@ class Inscricao
         return [
             "dados" => $stmt->fetchAll(PDO::FETCH_ASSOC),
             "total" => $total
-        ];
+        ] + ($resumoFiltro === null ? [] : ["resumo_filtro" => $resumoFiltro]);
     }
 
     /**

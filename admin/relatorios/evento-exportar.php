@@ -29,6 +29,7 @@ $modos = [
     "lista_pdf",
     "fichas_pdf",
     "autorizacao_pdf",
+    "autorizacao_completa2_pdf", // RETIRO_AUT_COMP2_MODO_V1
     "xlsx",
     "saude_pdf",
     "passageiros_pdf"
@@ -312,6 +313,31 @@ $inscricoesAutorizacao = array_values(
     )
 );
 
+// RETIRO_AUT_COMP2_EXPORT_V1
+if ($modo === "autorizacao_completa2_pdf") {
+    require_once __DIR__ . "/../../mod/services/AutorizacaoCompleta2Pdf.php";
+    $htmlCompleta2 = AutorizacaoCompleta2Pdf::html($evento, $inscricoesAutorizacao);
+    $opcoes = new \Dompdf\Options();
+    $opcoes->set('isRemoteEnabled', false);
+    $opcoes->set('isHtml5ParserEnabled', true);
+    $opcoes->set('defaultFont', 'DejaVu Sans');
+    $pdfCompleta2 = new \Dompdf\Dompdf($opcoes);
+    $pdfCompleta2->loadHtml($htmlCompleta2, 'UTF-8');
+    $pdfCompleta2->setPaper('A4', 'portrait');
+    $pdfCompleta2->render();
+    $esperadas = max(1, (int) ceil(count($inscricoesAutorizacao) / 2));
+    if ($pdfCompleta2->getCanvas()->get_page_count() !== $esperadas) {
+        error_log('[Retiro] Autorização completa 2 excedeu duas por folha: evento #' . $idEvento);
+        if (ob_get_length()) { ob_end_clean(); }
+        http_response_code(422);
+        echo 'A autorização excedeu o espaço de duas por folha. Revise dados muito extensos do evento.';
+        exit;
+    }
+    if (ob_get_length()) { ob_end_clean(); }
+    $pdfCompleta2->stream($nomeBase . '-autorizacao-completa-2.pdf', ['Attachment' => true]);
+    exit;
+}
+
 ob_start();
 ?>
 <!doctype html>
@@ -570,11 +596,11 @@ ob_start();
         }
 
         /* A4 vertical: 297mm - 20mm de margens = 277mm úteis.
-           Dois termos de 131mm e linha de corte de 8mm ocupam 270mm. */
+           Dompdf soma o padding e as bordas à altura: dois termos de 119mm + padding/bordas e corte cabem em 277mm úteis. */
         .termo {
             border: 1px solid #d1d5db;
             padding: 6mm;
-            height: 131mm;
+            height: 119mm; /* RET_AUTORIZACAO_2_POR_FOLHA_V1 */
             page-break-inside: avoid;
         }
 

@@ -1,58 +1,30 @@
-SISTEMA RETIRO - PERFIL MODERADOR - ATUALIZACAO PARA TESTAR NO XAMPP
+RETIR0 — PDF — Autorização completa 2
+===================================
 
-PERMISSOES DO MODERADOR (tipo=2)
-- Ver lista e detalhes dos eventos, SEM criar, editar, excluir ou ativar/desativar.
-- Cadastrar novo USUARIO PARTICIPANTE (tipo=3), sem editar usuários existentes,
-  excluir usuários ou criar admins/moderadores.
-- Consultar inscrições e criar INSCRICOES MANUAIS; sem editar/excluir anteriores.
-- Ver e registrar PRESENCA no Credenciamento.
-- Ver relatorios financeiros e exportar PDF.
-- Consultar pagamentos, confirmar recebimentos MANUAIS pendentes (dinheiro/
-  transferencia) e sincronizar PIX/BOLETO/CARTAO com Asaas.
-- Acessar TODOS os relatorios de admin/relatorios/ e exportacoes, incluindo
-  relatorios de eventos ja instalados no ambiente.
+1. Extraia o ZIP na raiz do Retiro, onde está config/settings.php.
+2. Prévia sem alterar nada:
+   php aplicar_alteracao_autorizacao_completa2.php --verificar
+3. Aplicar:
+   php aplicar_alteracao_autorizacao_completa2.php
+4. Na página admin/relatorios/evento-exportacao.php, escolha um evento e
+   clique em "PDF — Autorização completa 2".
 
-PROTECOES
-- Todas as rotas administrativas passam por um controle central no PHP,
-  com permissao por rota e metodo. Negacao por padrao para Moderador.
-- A edicao de um usuario via POST e a elevacao do tipo para Administrador
-  ou Moderador sao bloqueadas no servidor.
-- Apenas confirmacao "Pago" em recebimentos MANUAIS pendentes é permitida.
-- PIX/Boleto/Cartao nao podem ser forçados a Pago manualmente: consultar
-  Asaas pela sincronizacao da cobranca.
-- Configuracoes, exclusoes, estornos, cancelamentos e certificados continuam
-  restritos ao Administrador.
+Novo relatório: duas autorizações por A4, com dados reais do evento, CPF do
+participante e do responsável, atividades, brincadeiras, piscina, orientação
+ao pastor e Wi-Fi. Mantém o modelo presencial antigo sem alterações.
 
-INSTALACAO NO XAMPP (RECOMENDADO TESTAR ANTES DE PRODUCAO)
-1. Faca backup completo do codigo e do banco de TESTES do XAMPP.
-2. Se o sistema estiver em C:\xampp\htdocs\retiro, abra o destino
-   C:\xampp\htdocs\retiro. Se estiver direto em C:\xampp\htdocs, use esse.
-3. Extraia o ZIP preservando os caminhos. Se preferir instalacao assistida,
-   rode o script INSTALAR-TESTE-XAMPP.ps1 conforme abaixo.
-4. No PowerShell, confira o teste:
-   C:\xampp\php\php.exe tools\testar_acessos_moderador.php
-5. Inicie Apache e MySQL, entre com o perfil tipo=2 e teste:
-   a) lista de eventos apenas visualizacao
-   b) cadastro de participante e inscricao manual
-   c) credenciamento de presenca
-   d) financeiro e exportacao de relatorios
-   e) recebimento em dinheiro pendente => Pago
-   f) PIX/Boleto/Cartao => somente sincronizar Asaas
-   g) editar evento, excluir usuario, estornar, configurações => acesso negado.
+O CPF do responsável não existia na base anterior: o instalador acrescenta
+uma coluna opcional responsavel_cpf. No cadastro público de menores de 18
+anos, a informação passa a ser obrigatória e validada. Para registros antigos
+sem CPF do responsável, o PDF deixa um espaço em branco, sem inventar dado.
 
-INSTALACAO AUTOMATIZADA OPCIONAL (XAMPP)
-No PowerShell, a partir da pasta onde o ZIP foi extraido:
-  powershell -ExecutionPolicy Bypass -File .\INSTALAR-TESTE-XAMPP.ps1 -Destino 'C:\xampp\htdocs\retiro'
-Se sua instalacao esta na raiz de htdocs, altere -Destino para 'C:\xampp\htdocs'.
-O script cria BACKUP PRIVADO dos arquivos antigos no seu TEMP do Windows.
+Para completar uma inscrição histórica, no terminal (entrada interativa):
+   php tools/preencher_cpf_responsavel.php --inscricao=123
+   php tools/preencher_cpf_responsavel.php --inscricao=123 --gravar
+Não informe CPF por parâmetro de linha de comando (pode ficar no histórico).
 
-IMPORTANTE
-- Aplique primeiro no XAMPP. NAO copie toda a pasta do ZIP como um subdiretorio.
-- O pacote altera somente 18 arquivos existentes/novos. NAO mexe em banco,
-  SMTP, chaves Asaas, migrations, pagamentos ja feitos ou cron.
-- Se o seu sistema de producao tiver alteracoes mais recentes nestes arquivos,
-  compare antes de sobrescrever e faca backup.
-- O teste CLI verifica ACL; ainda e necessario testar paginas com usuario real.
-- Teste cadastro e pagamento manual somente em banco de TESTES.
-- Para subir em producao, envie os caminhos correspondentes apos aprovacao
-  no XAMPP; nao leve a base de dados de testes para producao.
+IMPORTANTE: Faça backup do banco antes da instalação em produção. O instalador
+faz backup dos arquivos em uma pasta acima do Retiro e aplica apenas uma
+coluna opcional, sem alterar pagamentos, inscritos ou consentimentos.
+A autorização é para assinatura física; não simula consentimento eletrônico.
+Teste o PDF no XAMPP/produção com Dompdf instalado, inclusive com nomes longos.

@@ -203,6 +203,12 @@ class EmailNotificacaoService
             return false;
         }
 
+        // RETIRO_SEM_VENCIDO_MANUAL_DIRETO_V1
+        // Prazo administrativo não é vencimento do pagamento do participante.
+        if ($status === "Vencido" && in_array((string) ($pagamento["formaPagamento"] ?? ""), ["Dinheiro", "Transferencia"], true)) {
+            return true; // Aviso suprimido deliberadamente; nenhum e-mail enviado.
+        }
+
         $ultimoStatus = trim(
             (string) (
                 $pagamento["email_status_notificado"]
@@ -595,6 +601,8 @@ class EmailNotificacaoService
                 ON u.id = i.idUsuario
             WHERE p.idInscricao IS NOT NULL
               AND p.status IN ({$statusSql})
+              /* RETIRO_SEM_VENCIDO_MANUAL_LOTE_V1 */
+              AND NOT (p.status = 'Vencido' AND p.formaPagamento IN ('Dinheiro', 'Transferencia'))
               AND (
                     p.email_status_notificado IS NULL
                     OR p.email_status_notificado <> p.status

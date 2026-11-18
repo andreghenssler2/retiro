@@ -9,6 +9,22 @@ $(function () {
 
     let paginaAtual = 1;
     let temporizador = null;
+    // RETIRO_FILTRO_ANO_INSCRICOES_V1
+    let requisicaoInscricoes = null;
+    let seqInscricoes = 0;
+    const opcoesEventos = $('#evento option').clone();
+    function filtrarOpcoesEventos() {
+        const ano = String($('#ano').val() || '');
+        const selecionado = String($('#evento').val() || '0');
+        const select = $('#evento').empty();
+        opcoesEventos.each(function () {
+            if (this.value === '0' || ano === '' || String($(this).attr('data-ano')) === ano) {
+                select.append($(this).clone());
+            }
+        });
+        select.val(selecionado);
+        if (select.val() === null) select.val('0');
+    }
 
     function alertar(tipo, titulo, mensagem) {
         if (typeof Swal !== "undefined") {
@@ -26,6 +42,8 @@ $(function () {
 
     function carregarInscricoes(pagina = 1) {
         paginaAtual = Math.max(1, Number.parseInt(pagina, 10) || 1);
+        const seq = ++seqInscricoes;
+        if (requisicaoInscricoes) requisicaoInscricoes.abort();
 
         $("#listaInscricoes").html(`
             <div class="text-center p-5">
@@ -34,7 +52,7 @@ $(function () {
             </div>
         `);
 
-        $.ajax({
+        requisicaoInscricoes = $.ajax({
             url: "ajax/inscricoes-lista.php",
             type: "GET",
             cache: false,
@@ -43,12 +61,30 @@ $(function () {
                 pagina: paginaAtual,
                 pesquisa: String($("#pesquisa").val() || "").trim(),
                 evento: Number.parseInt($("#evento").val(), 10) || 0,
+                ano: String($("#ano").val() || ""),
                 status: String($("#status").val() || ""),
                 pagamento: String($("#pagamento").val() || "")
             }
         }).done(function (html) {
+            if (seq !== seqInscricoes) return;
             $("#listaInscricoes").html(html);
-        }).fail(function () {
+            const meta = $('#metaFiltroInscricoes');
+            const campos = { total: 'inscricoesTotalFiltro', confirmadas: 'inscricoesConfirmadasFiltro', pendentes: 'inscricoesPendentesFiltro', pagas: 'inscricoesPagasFiltro' };
+            Object.keys(campos).forEach(function (chave) {
+                $('#' + campos[chave]).text(meta.attr('data-' + chave) ?? '—');
+            });
+            if (meta.length) {
+                paginaAtual = Number(meta.attr('data-pagina')) || 1;
+                if (window.history && window.history.replaceState) {
+                    const url = new URL(window.location.href);
+                    ['ano', 'evento', 'pesquisa', 'status', 'pagamento'].forEach(function (campo) { url.searchParams.set(campo, $('#' + campo).val() || ''); });
+                    url.searchParams.set('pagina', String(paginaAtual));
+                    window.history.replaceState(null, '', url.toString());
+                }
+            }
+        }).fail(function (xhr, estado) {
+            if (seq !== seqInscricoes || estado === 'abort') return;
+            $('#inscricoesTotalFiltro, #inscricoesConfirmadasFiltro, #inscricoesPendentesFiltro, #inscricoesPagasFiltro').text('—');
             $("#listaInscricoes").html(`
                 <div class="alert alert-danger m-3">
                     Não foi possível carregar as inscrições.
@@ -93,7 +129,18 @@ $(function () {
         }, 400);
     });
 
+    $('#ano').on('change', function () {
+        clearTimeout(temporizador);
+        filtrarOpcoesEventos();
+        carregarInscricoes(1);
+    });
     $("#evento, #status, #pagamento").on("change", function () {
+        clearTimeout(temporizador);
+        carregarInscricoes(1);
+    });
+    $('#formFiltroInscricoes').on('submit', function (e) {
+        e.preventDefault();
+        clearTimeout(temporizador);
         carregarInscricoes(1);
     });
 
@@ -259,5 +306,6 @@ $(function () {
         $("#modalConteudo").empty();
     });
 
-    carregarInscricoes(1);
+    filtrarOpcoesEventos();
+    carregarInscricoes(Number(new URL(window.location.href).searchParams.get('pagina')) || 1);
 });

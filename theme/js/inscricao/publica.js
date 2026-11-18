@@ -513,6 +513,7 @@
     const responsavelArea = document.getElementById('responsavelArea');
     const responsavelCampos = [
         form.elements.responsavel_nome,
+        form.elements.responsavel_cpf, // RETIRO_AUT_COMP2_JS_CAMPO_V1
         form.elements.responsavel_telefone_1,
         form.elements.responsavel_telefone_2,
         form.elements.responsavel_autorizacao
@@ -540,6 +541,7 @@
             campo.disabled = !menor;
             campo.required = menor && (
                 campo.name === 'responsavel_nome' ||
+                campo.name === 'responsavel_cpf' || // RETIRO_AUT_COMP2_JS_REQUIRED_V1
                 campo.name === 'responsavel_telefone_1' ||
                 campo.name === 'responsavel_autorizacao'
             );
@@ -553,6 +555,10 @@
 
     dataNascimentoInput?.addEventListener('input', atualizarResponsavel);
     dataNascimentoInput?.addEventListener('change', atualizarResponsavel);
+    // RETIRO_AUT_COMP2_JS_MASK_V1
+    form.elements.responsavel_cpf?.addEventListener('input', (e) => {
+        e.target.value = formatCpf(e.target.value);
+    });
 
     for (const nome of ['responsavel_telefone_1', 'responsavel_telefone_2']) {
         form.elements[nome]?.addEventListener('input', (event) => {

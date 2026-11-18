@@ -379,6 +379,16 @@ $existente = $this->buscarPorInscricao($idInscricao);
         int $idPagamento,
         array $dados
     ): bool {
+        // RETIRO_MEIO_SEGURO_RECEBIMENTO_V1
+        require_once __DIR__ . '/../services/PagamentoMeioSeguro.php';
+        return PagamentoMeioSeguro::comLock($this->db, $idPagamento,
+            fn(): bool => $this->atualizarRecebimentoComMeioSeguro($idPagamento, $dados));
+    }
+
+    private function atualizarRecebimentoComMeioSeguro(
+        int $idPagamento,
+        array $dados
+    ): bool {
         $pagamentoAtual = $this->buscar($idPagamento);
 
         if (!$pagamentoAtual) {
@@ -394,6 +404,13 @@ $existente = $this->buscarPorInscricao($idInscricao);
 
         $this->validarStatus($status);
         $this->validarFormaPagamento($forma);
+
+        // RETIRO_MEIO_SEGURO_VALIDAR_MANUAL_V1
+        PagamentoMeioSeguro::validarManual($pagamentoAtual, $forma);
+        if (!PagamentoMeioSeguro::manual($forma)
+            && PagamentoMeioSeguro::manual((string) ($pagamentoAtual['formaPagamento'] ?? ''))) {
+            throw new RuntimeException('O pagamento manual não pode ser convertido em cobrança online.');
+        }
 
         $dataPagamento = $this->normalizarDataHora(
             $dados["dataPagamento"] ?? $pagamentoAtual["dataPagamento"] ?? null
@@ -797,6 +814,9 @@ $stmt = $this->db->prepare("
             throw new RuntimeException("Pagamento não encontrado.");
         }
 
+        // RETIRO_MEIO_SEGURO_PERSISTIR_ASAAS_V1
+        require_once __DIR__ . '/../services/PagamentoMeioSeguro.php';
+        PagamentoMeioSeguro::validarOnline($pagamentoAtual);
         $forma = trim((string) ($dados["formaPagamento"] ?? $pagamentoAtual["formaPagamento"] ?? "NaoDefinido"));
         $status = trim((string) ($dados["status"] ?? $pagamentoAtual["status"] ?? "Pendente"));
 
@@ -1132,10 +1152,25 @@ if ($this->possuiColuna("pagamentos", "valorCobrancaAsaas")) {
         ?string $dataPagamento = null,
         ?string $payload = null
     ): bool {
-        $pagamentoAtual = $this->buscarPorAsaasPaymentId($asaasPaymentId);
+        // RETIRO_MEIO_SEGURO_WEBHOOK_V1
+        require_once __DIR__ . '/../services/PagamentoMeioSeguro.php';
+        // O webhook chama este método dentro de uma transação. Releitura
+        // bloqueante evita aplicar status a um vínculo removido em paralelo.
+        if ($this->db->inTransaction()) {
+            $stmtMeio = $this->db->prepare("SELECT * FROM pagamentos WHERE asaasPaymentId = :id LIMIT 1 FOR UPDATE");
+            $stmtMeio->execute([":id" => $asaasPaymentId]);
+            $pagamentoAtual = $stmtMeio->fetch(PDO::FETCH_ASSOC) ?: null;
+        } else {
+            $pagamentoAtual = $this->buscarPorAsaasPaymentId($asaasPaymentId);
+        }
 
         if (!$pagamentoAtual) {
             return false;
+        }
+
+        if (PagamentoMeioSeguro::exclusaoConflitante($pagamentoAtual, $status, $asaasStatus, $payload)) {
+            error_log('Retiro: exclusão de cobrança conflitante; inscrição preservada. Pagamento #' . (int) $pagamentoAtual['idPagamento']);
+            return true;
         }
 
         $this->validarStatus($status);

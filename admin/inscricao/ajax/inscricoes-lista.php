@@ -8,6 +8,8 @@ Middleware::auth();
 
 $requisicaoAjax = strtolower((string) ($_SERVER["HTTP_X_REQUESTED_WITH"] ?? "")) === "xmlhttprequest";
 $requisicaoFragmento = (int) ($_GET["fragmento"] ?? 0) === 1;
+// RETIRO_FILTRO_ANO_INSCRICOES_V1
+$ano = Inscricao::normalizarAnoInscricoes($_GET['ano'] ?? null);
 
 /*
  * Este arquivo entrega somente o fragmento HTML usado pelo JavaScript.
@@ -18,6 +20,7 @@ if (!$requisicaoAjax && !$requisicaoFragmento) {
     $parametros = [
         "pesquisa" => trim((string) ($_GET["pesquisa"] ?? "")),
         "evento" => max(0, (int) ($_GET["evento"] ?? 0)),
+        "ano" => $ano === null ? '' : (string) $ano,
         "status" => trim((string) ($_GET["status"] ?? "")),
         "pagamento" => trim((string) ($_GET["pagamento"] ?? "")),
         "pagina" => max(1, (int) ($_GET["pagina"] ?? 1))
@@ -60,7 +63,9 @@ try {
         "criado_em",
         "DESC",
         $paginaAtual,
-        $limite
+        $limite,
+        $ano,
+        true
     );
 
     $dados = $lista["dados"];
@@ -77,7 +82,9 @@ try {
             "criado_em",
             "DESC",
             $paginaAtual,
-            $limite
+            $limite,
+            $ano,
+            true
         );
         $dados = $lista["dados"];
     }
@@ -118,6 +125,12 @@ function classePagamentoInscricao(string $status): string
 }
 ?>
 
+<div id="metaFiltroInscricoes" hidden
+    data-total="<?= (int) $total ?>"
+    data-confirmadas="<?= (int) ($lista['resumo_filtro']['confirmadas'] ?? 0) ?>"
+    data-pendentes="<?= (int) ($lista['resumo_filtro']['pendentes'] ?? 0) ?>"
+    data-pagas="<?= (int) ($lista['resumo_filtro']['pagas'] ?? 0) ?>"
+    data-pagina="<?= (int) $paginaAtual ?>"></div>
 <div class="table-responsive inscricoes-table-wrapper">
     <table class="table table-hover align-middle mb-0 inscricoes-table">
         <thead class="table-light">
