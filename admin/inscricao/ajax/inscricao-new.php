@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 require_once "../../../config/settings.php";
 
-Middleware::auth();
+Middleware::moderador();
+require_once __DIR__ . '/../../../mod/services/CadastroAssistidoRetiro.php';
 
 header("Content-Type: application/json; charset=utf-8");
 
@@ -68,6 +69,10 @@ $idEvento = (int) ($_POST["idEvento"] ?? 0);
 $idUsuario = (int) ($_POST["idUsuario"] ?? 0);
 $camiseta = trim((string) ($_POST["camiseta"] ?? ""));
 $observacoes = trim((string) ($_POST["observacoes"] ?? ""));
+$cadastroAssistido = (string) ($_POST['cadastro_assistido'] ?? '') === '1';
+if ($cadastroAssistido && $idInscricao !== 0) {
+    responderInscricao(false, 'O questionário assistido é exclusivo para novas inscrições.', [], 422);
+}
 
 if ($idEvento <= 0) {
     responderInscricao(false, "Selecione o evento.", [], 422);
@@ -158,21 +163,48 @@ try {
         }
     }
 
+    $respostasAssistidas = null;
+    $perfilInscricaoAssistida = null;
+    $visitanteAssistido = false;
+    if ($cadastroAssistido) {
+        $perfilInscricaoAssistida = $usuarioModel->buscar($idUsuario);
+        if (!$perfilInscricaoAssistida || (int) ($perfilInscricaoAssistida['tipo'] ?? 0) !== 3 || (int) ($perfilInscricaoAssistida['ativo'] ?? 0) !== 1) {
+            responderInscricao(false, 'Participante inválido ou inativo.', [], 422);
+        }
+        $svcAssistido = new InscricaoPublicaService($db);
+        // Mesma configuração completa, termos e camisetas do formulário público.
+        $evento = $svcAssistido->buscarEvento($idEvento);
+        $respostasAssistidas = CadastroAssistidoRetiro::respostas($_POST, $perfilInscricaoAssistida, $evento,
+            $svcAssistido->termos($idEvento), $svcAssistido->camisetas($idEvento));
+        $stmtComunidade = $db->prepare('SELECT nome_comunidade FROM minha_comunidade WHERE id = ?');
+        $stmtComunidade->execute([(int) ($perfilInscricaoAssistida['idComunidade'] ?? 0)]);
+        $nomeComunidade = $stmtComunidade->fetchColumn();
+        if ($nomeComunidade === false) { responderInscricao(false, 'Comunidade inválida.', [], 422); }
+        $visitanteAssistido = CadastroAssistidoRetiro::visitante((string) $nomeComunidade);
+        $camiseta = $respostasAssistidas['camiseta'];
+    }
+
     $camisetaAtiva = (int) ($evento["camiseta_ativa"] ?? 0) === 1;
     $tamanhosPermitidos = ["PP", "P", "M", "G", "GG", "XGG"];
 
-    if ($camisetaAtiva) {
-        if (!in_array($camiseta, $tamanhosPermitidos, true)) {
-            responderInscricao(false, "Selecione o tamanho da camiseta.", [], 422);
+    if (!$cadastroAssistido) {
+        if ($camisetaAtiva) {
+            if (!in_array($camiseta, $tamanhosPermitidos, true)) {
+                responderInscricao(false, "Selecione o tamanho da camiseta.", [], 422);
+            }
+        } else {
+            $camiseta = "";
         }
-    } else {
-        $camiseta = "";
     }
 
     $valor = valorDecimalInscricao($evento["valor_inscricao"] ?? 0);
 
     if ($valor <= 0) {
         $valor = valorDecimalInscricao($evento["valor"] ?? 0);
+    }
+
+    if ($cadastroAssistido) {
+        $valor = CadastroAssistidoRetiro::valor($evento, $visitanteAssistido);
     }
 
     $pagamentoObrigatorio = (int) (
@@ -210,6 +242,13 @@ try {
         "codigo_pagamento" => $inscricaoAtual["codigo_pagamento"] ?? null
     ];
 
+    if ($cadastroAssistido) {
+        $dados['sexo'] = $perfilInscricaoAssistida['genero'];
+        $dados['data_nascimento'] = $perfilInscricaoAssistida['data_nascimento'];
+        $dados['cidade'] = $perfilInscricaoAssistida['cidade'] ?? null;
+        $dados['estado'] = $perfilInscricaoAssistida['estado'] ?? null;
+    }
+
     $db->beginTransaction();
 
     try {
@@ -224,6 +263,9 @@ try {
             throw new RuntimeException("Não foi possível salvar a inscrição.");
         }
 
+        if ($cadastroAssistido) {
+            CadastroAssistidoRetiro::gravar($db, $idInscricao, $perfilInscricaoAssistida, $respostasAssistidas, $visitanteAssistido);
+        }
         $idPagamento = $pagamentoModel->criarParaInscricao($idInscricao);
 
         $db->commit();

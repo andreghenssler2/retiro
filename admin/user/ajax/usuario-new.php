@@ -3,14 +3,17 @@
 require_once "../../../config/settings.php";
 require_once "../../../mod/auth/Geral.php";
 
-Middleware::auth();
+Middleware::moderador();
+require_once __DIR__ . '/../../../mod/services/CadastroAssistidoRetiro.php';
+require_once __DIR__ . '/../../../mod/services/CadastroPublicoAdminService.php'; // RETIRO_CADASTRO_ADMIN_COMPLETO_V1
 
 header("Content-Type: application/json; charset=utf-8");
 
 function responderUsuario(
     bool $status,
     string $mensagem,
-    int $http = 200
+    int $http = 200,
+    array $extras = []
 ): never {
     http_response_code($http);
 
@@ -18,7 +21,7 @@ function responderUsuario(
         [
             "status" => $status,
             "msg" => $mensagem
-        ],
+        ] + $extras,
         JSON_UNESCAPED_UNICODE
         | JSON_UNESCAPED_SLASHES
     );
@@ -162,6 +165,15 @@ if ($id === 0 || $senhaFoiInformada) {
     }
 }
 
+$perfilAssistido = null;
+if ($id === 0 && $tipo === 3) {
+    try {
+        $perfilAssistido = CadastroAssistidoRetiro::perfil($_POST);
+    } catch (InvalidArgumentException $erroPerfil) {
+        responderUsuario(false, $erroPerfil->getMessage(), 422);
+    }
+}
+
 $dados = [
     "id" => $id,
     "nome" => $nome,
@@ -234,9 +246,21 @@ if (
 }
 
 try {
-    $ok = $id > 0
-        ? $usuario->editar($dados)
-        : $usuario->salvar($dados);
+    $novoIdAssistido = 0;
+    $inscricaoCompleta = 0;
+    $pagamentoCompleto = 0;
+    if ($id === 0 && $perfilAssistido !== null && (string) ($_POST['cadastro_completo_evento'] ?? '') === '1') {
+        $resultadoCompleto = CadastroPublicoAdminService::criar($db, $dados, $perfilAssistido, $_POST);
+        $novoIdAssistido = (int) $resultadoCompleto['idUsuario'];
+        $inscricaoCompleta = (int) $resultadoCompleto['idInscricao'];
+        $pagamentoCompleto = (int) ($resultadoCompleto['idPagamento'] ?? 0);
+        $ok = $novoIdAssistido > 0 && $inscricaoCompleta > 0;
+    } elseif ($id === 0 && $perfilAssistido !== null) {
+        $novoIdAssistido = $usuario->salvarComPerfilAssistido($dados, $perfilAssistido);
+        $ok = $novoIdAssistido > 0;
+    } else {
+        $ok = $id > 0 ? $usuario->editar($dados) : $usuario->salvar($dados);
+    }
 
     if (!$ok) {
         throw new RuntimeException("A gravação não foi concluída.");
@@ -273,8 +297,19 @@ try {
         true,
         $id > 0
             ? "Usuário atualizado com sucesso."
-            : "Usuário cadastrado com sucesso."
+            : ($inscricaoCompleta > 0 ? "Usuário, questionário e inscrição cadastrados com sucesso." : "Usuário cadastrado com sucesso."),
+        200,
+        ["idUsuario" => $novoIdAssistido,
+         "idInscricao" => $inscricaoCompleta,
+         "idPagamento" => $pagamentoCompleto,
+         "continuarQuestionario" => $inscricaoCompleta === 0 && $novoIdAssistido > 0 && $ativo === 1 && (string) ($_POST['continuar_questionario'] ?? '') === '1']
     );
+} catch (InvalidArgumentException $erro) {
+    if ($fotoNova !== '') {
+        $arquivoFoto = ROOT_PATH . '/uploads/usuarios/' . basename($fotoNova);
+        if (is_file($arquivoFoto)) { @unlink($arquivoFoto); }
+    }
+    responderUsuario(false, $erro->getMessage(), 422);
 } catch (PDOException $erro) {
     if ($fotoNova !== "") {
         $caminhoNovo = ROOT_PATH

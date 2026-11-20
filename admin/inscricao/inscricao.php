@@ -4,7 +4,14 @@ declare(strict_types=1);
 
 require_once "../../config/settings.php";
 
-Middleware::auth();
+Middleware::moderador();
+
+// Novo cadastro assistido em uma etapa própria; mantém o formulário manual original.
+if ((string) ($_GET['questionario'] ?? '') === '1' && (int) ($_GET['id'] ?? 0) === 0) {
+    define('RETIRO_CADASTRO_ASSISTIDO_VIEW', true);
+    require __DIR__ . '/partials/questionario-assistido.php';
+    exit;
+}
 
 $eventoModel = new Evento();
 $inscricaoModel = new Inscricao();

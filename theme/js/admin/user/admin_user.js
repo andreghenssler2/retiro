@@ -421,7 +421,11 @@ $(function () {
                         timer: 1800,
                         showConfirmButton: false
                     }).then(function () {
-                        window.location.href = $form.data("redirecionar-url") || "usuarios.php";
+                        if (resposta.continuarQuestionario === true && Number.isInteger(Number(resposta.idUsuario)) && Number(resposta.idUsuario) > 0) {
+                            window.location.href = "../inscricao/inscricao.php?questionario=1&usuario=" + encodeURIComponent(resposta.idUsuario);
+                        } else {
+                            window.location.href = $form.data("redirecionar-url") || "usuarios.php";
+                        }
                     });
                 })
                 .fail(function (xhr) {
@@ -448,5 +452,19 @@ $(function () {
     estado.emailValido = validarEmail($email.val());
     estado.emailLivre = true;
 
+    const perfilAssistido = document.getElementById('perfilAssistido');
+    if (perfilAssistido) {
+        const tipo = document.getElementById('tipo');
+        const atualizarPerfil = () => {
+            const participante = tipo.value === '3';
+            perfilAssistido.disabled = !participante;
+            perfilAssistido.hidden = !participante;
+            perfilAssistido.classList.toggle('d-none', !participante);
+            for (const campo of perfilAssistido.querySelectorAll('[data-perfil-obrigatorio]')) campo.required = participante;
+        };
+        tipo.addEventListener('change', atualizarPerfil); atualizarPerfil();
+        const cep = document.getElementById('cepAssistido');
+        cep.addEventListener('input', () => { const limpo = cep.value.replace(/\D/g,'').slice(0,8); cep.value = limpo.length > 5 ? limpo.slice(0,5)+'-'+limpo.slice(5) : limpo; });
+    }
     validarSenha();
 });

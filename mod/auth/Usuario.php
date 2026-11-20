@@ -453,6 +453,30 @@ class Usuario
     /**
      * Salva um usuário criado pelo painel administrativo.
      */
+    /** Novo participante pelo painel: dados do perfil e conta na mesma transação. */
+    public function salvarComPerfilAssistido(array $dados, array $perfil): int
+    {
+        if ((int) ($dados['tipo'] ?? 0) !== 3 || $this->db->inTransaction()) {
+            throw new LogicException('Cadastro assistido inválido.');
+        }
+        $this->db->beginTransaction();
+        try {
+            if (!$this->salvar($dados)) { throw new RuntimeException('Não foi possível cadastrar o participante.'); }
+            $id = (int) $this->db->lastInsertId();
+            if ($id <= 0) { throw new RuntimeException('Identificador do usuário inválido.'); }
+            $stmt = $this->db->prepare('UPDATE usuarios SET nacionalidade=:nacionalidade, data_nascimento=:data_nascimento, genero=:genero, pais=:pais, cep=:cep, complemento=:complemento WHERE id=:id');
+            $stmt->execute([
+                'nacionalidade'=>$perfil['nacionalidade'], 'data_nascimento'=>$perfil['data_nascimento'],
+                'genero'=>$perfil['genero'], 'pais'=>$perfil['pais'], 'cep'=>$perfil['cep'], 'complemento'=>$perfil['complemento'], 'id'=>$id
+            ]);
+            $this->db->commit();
+            return $id;
+        } catch (Throwable $erro) {
+            if ($this->db->inTransaction()) { $this->db->rollBack(); }
+            throw $erro;
+        }
+    }
+
     public function salvar(array $dados): bool
     {
         $sql = "
