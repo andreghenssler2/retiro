@@ -460,7 +460,10 @@ $(function () {
             perfilAssistido.disabled = !participante;
             perfilAssistido.hidden = !participante;
             perfilAssistido.classList.toggle('d-none', !participante);
-            for (const campo of perfilAssistido.querySelectorAll('[data-perfil-obrigatorio]')) campo.required = participante;
+            // Cadastro novo exige perfil completo; edicao de legado permite completar aos poucos.
+            for (const campo of perfilAssistido.querySelectorAll('[data-perfil-obrigatorio]')) {
+                campo.required = participante && !EDITANDO;
+            }
         };
         tipo.addEventListener('change', atualizarPerfil); atualizarPerfil();
         const cep = document.getElementById('cepAssistido');

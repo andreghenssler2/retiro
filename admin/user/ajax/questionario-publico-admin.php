@@ -6,12 +6,38 @@ Middleware::moderador();
 require_once dirname(__DIR__, 3) . '/mod/services/CadastroAssistidoRetiro.php';
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
+// RETIRO_ADMIN_EDICAO_COMPLETA_V1 — apenas Administrador pode ler respostas existentes.
 $id = filter_input(INPUT_GET, 'evento', FILTER_VALIDATE_INT) ?: 0;
+$idUsuarioEdicao = filter_input(INPUT_GET, 'usuario', FILTER_VALIDATE_INT) ?: 0;
+if ($idUsuarioEdicao > 0 && !Auth::isAdmin()) {
+    http_response_code(403); echo json_encode(['erro' => 'Sem permissao para editar respostas.']); exit;
+}
 if ($id <= 0) { http_response_code(422); echo json_encode(['erro'=>'Selecione o evento.']); exit; }
 try {
-    $ev = (new InscricaoPublicaService($db))->buscarEvento($id);
-    if ((int) ($ev['ativo'] ?? 0) !== 1) { throw new InvalidArgumentException('Evento inativo.'); }
     $svc = new InscricaoPublicaService($db);
+    $dadosEdicao = null;
+    $termosAceitos = [];
+    $autorizacaoRegistrada = false;
+    if ($idUsuarioEdicao > 0) {
+        $stmtEvento = $db->prepare('SELECT * FROM eventos WHERE idEvento = :id LIMIT 1');
+        $stmtEvento->execute([':id' => $id]);
+        $ev = $stmtEvento->fetch(PDO::FETCH_ASSOC);
+        if (!$ev) { throw new InvalidArgumentException('Evento nao encontrado.'); }
+        $stmt = $db->prepare('SELECT i.idInscricao, i.camiseta, i.observacoes, ida.* '
+            . 'FROM inscricoes i LEFT JOIN inscricao_dados_adicionais ida ON ida.idInscricao = i.idInscricao '
+            . 'WHERE i.idEvento = :evento AND i.idUsuario = :usuario ORDER BY i.idInscricao DESC LIMIT 1');
+        $stmt->execute([':evento' => $id, ':usuario' => $idUsuarioEdicao]);
+        $dadosEdicao = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$dadosEdicao) { throw new InvalidArgumentException('Inscricao deste usuario nao encontrada neste evento.'); }
+        $dadosEdicao['observacoes_questionario'] = $dadosEdicao['observacoes'] ?? '';
+        $autorizacaoRegistrada = trim((string)($dadosEdicao['responsavel_autorizacao_aceita_em'] ?? '')) !== '';
+        $stmtTermos = $db->prepare('SELECT idTermo FROM inscricao_termos_aceites WHERE idInscricao = :id');
+        $stmtTermos->execute([':id' => (int) $dadosEdicao['idInscricao']]);
+        $termosAceitos = $stmtTermos->fetchAll(PDO::FETCH_COLUMN);
+    } else {
+        $ev = $svc->buscarEvento($id);
+        if ((int) ($ev['ativo'] ?? 0) !== 1) { throw new InvalidArgumentException('Evento inativo.'); }
+    }
     $terms = $svc->termos($id);
     $shirts = $svc->camisetas($id);
     $h = static fn(mixed $v):string => htmlspecialchars((string) $v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -27,6 +53,7 @@ try {
             <div class="col-md-6"><label class="form-label">Telefone / WhatsApp 2 (opcional)<input name="responsavel_telefone_2" class="form-control" maxlength="20" inputmode="tel"></label></div>
         </div>
         <p class="small mt-3" style="white-space:pre-wrap"><?= $h(InscricaoPublicaService::textoAutorizacaoMenor($ev)) ?></p>
+        <p id="avisoAutorizacaoExistente" class="small text-success mt-2" hidden>Autorização registrada anteriormente; o aceite original será preservado. Não marque novamente se não houve nova declaração.</p>
         <label class="form-check"><input class="form-check-input" type="checkbox" name="responsavel_autorizacao" value="1" data-obrigatorio-menor> O responsável declarou expressamente esta autorização à equipe. Este registro não equivale a assinatura eletrônica do responsável.</label>
     </div>
     <h6 class="fw-bold">Saúde e acessibilidade</h6>
@@ -54,7 +81,8 @@ try {
     <label class="form-label mt-2">Observações adicionais (opcional)</label><textarea class="form-control" rows="2" maxlength="1000" name="observacoes_questionario"></textarea>
     <?php
     $html = ob_get_clean();
-    echo json_encode(['html'=>$html,'dataInicio'=>substr((string)($ev['data_inicio']??''),0,10)], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+    echo json_encode(['html'=>$html,'dataInicio'=>substr((string)($ev['data_inicio']??''),0,10),
+        'respostas'=>$dadosEdicao,'termosAceitos'=>$termosAceitos,'autorizacaoJaRegistrada'=>$autorizacaoRegistrada], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
 } catch (Throwable $e) {
     http_response_code(422);
     echo json_encode(['erro'=>$e instanceof InvalidArgumentException ? $e->getMessage() : 'Não foi possível carregar o questionário.'], JSON_UNESCAPED_UNICODE);

@@ -8,6 +8,8 @@
     const evento = document.getElementById('eventoQuestionario');
     const area = document.getElementById('camposQuestionarioPublico');
     const nascimento = document.getElementById('nascimentoAssistido');
+    const editando = box.dataset.edicao === '1';
+    const idUsuario = editando ? (Number.parseInt(String(typeof ID_USUARIO !== 'undefined' ? ID_USUARIO : 0), 10) || 0) : 0;
     let seq = 0, dataInicio = '';
     const exibirMenor = () => {
         const resp = document.getElementById('responsavelQuestionarioCompleto');
@@ -20,7 +22,7 @@
         resp.hidden = !menor;
         resp.querySelectorAll('input').forEach(el => {
             el.disabled = !menor;
-            if (el.hasAttribute('data-obrigatorio-menor')) el.required = menor;
+            if (el.hasAttribute('data-obrigatorio-menor')) el.required = menor && !editando;
         });
     };
     const atualizar = async () => {
@@ -37,12 +39,29 @@
         area.hidden = false;
         area.innerHTML = '<p class="text-muted">Carregando perguntas do evento...</p>';
         try {
-            const r = await fetch('ajax/questionario-publico-admin.php?evento=' + encodeURIComponent(evento.value), {credentials:'same-origin',headers:{Accept:'application/json'}});
+            const r = await fetch('ajax/questionario-publico-admin.php?evento=' + encodeURIComponent(evento.value) + (editando ? '&usuario=' + encodeURIComponent(idUsuario) : ''), {credentials:'same-origin',headers:{Accept:'application/json'}});
             const dados = await r.json();
             if (atual !== seq) return;
             if (!r.ok || !dados.html) throw new Error(dados.erro || 'Falha ao carregar questionário.');
             area.innerHTML = dados.html;
             dataInicio = dados.dataInicio;
+            if (editando && dados.respostas) {
+                for (const el of area.querySelectorAll('input[name],select[name],textarea[name]')) {
+                    if (el.type === 'checkbox') continue;
+                    const valor = dados.respostas[el.name];
+                    if (valor !== undefined && valor !== null) el.value = String(valor);
+                }
+                const aceitos = new Set((dados.termosAceitos || []).map(String));
+                area.querySelectorAll('input[name="termos[]"]').forEach(el => {
+                    el.checked = aceitos.has(String(el.value));
+                    if (el.checked) el.title = 'Aceite ja registrado no historico; sera preservado.';
+                    if (el.required && el.checked) el.setCustomValidity('');
+                });
+                const informacao = document.getElementById('avisoAutorizacaoExistente');
+                if (informacao && dados.autorizacaoJaRegistrada) {
+                    informacao.hidden = false;
+                }
+            }
             area.querySelectorAll('[data-questionario-detalhe]').forEach(sel => {
                 const det = area.querySelector('[name="' + sel.dataset.questionarioDetalhe + '"]');
                 if (!det) return;

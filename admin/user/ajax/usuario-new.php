@@ -6,6 +6,7 @@ require_once "../../../mod/auth/Geral.php";
 Middleware::moderador();
 require_once __DIR__ . '/../../../mod/services/CadastroAssistidoRetiro.php';
 require_once __DIR__ . '/../../../mod/services/CadastroPublicoAdminService.php'; // RETIRO_CADASTRO_ADMIN_COMPLETO_V1
+require_once __DIR__ . '/../../../mod/services/CadastroAdminEdicaoService.php'; // RETIRO_ADMIN_EDICAO_COMPLETA_V1
 
 header("Content-Type: application/json; charset=utf-8");
 
@@ -259,7 +260,27 @@ try {
         $novoIdAssistido = $usuario->salvarComPerfilAssistido($dados, $perfilAssistido);
         $ok = $novoIdAssistido > 0;
     } else {
-        $ok = $id > 0 ? $usuario->editar($dados) : $usuario->salvar($dados);
+        if ($id > 0 && Auth::isAdmin() && $tipo === 3) {
+            // Usuario::editar usa Database::connect(); todas as edicoes devem
+            // usar a MESMA conexao para rollback completo em caso de falha.
+            $dbEdicao = Database::connect();
+            if ($dbEdicao->inTransaction()) {
+                throw new LogicException('Transacao administrativa ja iniciada.');
+            }
+            $dbEdicao->beginTransaction();
+            try {
+                $ok = $usuario->editar($dados);
+                if (!$ok) { throw new RuntimeException('Falha ao editar usuario.'); }
+                CadastroAdminEdicaoService::atualizarPerfil($dbEdicao, $id, $_POST);
+                CadastroAdminEdicaoService::atualizarQuestionario($dbEdicao, $id, $_POST);
+                $dbEdicao->commit();
+            } catch (Throwable $erroEdicao) {
+                if ($dbEdicao->inTransaction()) { $dbEdicao->rollBack(); }
+                throw $erroEdicao;
+            }
+        } else {
+            $ok = $id > 0 ? $usuario->editar($dados) : $usuario->salvar($dados);
+        }
     }
 
     if (!$ok) {

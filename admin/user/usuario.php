@@ -2,6 +2,7 @@
 
 require_once "../../config/settings.php";
 require_once "../../mod/auth/Geral.php";
+require_once "../../mod/services/CadastroAssistidoRetiro.php";
 
 Middleware::moderador();
 
@@ -81,10 +82,22 @@ try {
     $comunidades = [];
 }
 
+// RETIRO_ADMIN_EDICAO_COMPLETA_V1 — inclusive inscrições históricas do usuário.
 $eventosCadastroCompleto = [];
-if (!$editando) {
-    try { $eventosCadastroCompleto = (new Evento())->listarAtivos(); }
-    catch (Throwable $erroEvento) { error_log('Erro ao listar eventos para cadastro completo: ' . $erroEvento->getMessage()); }
+try {
+    if (!$editando) {
+        $eventosCadastroCompleto = (new Evento())->listarAtivos();
+    } elseif (Auth::isAdmin() && (int) ($dados['tipo'] ?? 0) === 3) {
+        $stmtEventosEdit = Database::connect()->prepare(
+            'SELECT DISTINCT e.idEvento, e.titulo, e.data_inicio, e.ativo FROM inscricoes i '
+            . 'INNER JOIN eventos e ON e.idEvento = i.idEvento '
+            . 'WHERE i.idUsuario = :usuario ORDER BY e.data_inicio DESC, e.titulo'
+        );
+        $stmtEventosEdit->execute([':usuario' => (int) $dados['id']]);
+        $eventosCadastroCompleto = $stmtEventosEdit->fetchAll(PDO::FETCH_ASSOC);
+    }
+} catch (Throwable $erroEvento) {
+    error_log('Erro ao listar eventos do questionario administrativo: ' . $erroEvento->getMessage());
 }
 
 // RETIRO_CADASTRO_PUBLICO_ADMIN_20261120 - formulário único
@@ -317,18 +330,18 @@ require_once "../includes/sidebar.php";
 
                     </div>
 
-                    <?php if (!$editando): ?>
+                    <?php if (!$editando || Auth::isAdmin()): ?>
                     <fieldset id="perfilAssistido" class="card shadow-sm border-0 mb-4">
                         <div class="card-header bg-white"><h5 class="mb-0">Dados complementares do participante</h5></div>
                         <div class="card-body">
                             <p class="text-muted small">Mesmos dados de identificação utilizados na inscrição pública. O cadastro administrativo não confirma o e-mail em nome do participante.</p>
                             <div class="row g-3">
-                                <div class="col-md-4"><label class="form-label" for="nacionalidadeAssistida">Nacionalidade</label><input class="form-control" id="nacionalidadeAssistida" name="nacionalidade" value="Brasileira" maxlength="80" data-perfil-obrigatorio required></div>
-                                <div class="col-md-4"><label class="form-label" for="nascimentoAssistido">Data de nascimento</label><input type="date" class="form-control" id="nascimentoAssistido" name="data_nascimento" min="1900-01-01" max="<?= date('Y-m-d') ?>" data-perfil-obrigatorio required></div>
-                                <div class="col-md-4"><label class="form-label" for="generoAssistido">Gênero</label><select class="form-select" id="generoAssistido" name="genero" data-perfil-obrigatorio required><option value="">Selecione</option><option>Masculino</option><option>Feminino</option><option>Outro</option><option>Prefiro não informar</option></select></div>
+                                <div class="col-md-4"><label class="form-label" for="nacionalidadeAssistida">Nacionalidade</label><input class="form-control" id="nacionalidadeAssistida" name="nacionalidade" value="<?= $esc($dados['nacionalidade'] ?? 'Brasileira') ?>" maxlength="80" data-perfil-obrigatorio <?= $editando ? '' : 'required' ?>></div>
+                                <div class="col-md-4"><label class="form-label" for="nascimentoAssistido">Data de nascimento</label><input type="date" class="form-control" id="nascimentoAssistido" name="data_nascimento" min="1900-01-01" max="<?= date('Y-m-d') ?>" value="<?= $esc(substr((string)($dados['data_nascimento'] ?? ''), 0, 10)) ?>" data-perfil-obrigatorio <?= $editando ? '' : 'required' ?>></div>
+                                <div class="col-md-4"><label class="form-label" for="generoAssistido">Gênero</label><select class="form-select" id="generoAssistido" name="genero" data-perfil-obrigatorio <?= $editando ? '' : 'required' ?>><option value="">Selecione</option><?php foreach (CadastroAssistidoRetiro::GENEROS as $genAssist): ?><option value="<?= $esc($genAssist) ?>" <?= (string)($dados['genero'] ?? '') === $genAssist ? 'selected' : '' ?>><?= $esc($genAssist) ?></option><?php endforeach; ?></select></div>
                                 <div class="col-md-4"><label class="form-label" for="paisAssistido">País</label><input class="form-control" id="paisAssistido" name="pais" value="Brasil" readonly></div>
-                                <div class="col-md-4"><label class="form-label" for="cepAssistido">CEP</label><input class="form-control" id="cepAssistido" name="cep" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000" pattern="[0-9]{5}-?[0-9]{3}" maxlength="9" data-perfil-obrigatorio required></div>
-                                <div class="col-md-4"><label class="form-label" for="complementoAssistido">Complemento (opcional)</label><input class="form-control" id="complementoAssistido" name="complemento" maxlength="120" autocomplete="address-line2"></div>
+                                <div class="col-md-4"><label class="form-label" for="cepAssistido">CEP</label><input class="form-control" id="cepAssistido" name="cep" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000" pattern="[0-9]{5}-?[0-9]{3}" maxlength="9" value="<?= $esc($dados['cep'] ?? '') ?>" data-perfil-obrigatorio <?= $editando ? '' : 'required' ?>></div>
+                                <div class="col-md-4"><label class="form-label" for="complementoAssistido">Complemento (opcional)</label><input class="form-control" id="complementoAssistido" name="complemento" maxlength="120" autocomplete="address-line2" value="<?= $esc($dados['complemento'] ?? '') ?>"></div>
                             </div>
                             <p class="small text-muted mt-3 mb-0">Responda às perguntas públicas do evento mais abaixo, nesta mesma tela. A escolha do pagamento não faz parte do cadastro administrativo.</p>
                         </div>
@@ -611,24 +624,25 @@ require_once "../includes/sidebar.php";
 
                     </div>
 
-                    <?php if (!$editando): ?>
-                    <fieldset id="questionarioCompletoAdmin" class="card shadow-sm border-0 mb-4" hidden>
+                    <?php if (!$editando || Auth::isAdmin()): ?>
+                    <fieldset id="questionarioCompletoAdmin" class="card shadow-sm border-0 mb-4" data-edicao="<?= $editando ? '1' : '0' ?>" hidden>
                         <div class="card-header bg-white"><h5 class="mb-0"><i class="fa fa-clipboard-list text-primary me-1"></i>Questionário completo — mesmas perguntas da inscrição pública</h5></div>
                         <div class="card-body">
                             <p class="text-muted">Os dados pessoais, endereço e comunidade já foram preenchidos acima. Escolha o evento para informar saúde, acessibilidade, responsável legal, camiseta e termos. <strong>Não há escolha de meio de pagamento.</strong></p>
                             <div class="form-check mb-3">
-                                <input class="form-check-input" type="checkbox" name="cadastro_completo_evento" id="cadastrarEventoQuestionario" value="1" checked>
-                                <label class="form-check-label fw-semibold" for="cadastrarEventoQuestionario">Cadastrar participante e realizar inscrição com o questionário completo</label>
+                                <input class="form-check-input" type="checkbox" name="cadastro_completo_evento" id="cadastrarEventoQuestionario" value="1" <?= $editando ? '' : 'checked' ?> <?= $editando && !$eventosCadastroCompleto ? 'disabled' : '' ?>>
+                                <label class="form-check-label fw-semibold" for="cadastrarEventoQuestionario"><?= $editando ? 'Editar respostas de uma inscrição existente' : 'Cadastrar participante e realizar inscrição com o questionário completo' ?></label>
                             </div>
                             <div class="mb-3"><label class="form-label fw-semibold" for="eventoQuestionario">Evento da inscrição</label>
                                 <select id="eventoQuestionario" name="evento_questionario" class="form-select" required>
                                     <option value="">Selecione o evento</option>
                                     <?php foreach ($eventosCadastroCompleto as $evQuest): ?>
-                                        <option value="<?= (int) $evQuest['idEvento'] ?>"><?= $esc($evQuest['titulo'] ?? 'Evento') ?> — <?= $esc($evQuest['data_inicio'] ?? '') ?></option>
+                                        <option value="<?= (int) $evQuest['idEvento'] ?>"><?= $esc($evQuest['titulo'] ?? 'Evento') ?> — <?= $esc($evQuest['data_inicio'] ?? '') ?><?= $editando && (int)($evQuest['ativo'] ?? 1) === 0 ? ' (inativo)' : '' ?></option>
                                     <?php endforeach; ?>
                                 </select>
-                                <p class="form-text">Para salvar somente o cadastro pessoal, desmarque a opção acima. As respostas específicas do evento são gravadas somente quando há inscrição.</p>
+                                <p class="form-text"><?= $editando ? 'O sistema exibirá apenas eventos em que esta pessoa está inscrita. Selecione a opção acima somente quando quiser alterar respostas desse evento. Aceites anteriores serão preservados.' : 'Para salvar somente o cadastro pessoal, desmarque a opção acima. As respostas específicas do evento são gravadas somente quando há inscrição.' ?></p>
                             </div>
+                            <?php if ($editando && !$eventosCadastroCompleto): ?><div class="alert alert-info">Este participante não tem inscrição em evento. Os dados pessoais podem ser alterados normalmente; para responder ao questionário, primeiro vincule uma inscrição pelo módulo de inscrições.</div><?php endif; ?>
                             <div id="camposQuestionarioPublico" aria-live="polite"></div>
                         </div>
                     </fieldset>
@@ -670,5 +684,5 @@ require_once "../includes/sidebar.php";
 </script>
 
 <script src="<?= THEME_JS; ?>script.js"></script>
-<script src="<?= THEME_JS; ?>admin/user/admin_user.js?v=cadastro-assistido-1"></script>
-<script src="<?= THEME_JS; ?>admin/user/questionario_completo_admin.js?v=20261120"></script>
+<script src="<?= THEME_JS; ?>admin/user/admin_user.js?v=cadastro-assistido-1-edicao-20261120"></script>
+<script src="<?= THEME_JS; ?>admin/user/questionario_completo_admin.js?v=20261120-edicao1"></script>
